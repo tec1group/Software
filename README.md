@@ -1,14 +1,17 @@
 # The TEC-1 Software Repository
+
 A repository for programs written for the TEC-1 and links to other TEC-1 software projects
 
 ### Getting started (draft, copied from a Facebook comment)
-The best place to start is to read the original magazine articles that accompanied the kit in 1983. Talking Electronics was a magazine which Ken Stone and John Hardy designed the TEC-1 for publication in, the coverage starts in volume 10 and has stuff about the TEC for 6 issues. 
-* http://www.talkingelectronics.com/TE-1-15.../TE-Issue10.pdf 
-* http://www.talkingelectronics.com/TE-1-15.../TE-Issue11.pdf 
-* http://www.talkingelectronics.com/TE-1-15.../TE-Issue12.pdf 
-* http://www.talkingelectronics.com/TE-1-15.../TE-Issue13.pdf 
-* http://www.talkingelectronics.com/TE-1-15.../TE-Issue14.pdf 
-* http://www.talkingelectronics.com/TE-1-15.../TE-Issue15.pdf
+
+The best place to start is to read the original magazine articles that accompanied the kit in 1983. Talking Electronics was a magazine which Ken Stone and John Hardy designed the TEC-1 for publication in, the coverage starts in volume 10 and has stuff about the TEC for 6 issues.
+
+- http://www.talkingelectronics.com/TE-1-15.../TE-Issue10.pdf
+- http://www.talkingelectronics.com/TE-1-15.../TE-Issue11.pdf
+- http://www.talkingelectronics.com/TE-1-15.../TE-Issue12.pdf
+- http://www.talkingelectronics.com/TE-1-15.../TE-Issue13.pdf
+- http://www.talkingelectronics.com/TE-1-15.../TE-Issue14.pdf
+- http://www.talkingelectronics.com/TE-1-15.../TE-Issue15.pdf
 
 After that you should sharpen your Z80 skills. Zaks has been already mentioned. There are plenty of good books that are available for free online although a physical paper book is still better to read. Here is the book I learned on https://archive.org/.../The_Z80_microcomputer_handbook...? (need more on books and resources)
 
@@ -22,6 +25,9 @@ You need an actual TEC-1 kit running a monitor program. There are a few versions
 
 You can get the source for those here although you should also be able to source a programmed EPROM. https://github.com/jhlagado/TEC-1
 
-You can also test drive a working simulation of the TEC-1 online here. This will enable you to try programming the TEC-1 without actually having one. You can also try the different ROMs. 
+You can also test drive a working simulation of the TEC-1 online here. This will enable you to try programming the TEC-1 without actually having one. You can also try the different ROMs.
 https://jhlagado.github.io/wicked-tec1/
 
+# License
+
+Folders in this repository may contain the author's software license, please read that to follow the correct license for that code. Folders which don't have an explicit license file are by default licensed under the [MIT License](./misc/LICENSE) which allows commerical reuse.

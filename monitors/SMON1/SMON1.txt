@@ -1,0 +1,18 @@
+SMON1 ROM
+By Scott Gregory
+
+SMON1 Special Keys
+------------------
+SHIFT-+ - Insert a byte at the current address.
+SHIFT-- - Delete a byte at the current address.
+
+SMON1 Default Configurables
+---------------------------
+STACKBASE = $08C0 - Stack position.
+ROMBASE = $0000 - Start of ROM.
+RAMBASE = $0900 - Start of user RAM.
+RAMTOP = $17FF - End of user RAM.
+CATHDLY = $20 - Digit display delay.
+KEYPORT = $00 - Keypad port.
+CATHPORT = $01 - Display catchode port.
+SEGPORT = $02 - Display segment port.
