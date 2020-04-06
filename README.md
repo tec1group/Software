@@ -30,4 +30,4 @@ https://jhlagado.github.io/wicked-tec1/
 
 # License
 
-Folders in this repository may contain the author's software license, please read that to follow the correct license for that code. Folders which don't have an explicit license file are by default licensed under the [MIT License](./misc/LICENSE) which allows commerical reuse.
+Folders in this repository may contain the author's software license, please read that to follow the correct license for that code. Folders which don't have an explicit license file are by default licensed under the [GNU Public License v3](./misc/LICENSE) which allows commerical reuse.
