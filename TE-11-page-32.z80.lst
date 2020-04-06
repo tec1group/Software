@@ -1,0 +1,21 @@
+0800                          .ORG   $800   
+0800   3E 01                  LD   A,01   
+0802   D3 03                  OUT   (3),A   
+0804   3E 01                  LD   A,01   
+0806   D3 04                  OUT   (4),A   
+0808   CD 00 0A               CALL   $A00   
+080B   3E 00                  LD   A,00   
+080D   D3 03                  OUT   (3),A   
+080F   3E 00                  LD   A,00   
+0811   D3 04                  OUT   (4),A   
+0813   CD 00 0A               CALL   $A00   
+0816   C3 00 08               JP   $800   
+0A00                          .ORG   $A00   
+0A00   11 FF FF               LD   DE,65535   
+0A03   1B                     DEC   DE   
+0A04   7B                     LD   A,E   
+0A05   B2                     OR   D   
+0A06   C2 03 0A               JP   NZ,$A03   
+0A09   C9                     RET      
+
+

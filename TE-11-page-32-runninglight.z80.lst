@@ -1,0 +1,60 @@
+0800                          .ORG   $800   
+0800                             ;first row
+0800   3E 01                  LD   A,$01   
+0802   D3 03                  OUT   (3),A   
+0804   0E 08                  LD   C,$08   
+0806   3E 01                  LD   A,$01   
+0808   D3 04                  OUT   (4),A   
+080A   47                     LD   B,A   
+080B   CD 00 0A               CALL   $A00   
+080E   78                     LD   A,B   
+080F   CB 07                  RLC   A   
+0811   0D                     DEC   C   
+0812   C2 08 08               JP   NZ,$808   
+0815                             ;second row
+0815   3E 80                  LD   A,$80   
+0817   D3 04                  OUT   (4),A   
+0819   0E 07                  LD   C,$07   
+081B   3E 02                  LD   A,$02   
+081D   D3 03                  OUT   (3),A   
+081F   47                     LD   B,A   
+0820   CD 00 0A               CALL   $A00   
+0823   78                     LD   A,B   
+0824   CB 07                  RLC   A   
+0826   0D                     DEC   C   
+0827   C2 1D 08               JP   NZ,$81D   
+082A                             ;third row
+082A   3E 80                  LD   A,$80   
+082C   D3 03                  OUT   (3),A   
+082E   0E 07                  LD   C,$07   
+0830   3E 40                  LD   A,$40   
+0832   D3 04                  OUT   (4),A   
+0834   47                     LD   B,A   
+0835   CD 00 0A               CALL   $A00   
+0838   78                     LD   A,B   
+0839   CB 0F                  RRC   A   
+083B   0D                     DEC   C   
+083C   C2 32 08               JP   NZ,$832   
+083F                             ;fourth row
+083F   3E 01                  LD   A,$01   
+0841   D3 04                  OUT   (4),A   
+0843   0E 07                  LD   C,$07   
+0845   3E 40                  LD   A,$40   
+0847   D3 03                  OUT   (3),A   
+0849   47                     LD   B,A   
+084A   CD 00 0A               CALL   $A00   
+084D   78                     LD   A,B   
+084E   CB 0F                  RRC   A   
+0850   0D                     DEC   C   
+0851   C2 47 08               JP   NZ,$847   
+0854   C3 00 08               JP   $800   
+0857                             ;delay routine
+0A00                          .ORG   $A00   
+0A00   11 FF FF               LD   DE,65535   
+0A03   1B                     DEC   DE   
+0A04   7B                     LD   A,E   
+0A05   B2                     OR   D   
+0A06   C2 03 0A               JP   NZ,$A03   
+0A09   C9                     RET      
+
+
