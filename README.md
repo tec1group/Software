@@ -26,7 +26,7 @@ You need an actual TEC-1 kit running a monitor program. There are a few versions
 You can get the source for those here although you should also be able to source a programmed EPROM. https://github.com/TEC-1-Z80-Computer-Group/TEC-1
 
 You can also test drive a working simulation of the TEC-1 online here. This will enable you to try programming the TEC-1 without actually having one. You can also try the different ROMs.
-https://github.com/TEC-1-Z80-Computer-Group/TEC-1/wicked-tec1/
+https://github.com/TEC-1-Z80-Computer-Group/wicked-tec1
 
 # License
 
