@@ -1,0 +1,678 @@
+0000                             ; ######################
+0000                             ; #                    #
+0000                             ; # SMON1 Version 1.00 #
+0000                             ; # with MOD01-RAMTest #
+0000                             ; # by Scott Gregory   #
+0000                             ; # 06/04/2020         #
+0000                             ; #                    #
+0000                             ; ######################
+0000                             ; 
+0000                          .CPU   Z80   
+0000                          .BINFROM   $0000   
+0000                          .BINTO   $0800   
+0000                             ; 
+0000                STACKBASE:   EQU   $08C0   ; Stack position.
+0000                ROMBASE:   EQU   $0000   ; Start of ROM.
+0000                RAMBASE:   EQU   $0900   ; Start of user RAM.
+0000                RAMTOP:   EQU   $17FF   ; End of user RAM.
+0000                CATHDLY:   EQU   $20   ; Digit display delay.
+0000                KEYPORT:   EQU   $00   ; Keypad port.
+0000                CATHPORT:   EQU   $01   ; Display catchode port.
+0000                SEGPORT:   EQU   $02   ; Display segment port.
+0000                             ; 
+0000                ADDRESS:   EQU   $08C1   
+0000                DATA:     EQU   $08C3   
+0000                SCRATCH:   EQU   $08C5   
+0000                MODE:     EQU   $08C7   
+0000                KEYDATA:   EQU   $08C9   
+0000                             ; 
+0000                             ; Begin MOD-01 assignments.
+0000                M01START:   EQU   $08F0   
+0000                M01FINISH:   EQU   $08F2   
+0000                M01PATTERN:   EQU   $08F4   
+0000                             ; End MOD-01 assignments.
+0000                             ; 
+0000                          .ORG   $0000   
+0000   C3 E8 02     RESET_00:   JP   SETUP   
+0003                             ; 
+0008                          .ORG   $0008   
+0008   C3 E8 02     RESET_08:   JP   SETUP   
+000B                             ; 
+0010                          .ORG   $0010   
+0010   C3 E8 02     RESET_10:   JP   SETUP   
+0013                             ; 
+0018                          .ORG   $0018   
+0018   C3 E8 02     RESET_18:   JP   SETUP   
+001B                             ; 
+0020                          .ORG   $0020   
+0020   C3 E8 02     RESET_20:   JP   SETUP   
+0023                             ; 
+0028                          .ORG   $0028   
+0028   C3 E8 02     RESET_28:   JP   SETUP   
+002B                             ; 
+0030                          .ORG   $0030   
+0030   C3 E8 02     RESET_30:   JP   SETUP   
+0033                             ; 
+0038                          .ORG   $0038   
+0038   C3 E8 02     RESET_38:   JP   SETUP   
+003B                             ; 
+0040                          .ORG   $0040   
+0040   53 4D 4F 4E 20 56 31 2E VERSION:   DB   $53,$4D,$4F,$4E,$20,$56,$31,$2E   
+0048   30 30 20 62 79 20 53 63 DB   $30,$30,$20,$62,$79,$20,$53,$63   
+0050   6F 74 74 20 47 72 65 67 DB   $6F,$74,$74,$20,$47,$72,$65,$67   
+0058   6F 72 79               DB   $6F,$72,$79   
+005B                             ; 
+0066                          .ORG   $0066   
+0066   F5           NMISERVICE:   PUSH   af   ; Keyboard service routine.
+0067   DB 00                  IN   a,(KEYPORT)   
+0069   32 C9 08               LD   (KEYDATA),a   
+006C   F1                     POP   af   
+006D   ED 45                  RETN      
+006F                             ; 
+0080                          .ORG   $0080   
+0080   AF           DISPLAY:   XOR   a   ; Display update routine.
+0081   D3 01                  OUT   (CATHPORT),a   
+0083   D3 02                  OUT   (SEGPORT),a   
+0085   4F                     LD   c,a   
+0086   CB E9                  SET   5,c   
+0088   ED 5B C1 08            LD   de,(ADDRESS)   
+008C   7A                     LD   a,d   
+008D   32 C5 08               LD   (SCRATCH),a   
+0090   AF                     XOR   a   
+0091   21 C5 08               LD   hl,SCRATCH   
+0094   ED 6F                  RLD      
+0096   DD 21 03 03            LD   ix,HEX2SEG   
+009A   16 00                  LD   d,$00   
+009C   5F                     LD   e,a   
+009D   DD 19                  ADD   ix,de   
+009F   DD 7E 00               LD   a,(ix)   
+00A2   E5                     PUSH   hl   
+00A3   21 C7 08               LD   hl,MODE   
+00A6   CB 46                  BIT   0,(hl)   
+00A8   CA AD 00               JP   z,DISL00   
+00AB   F6 10                  OR   $10   
+00AD   E1           DISL00:   POP   hl   
+00AE   D3 02                  OUT   (SEGPORT),a   
+00B0   79                     LD   a,c   
+00B1   D3 01                  OUT   (CATHPORT),a   
+00B3   06 20                  LD   b,CATHDLY   
+00B5   10 FE        DISL01:   DJNZ   DISL01   
+00B7   AF                     XOR   a   
+00B8   D3 01                  OUT   (CATHPORT),a   
+00BA   D3 02                  OUT   (SEGPORT),a   
+00BC   CB 19                  RR   c   
+00BE   ED 6F                  RLD      
+00C0   DD 21 03 03            LD   ix,HEX2SEG   
+00C4   16 00                  LD   d,$00   
+00C6   5F                     LD   e,a   
+00C7   DD 19                  ADD   ix,de   
+00C9   DD 7E 00               LD   a,(ix)   
+00CC   E5                     PUSH   hl   
+00CD   21 C7 08               LD   hl,MODE   
+00D0   CB 46                  BIT   0,(hl)   
+00D2   CA D7 00               JP   z,DISL02   
+00D5   F6 10                  OR   $10   
+00D7   E1           DISL02:   POP   hl   
+00D8   D3 02                  OUT   (SEGPORT),a   
+00DA   79                     LD   a,c   
+00DB   D3 01                  OUT   (CATHPORT),a   
+00DD   06 20                  LD   b,CATHDLY   
+00DF   10 FE        DISL03:   DJNZ   DISL03   
+00E1   AF                     XOR   a   
+00E2   D3 01                  OUT   (CATHPORT),a   
+00E4   D3 02                  OUT   (SEGPORT),a   
+00E6   CB 19                  RR   c   
+00E8   ED 5B C1 08            LD   de,(ADDRESS)   
+00EC   7B                     LD   a,e   
+00ED   32 C5 08               LD   (SCRATCH),a   
+00F0   AF                     XOR   a   
+00F1   21 C5 08               LD   hl,SCRATCH   
+00F4   ED 6F                  RLD      
+00F6   DD 21 03 03            LD   ix,HEX2SEG   
+00FA   16 00                  LD   d,$00   
+00FC   5F                     LD   e,a   
+00FD   DD 19                  ADD   ix,de   
+00FF   DD 7E 00               LD   a,(ix)   
+0102   E5                     PUSH   hl   
+0103   21 C7 08               LD   hl,MODE   
+0106   CB 46                  BIT   0,(hl)   
+0108   CA 0D 01               JP   z,DISL04   
+010B   F6 10                  OR   $10   
+010D   E1           DISL04:   POP   hl   
+010E   D3 02                  OUT   (SEGPORT),a   
+0110   79                     LD   a,c   
+0111   D3 01                  OUT   (CATHPORT),a   
+0113   06 20                  LD   b,CATHDLY   
+0115   10 FE        DISL05:   DJNZ   DISL05   
+0117   AF                     XOR   a   
+0118   D3 01                  OUT   (CATHPORT),a   
+011A   D3 02                  OUT   (SEGPORT),a   
+011C   CB 19                  RR   c   
+011E   ED 6F                  RLD      
+0120   DD 21 03 03            LD   ix,HEX2SEG   
+0124   16 00                  LD   d,$00   
+0126   5F                     LD   e,a   
+0127   DD 19                  ADD   ix,de   
+0129   DD 7E 00               LD   a,(ix)   
+012C   E5                     PUSH   hl   
+012D   21 C7 08               LD   hl,MODE   
+0130   CB 46                  BIT   0,(hl)   
+0132   CA 37 01               JP   z,DISL06   
+0135   F6 10                  OR   $10   
+0137   E1           DISL06:   POP   hl   
+0138   D3 02                  OUT   (SEGPORT),a   
+013A   79                     LD   a,c   
+013B   D3 01                  OUT   (CATHPORT),a   
+013D   06 20                  LD   b,CATHDLY   
+013F   10 FE        DISL07:   DJNZ   DISL07   
+0141   AF                     XOR   a   
+0142   D3 02                  OUT   (SEGPORT),a   
+0144   D3 01                  OUT   (CATHPORT),a   
+0146   CB 19                  RR   c   
+0148   2A C1 08               LD   hl,(ADDRESS)   
+014B   7E                     LD   a,(hl)   
+014C   32 C5 08               LD   (SCRATCH),a   
+014F   AF                     XOR   a   
+0150   21 C5 08               LD   hl,SCRATCH   
+0153   ED 6F                  RLD      
+0155   DD 21 03 03            LD   ix,HEX2SEG   
+0159   16 00                  LD   d,$00   
+015B   5F                     LD   e,a   
+015C   DD 19                  ADD   ix,de   
+015E   DD 7E 00               LD   a,(ix)   
+0161   E5                     PUSH   hl   
+0162   21 C7 08               LD   hl,MODE   
+0165   CB 46                  BIT   0,(hl)   
+0167   C2 6C 01               JP   nz,DISL08   
+016A   F6 10                  OR   $10   
+016C   E1           DISL08:   POP   hl   
+016D   D3 02                  OUT   (SEGPORT),a   
+016F   79                     LD   a,c   
+0170   D3 01                  OUT   (CATHPORT),a   
+0172   06 20                  LD   b,CATHDLY   
+0174   10 FE        DISL09:   DJNZ   DISL09   
+0176   AF                     XOR   a   
+0177   D3 02                  OUT   (SEGPORT),a   
+0179   D3 01                  OUT   (CATHPORT),a   
+017B   CB 19                  RR   c   
+017D   ED 6F                  RLD      
+017F   DD 21 03 03            LD   ix,HEX2SEG   
+0183   16 00                  LD   d,$00   
+0185   5F                     LD   e,a   
+0186   DD 19                  ADD   ix,de   
+0188   DD 7E 00               LD   a,(ix)   
+018B   E5                     PUSH   hl   
+018C   21 C7 08               LD   hl,MODE   
+018F   CB 46                  BIT   0,(hl)   
+0191   C2 96 01               JP   nz,DISL0A   
+0194   F6 10                  OR   $10   
+0196   E1           DISL0A:   POP   hl   
+0197   D3 02                  OUT   (0x02),a   
+0199   79                     LD   a,c   
+019A   D3 01                  OUT   (0x01),a   
+019C   06 20                  LD   b,CATHDLY   
+019E   10 FE        DISL0B:   DJNZ   DISL0B   
+01A0   C9                     RET      
+01A1                             ; 
+01A1   E5           KEYBOARD:   PUSH   hl   ; Key decoder routine.
+01A2   F5                     PUSH   af   
+01A3   21 C9 08               LD   hl,KEYDATA   
+01A6   3E FF                  LD   a,$FF   
+01A8   BE                     CP   (hl)   
+01A9   CA E0 02               JP   z,KEYLXX   
+01AC   7E                     LD   a,(hl)   
+01AD   E6 3F                  AND   $3f   
+01AF   EE 20                  XOR   $20   
+01B1                             ; 
+01B1   FE 10                  CP   $10   ; + key.
+01B3   C2 C7 01               JP   nz,KEYL00   
+01B6   2A C1 08               LD   hl,(ADDRESS)   
+01B9   23                     INC   hl   
+01BA   22 C1 08               LD   (ADDRESS),hl   
+01BD   21 C7 08               LD   hl,MODE   
+01C0   CB 86                  RES   0,(hl)   
+01C2   CB 8E                  RES   1,(hl)   
+01C4   C3 E0 02               JP   KEYLXX   
+01C7                             ; 
+01C7   FE 11        KEYL00:   CP   $11   ; - key.
+01C9   C2 DD 01               JP   nz,KEYL01   
+01CC   2A C1 08               LD   hl,(ADDRESS)   
+01CF   2B                     DEC   hl   
+01D0   22 C1 08               LD   (ADDRESS),hl   
+01D3   21 C7 08               LD   hl,MODE   
+01D6   CB 86                  RES   0,(hl)   
+01D8   CB 8E                  RES   1,(hl)   
+01DA   C3 E0 02               JP   KEYLXX   
+01DD                             ; 
+01DD   FE 12        KEYL01:   CP   $12   ; GO key.
+01DF   C2 E9 01               JP   nz,KEYL02   
+01E2   31 C0 08               LD   sp,STACKBASE   
+01E5   2A C1 08               LD   hl,(ADDRESS)   
+01E8   E9                     JP   (hl)   
+01E9                             ; 
+01E9   FE 13        KEYL02:   CP   $13   ; AD key.
+01EB   C2 FD 01               JP   nz,KEYL03   
+01EE   47                     LD   b,a   
+01EF   3A C7 08               LD   a,(MODE)   
+01F2   EE 01                  XOR   $01   
+01F4   CB 8F                  RES   1,a   
+01F6   32 C7 08               LD   (MODE),a   
+01F9   78                     LD   a,b   
+01FA   C3 E0 02               JP   KEYLXX   
+01FD                             ; 
+01FD   FE 20        KEYL03:   CP   $20   ; Shift-0 key - MOD-01
+01FF   C2 0C 02               JP   nz,KEYL04   
+0202   F5                     PUSH   af   
+0203   E5                     PUSH   hl   
+0204   CD 13 03               CALL   MOD01   
+0207   E1                     POP   hl   
+0208   F1                     POP   af   
+0209   C3 E0 02               JP   KEYLXX   
+020C                             ; 
+020C   FE 21        KEYL04:   CP   $21   ; Shift-1 key.
+020E   CA E0 02               JP   z,KEYLXX   
+0211   FE 22        KEYL05:   CP   $22   ; Shift-2 key.
+0213   CA E0 02               JP   z,KEYLXX   
+0216   FE 23        KEYL06:   CP   $23   ; Shift-3 key.
+0218   CA E0 02               JP   z,KEYLXX   
+021B   FE 24        KEYL07:   CP   $24   ; Shift-4 key.
+021D   CA E0 02               JP   z,KEYLXX   
+0220   FE 25        KEYL08:   CP   $25   ; Shift-5 key.
+0222   CA E0 02               JP   z,KEYLXX   
+0225   FE 26        KEYL09:   CP   $26   ; Shift-6 key.
+0227   CA E0 02               JP   z,KEYLXX   
+022A   FE 27        KEYL0A:   CP   $27   ; Shift-7 key.
+022C   CA E0 02               JP   z,KEYLXX   
+022F   FE 28        KEYL0B:   CP   $28   ; Shift-8 key.
+0231   CA E0 02               JP   z,KEYLXX   
+0234   FE 29        KEYL0C:   CP   $29   ; Shift-9 key.
+0236   CA E0 02               JP   z,KEYLXX   
+0239   FE 2A        KEYL0D:   CP   $2A   ; Shift-A key.
+023B   CA E0 02               JP   z,KEYLXX   
+023E   FE 2B        KEYL0E:   CP   $2B   ; Shift-B key.
+0240   CA E0 02               JP   z,KEYLXX   
+0243   FE 2C        KEYL0F:   CP   $2C   ; Shift-C key.
+0245   CA E0 02               JP   z,KEYLXX   
+0248   FE 2D        KEYL10:   CP   $2D   ; Shift-D key.
+024A   CA E0 02               JP   z,KEYLXX   
+024D   FE 2E        KEYL11:   CP   $2E   ; Shift-E key.
+024F   CA E0 02               JP   z,KEYLXX   
+0252   FE 2F        KEYL12:   CP   $2F   ; Shift-F key.
+0254   CA E0 02               JP   z,KEYLXX   
+0257                             ; 
+0257   FE 30        KEYL13:   CP   $30   ; SHift-+ key.
+0259   C2 76 02               JP   nz,KEYL14   
+025C   21 FF 17               LD   hl,RAMTOP   
+025F   ED 5B C1 08            LD   de,(ADDRESS)   
+0263   ED 52                  SBC   hl,de   
+0265   44 4D                  LD   bc,hl   
+0267   21 FF 17               LD   hl,RAMTOP   
+026A   54 5D                  LD   de,hl   
+026C   2B                     DEC   hl   
+026D   ED B8                  LDDR      
+026F   62 6B                  LD   hl,de   
+0271   36 00                  LD   (hl),$00   
+0273   C3 E0 02               JP   KEYLXX   
+0276                             ; 
+0276   FE 31        KEYL14:   CP   $31   ; Shift-- key.
+0278   C2 95 02               JP   nz,KEYL15   
+027B   21 FF 17               LD   hl,RAMTOP   
+027E   ED 5B C1 08            LD   de,(ADDRESS)   
+0282   ED 52                  SBC   hl,de   
+0284   44 4D                  LD   bc,hl   
+0286   2A C1 08               LD   hl,(ADDRESS)   
+0289   54 5D                  LD   de,hl   
+028B   23                     INC   hl   
+028C   ED B0                  LDIR      
+028E   62 6B                  LD   hl,de   
+0290   36 00                  LD   (hl),$00   
+0292   C3 E0 02               JP   KEYLXX   
+0295                             ; 
+0295   FE 32        KEYL15:   CP   $32   ; Shift-GO key.
+0297   CA E0 02               JP   z,KEYLXX   
+029A   FE 33        KEYL16:   CP   $33   ; Shift-AD key.
+029C   CA E0 02               JP   z,KEYLXX   
+029F                             ; 
+029F   21 C7 08     KEYL17:   LD   hl,MODE   ; No shifted digit keys entry.
+02A2   CB 46                  BIT   0,(hl)   
+02A4   C2 BB 02               JP   nz,KEYL19   
+02A7   CB 4E                  BIT   1,(hl)   
+02A9   C2 B3 02               JP   nz,KEYL18   
+02AC   CB CE                  SET   1,(hl)   
+02AE   2A C1 08               LD   hl,(ADDRESS)   
+02B1   36 00                  LD   (hl),$00   
+02B3                             ; 
+02B3   2A C1 08     KEYL18:   LD   hl,(ADDRESS)   
+02B6   ED 6F                  RLD      
+02B8   C3 E0 02               JP   KEYLXX   
+02BB                             ; 
+02BB   CB 4E        KEYL19:   BIT   1,(hl)   
+02BD   C2 C8 02               JP   nz,KEYL1A   
+02C0   CB CE                  SET   1,(hl)   
+02C2   21 00 00               LD   hl,$0000   
+02C5   22 C1 08               LD   (ADDRESS),hl   
+02C8                             ; 
+02C8   21 C1 08     KEYL1A:   LD   hl,ADDRESS   
+02CB   ED 6F                  RLD      
+02CD   2A C1 08               LD   hl,(ADDRESS)   
+02D0   CB 24                  SLA   h   
+02D2   CB 24                  SLA   h   
+02D4   CB 24                  SLA   h   
+02D6   CB 24                  SLA   h   
+02D8   47                     LD   b,a   
+02D9   AF                     XOR   a   
+02DA   B4                     OR   h   
+02DB   B0                     OR   b   
+02DC   67                     LD   h,a   
+02DD   22 C1 08               LD   (ADDRESS),hl   
+02E0                             ; 
+02E0   21 C9 08     KEYLXX:   LD   hl,KEYDATA   ; Done with the key decoder.
+02E3   36 FF                  LD   (hl),$FF   
+02E5   F1                     POP   af   
+02E6   E1                     POP   hl   
+02E7   C9                     RET      
+02E8                             ; 
+02E8   31 C0 08     SETUP:    LD   sp,STACKBASE   ; Post reset/power up setup.
+02EB   21 00 09               LD   hl,RAMBASE   
+02EE   22 C1 08               LD   (ADDRESS),hl   
+02F1   AF                     XOR   a   
+02F2   32 C7 08               LD   (MODE),a   
+02F5   3E FF                  LD   a,$FF   
+02F7   32 C9 08               LD   (KEYDATA),a   
+02FA                             ; 
+02FA   CD 80 00     MAIN:     CALL   DISPLAY   
+02FD   CD A1 01               CALL   KEYBOARD   
+0300   C3 FA 02               JP   MAIN   
+0303                             ; 
+0303   EB 28 CD AD 2E A7 E7 29 HEX2SEG:   DB   $EB,$28,$CD,$AD,$2E,$A7,$E7,$29   
+030B   EF 2F 6F E6 C3 EC C7 47 DB   $EF,$2F,$6F,$E6,$C3,$EC,$C7,$47   
+0313                             ; 
+0313                             ; BEGIN MODULES.
+0313                             ; START MOD-01
+0313   2A F2 08     MOD01:    LD   hl,(M01FINISH)   
+0316   23                     INC   hl   
+0317   ED 5B F0 08            LD   de,(M01START)   
+031B   AF                     XOR   a   
+031C   ED 52                  SBC   hl,de   
+031E   44                     LD   b,h   
+031F   4D                     LD   c,l   
+0320   ED 43 F2 08            LD   (M01FINISH),bc   
+0324   2A F0 08               LD   hl,(M01START)   
+0327   ED 5B F4 08            LD   de,(M01PATTERN)   
+032B   D9                     EXX      
+032C   2A F0 08               LD   hl,(M01START)   
+032F   ED 4B F2 08            LD   bc,(M01FINISH)   
+0333   ED 5B F4 08            LD   de,(M01PATTERN)   
+0337                             ; 
+0337   72           M01LDBLK:   LD   (hl),d   
+0338   23                     INC   hl   
+0339   0B                     DEC   bc   
+033A   78                     LD   a,b   
+033B   B1                     OR   c   
+033C   C2 37 03               JP   nz,M01LDBLK   
+033F   11 00 00               LD   de,$0000   
+0342                             ; 
+0342   1B           M01DELAY:   DEC   de   
+0343   7A                     LD   a,d   
+0344   B3                     OR   e   
+0345   C2 42 03               JP   nz,M01DELAY   
+0348   11 00 00               LD   de,$0000   
+034B   D9                     EXX      
+034C                             ; 
+034C   C3 55 03     M01TSTBLK:   JP   M01TEST01   
+034F   D9           M01TEST00:   EXX      
+0350   13                     INC   de   
+0351   D9                     EXX      
+0352   C3 5A 03               JP   M01TEST02   
+0355   7E           M01TEST01:   LD   a,(hl)   
+0356   BA                     CP   d   
+0357   C2 4F 03               JP   nz,M01TEST00   
+035A   23           M01TEST02:   INC   hl   
+035B   0B                     DEC   bc   
+035C   78                     LD   a,b   
+035D   B1                     OR   c   
+035E   C2 55 03               JP   nz,M01TEST01   
+0361                             ; 
+0361   D9           M01STORE:   EXX      
+0362   ED 53 F0 08            LD   (M01START),de   
+0366   C9                     RET      
+0367                             ; END MOD-01
+0367                             ; END MODULES.
+0367                             ; 
+0367                          .END      
+
+
+STACKBASE:          08C0 DEFINED AT LINE 14
+                    > USED AT LINE 249
+                    > USED AT LINE 375
+ROMBASE:            0000 DEFINED AT LINE 15
+RAMBASE:            0900 DEFINED AT LINE 16
+                    > USED AT LINE 376
+RAMTOP:             17FF DEFINED AT LINE 17
+                    > USED AT LINE 305
+                    > USED AT LINE 309
+                    > USED AT LINE 319
+CATHDLY:            0020 DEFINED AT LINE 18
+                    > USED AT LINE 98
+                    > USED AT LINE 119
+                    > USED AT LINE 145
+                    > USED AT LINE 166
+                    > USED AT LINE 192
+                    > USED AT LINE 213
+KEYPORT:            0000 DEFINED AT LINE 19
+                    > USED AT LINE 67
+CATHPORT:           0001 DEFINED AT LINE 20
+                    > USED AT LINE 74
+                    > USED AT LINE 97
+                    > USED AT LINE 101
+                    > USED AT LINE 118
+                    > USED AT LINE 122
+                    > USED AT LINE 144
+                    > USED AT LINE 148
+                    > USED AT LINE 165
+                    > USED AT LINE 170
+                    > USED AT LINE 191
+                    > USED AT LINE 196
+SEGPORT:            0002 DEFINED AT LINE 21
+                    > USED AT LINE 75
+                    > USED AT LINE 95
+                    > USED AT LINE 102
+                    > USED AT LINE 116
+                    > USED AT LINE 123
+                    > USED AT LINE 142
+                    > USED AT LINE 149
+                    > USED AT LINE 163
+                    > USED AT LINE 169
+                    > USED AT LINE 189
+                    > USED AT LINE 195
+ADDRESS:            08C1 DEFINED AT LINE 23
+                    > USED AT LINE 78
+                    > USED AT LINE 125
+                    > USED AT LINE 172
+                    > USED AT LINE 229
+                    > USED AT LINE 231
+                    > USED AT LINE 239
+                    > USED AT LINE 241
+                    > USED AT LINE 250
+                    > USED AT LINE 306
+                    > USED AT LINE 320
+                    > USED AT LINE 323
+                    > USED AT LINE 342
+                    > USED AT LINE 345
+                    > USED AT LINE 353
+                    > USED AT LINE 355
+                    > USED AT LINE 357
+                    > USED AT LINE 367
+                    > USED AT LINE 377
+DATA:               08C3 DEFINED AT LINE 24
+SCRATCH:            08C5 DEFINED AT LINE 25
+                    > USED AT LINE 80
+                    > USED AT LINE 82
+                    > USED AT LINE 127
+                    > USED AT LINE 129
+                    > USED AT LINE 174
+                    > USED AT LINE 176
+MODE:               08C7 DEFINED AT LINE 26
+                    > USED AT LINE 90
+                    > USED AT LINE 111
+                    > USED AT LINE 137
+                    > USED AT LINE 158
+                    > USED AT LINE 184
+                    > USED AT LINE 205
+                    > USED AT LINE 232
+                    > USED AT LINE 242
+                    > USED AT LINE 256
+                    > USED AT LINE 259
+                    > USED AT LINE 336
+                    > USED AT LINE 379
+KEYDATA:            08C9 DEFINED AT LINE 27
+                    > USED AT LINE 68
+                    > USED AT LINE 219
+                    > USED AT LINE 369
+                    > USED AT LINE 381
+M01START:           08F0 DEFINED AT LINE 30
+                    > USED AT LINE 394
+                    > USED AT LINE 400
+                    > USED AT LINE 403
+                    > USED AT LINE 437
+M01FINISH:          08F2 DEFINED AT LINE 31
+                    > USED AT LINE 392
+                    > USED AT LINE 399
+                    > USED AT LINE 404
+M01PATTERN:         08F4 DEFINED AT LINE 32
+                    > USED AT LINE 401
+                    > USED AT LINE 405
+RESET_00:           0000 DEFINED AT LINE 36
+RESET_08:           0008 DEFINED AT LINE 39
+RESET_10:           0010 DEFINED AT LINE 42
+RESET_18:           0018 DEFINED AT LINE 45
+RESET_20:           0020 DEFINED AT LINE 48
+RESET_28:           0028 DEFINED AT LINE 51
+RESET_30:           0030 DEFINED AT LINE 54
+RESET_38:           0038 DEFINED AT LINE 57
+VERSION:            0040 DEFINED AT LINE 60
+NMISERVICE:         0066 DEFINED AT LINE 66
+DISPLAY:            0080 DEFINED AT LINE 73
+                    > USED AT LINE 383
+DISL00:             00AD DEFINED AT LINE 94
+                    > USED AT LINE 92
+DISL01:             00B5 DEFINED AT LINE 99
+                    > USED AT LINE 99
+DISL02:             00D7 DEFINED AT LINE 115
+                    > USED AT LINE 113
+DISL03:             00DF DEFINED AT LINE 120
+                    > USED AT LINE 120
+DISL04:             010D DEFINED AT LINE 141
+                    > USED AT LINE 139
+DISL05:             0115 DEFINED AT LINE 146
+                    > USED AT LINE 146
+DISL06:             0137 DEFINED AT LINE 162
+                    > USED AT LINE 160
+DISL07:             013F DEFINED AT LINE 167
+                    > USED AT LINE 167
+DISL08:             016C DEFINED AT LINE 188
+                    > USED AT LINE 186
+DISL09:             0174 DEFINED AT LINE 193
+                    > USED AT LINE 193
+DISL0A:             0196 DEFINED AT LINE 209
+                    > USED AT LINE 207
+DISL0B:             019E DEFINED AT LINE 214
+                    > USED AT LINE 214
+KEYBOARD:           01A1 DEFINED AT LINE 217
+                    > USED AT LINE 384
+KEYL00:             01C7 DEFINED AT LINE 237
+                    > USED AT LINE 228
+KEYL01:             01DD DEFINED AT LINE 247
+                    > USED AT LINE 238
+KEYL02:             01E9 DEFINED AT LINE 253
+                    > USED AT LINE 248
+KEYL03:             01FD DEFINED AT LINE 263
+                    > USED AT LINE 254
+KEYL04:             020C DEFINED AT LINE 272
+                    > USED AT LINE 264
+KEYL05:             0211 DEFINED AT LINE 274
+KEYL06:             0216 DEFINED AT LINE 276
+KEYL07:             021B DEFINED AT LINE 278
+KEYL08:             0220 DEFINED AT LINE 280
+KEYL09:             0225 DEFINED AT LINE 282
+KEYL0A:             022A DEFINED AT LINE 284
+KEYL0B:             022F DEFINED AT LINE 286
+KEYL0C:             0234 DEFINED AT LINE 288
+KEYL0D:             0239 DEFINED AT LINE 290
+KEYL0E:             023E DEFINED AT LINE 292
+KEYL0F:             0243 DEFINED AT LINE 294
+KEYL10:             0248 DEFINED AT LINE 296
+KEYL11:             024D DEFINED AT LINE 298
+KEYL12:             0252 DEFINED AT LINE 300
+KEYL13:             0257 DEFINED AT LINE 303
+KEYL14:             0276 DEFINED AT LINE 317
+                    > USED AT LINE 304
+KEYL15:             0295 DEFINED AT LINE 331
+                    > USED AT LINE 318
+KEYL16:             029A DEFINED AT LINE 333
+KEYL17:             029F DEFINED AT LINE 336
+KEYL18:             02B3 DEFINED AT LINE 345
+                    > USED AT LINE 340
+KEYL19:             02BB DEFINED AT LINE 349
+                    > USED AT LINE 338
+KEYL1A:             02C8 DEFINED AT LINE 355
+                    > USED AT LINE 350
+KEYLXX:             02E0 DEFINED AT LINE 369
+                    > USED AT LINE 222
+                    > USED AT LINE 235
+                    > USED AT LINE 245
+                    > USED AT LINE 261
+                    > USED AT LINE 270
+                    > USED AT LINE 273
+                    > USED AT LINE 275
+                    > USED AT LINE 277
+                    > USED AT LINE 279
+                    > USED AT LINE 281
+                    > USED AT LINE 283
+                    > USED AT LINE 285
+                    > USED AT LINE 287
+                    > USED AT LINE 289
+                    > USED AT LINE 291
+                    > USED AT LINE 293
+                    > USED AT LINE 295
+                    > USED AT LINE 297
+                    > USED AT LINE 299
+                    > USED AT LINE 301
+                    > USED AT LINE 315
+                    > USED AT LINE 329
+                    > USED AT LINE 332
+                    > USED AT LINE 334
+                    > USED AT LINE 347
+SETUP:              02E8 DEFINED AT LINE 375
+                    > USED AT LINE 36
+                    > USED AT LINE 39
+                    > USED AT LINE 42
+                    > USED AT LINE 45
+                    > USED AT LINE 48
+                    > USED AT LINE 51
+                    > USED AT LINE 54
+                    > USED AT LINE 57
+MAIN:               02FA DEFINED AT LINE 383
+                    > USED AT LINE 385
+HEX2SEG:            0303 DEFINED AT LINE 387
+                    > USED AT LINE 84
+                    > USED AT LINE 105
+                    > USED AT LINE 131
+                    > USED AT LINE 152
+                    > USED AT LINE 178
+                    > USED AT LINE 199
+MOD01:              0313 DEFINED AT LINE 392
+                    > USED AT LINE 267
+M01LDBLK:           0337 DEFINED AT LINE 407
+                    > USED AT LINE 412
+M01DELAY:           0342 DEFINED AT LINE 415
+                    > USED AT LINE 418
+M01TSTBLK:          034C DEFINED AT LINE 422
+M01TEST00:          034F DEFINED AT LINE 423
+                    > USED AT LINE 429
+M01TEST01:          0355 DEFINED AT LINE 427
+                    > USED AT LINE 422
+                    > USED AT LINE 434
+M01TEST02:          035A DEFINED AT LINE 430
+                    > USED AT LINE 426
+M01STORE:           0361 DEFINED AT LINE 436
