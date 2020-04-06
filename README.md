@@ -28,6 +28,81 @@ You can get the source for those here although you should also be able to source
 You can also test drive a working simulation of the TEC-1 online here. This will enable you to try programming the TEC-1 without actually having one. You can also try the different ROMs.
 https://github.com/TEC-1-Z80-Computer-Group/wicked-tec1
 
+# TEC-1
+
+Software related to the TEC-1 computer kit designed in 1982 by John Hardy and Ken Stone
+and published in Issue 10 of Talking Electronics in early 1983.
+
+Updated with Jim Robertson's enhanced and comprehensive JMON monitor ROM
+and also the Utilities / Disassembler ROM also written by Jim in collaboration with Mike Donaghy
+
+![The TEC-1 Prototype](TEC-1-prototype.jpg)
+
+## Mon-1
+by John Hardy
+The orginal ROM that shipped with the TEC-1 in 1983
+
+Included:
+- original BIN binary of ROM
+listing in HEX format
+listing in disassembled LST format
+Reconstructed, labelled and annotated listing in Z80 ASM format
+Licensed under the GPL public license v3.0
+
+## Mon-1A
+by John Hardy with portions written by Ken Stone
+This ROM added a sequencer routine at 0x05b0
+
+Included:
+- original BIN binary of ROM
+- listing in HEX format
+- listing in disassembled LST format
+- reconstructed, labelled and annotated listing in Z80 ASM format
+
+Licensed under the GPL public license v3.0
+
+## Mon-1B
+by John Hardy with portions written by Ken Stone
+A maintenance release which cleans up some junk at 0x07E2 that was added with Mon-1A
+
+Included:
+- original BIN binary of ROM
+- listing in HEX format
+- listing in disassembled LST format
+- reconstructed, labelled and annotated listing in Z80 ASM format
+
+Licensed under the GPL public license v3.0
+
+## Mon-2
+by Ken Stone
+A rewrite of the monitor ROM
+
+Included:
+- original BIN binary of ROM
+- listing in HEX format
+- listing in disassembled LST format
+- reconstructed, labelled and annotated listing in Z80 ASM format
+
+Licensed under the GPL public license v3.0
+
+## JMON Monitor
+by Jim Robertson
+
+Included:
+- original BIN binary of ROM
+- listing in HEX format
+- listing in disassembled LST format
+- Listing in Z80 ASM format
+- Fully commented source listing by Jim Roberton (PDF)
+
+## Utilities / Disassembler ROM
+by Jim Robertson and Mike Donaghy
+
+Included:
+- original BIN binary of ROM
+- Listing in Z80 ASM format (needs more work)
+- Fully commented source listing by Jim Roberton (PDF)
+
 # License
 
 Folders in this repository may contain the author's software license, please read that to follow the correct license for that code. Folders which don't have an explicit license file are by default licensed under the [GNU Public License v3](./misc/LICENSE) which allows commerical reuse.
