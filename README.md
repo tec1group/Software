@@ -6,12 +6,12 @@ A repository for programs written for the TEC-1 and links to other TEC-1 softwar
 
 The best place to start is to read the original magazine articles that accompanied the kit in 1983. Talking Electronics was a magazine which Ken Stone and John Hardy designed the TEC-1 for publication in, the coverage starts in volume 10 and has stuff about the TEC for 6 issues.
 
-- http://www.talkingelectronics.com/TE-1-15.../TE-Issue10.pdf
-- http://www.talkingelectronics.com/TE-1-15.../TE-Issue11.pdf
-- http://www.talkingelectronics.com/TE-1-15.../TE-Issue12.pdf
-- http://www.talkingelectronics.com/TE-1-15.../TE-Issue13.pdf
-- http://www.talkingelectronics.com/TE-1-15.../TE-Issue14.pdf
-- http://www.talkingelectronics.com/TE-1-15.../TE-Issue15.pdf
+- http://www.talkingelectronics.com/TE-1-15_pdfs/TE-Issue10.pdf
+- http://www.talkingelectronics.com/TE-1-15_pdfs/TE-Issue11.pdf
+- http://www.talkingelectronics.com/TE-1-15_pdfs/TE-Issue12.pdf
+- http://www.talkingelectronics.com/TE-1-15_pdfs/TE-Issue13.pdf
+- http://www.talkingelectronics.com/TE-1-15_pdfs/TE-Issue14.pdf
+- http://www.talkingelectronics.com/TE-1-15_pdfs/TE-Issue15.pdf
 
 After that you should sharpen your Z80 skills. Zaks has been already mentioned. There are plenty of good books that are available for free online although a physical paper book is still better to read. Here is the book I learned on https://archive.org/.../The_Z80_microcomputer_handbook...? (need more on books and resources)
 
