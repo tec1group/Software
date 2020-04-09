@@ -1,406 +1,342 @@
-                                        ;Keyboard functions:
-                                        ;Shift-Insert range 0900 - 4000 (03FF??)
-                                        ;Shift-Delete range 0900 - 03FF (03FF is set to 00 on use of delete
-                                        ;function).
-                                        ;Shift -Address jumps to location stored at 08D2 and 08D3
-                                        ;Info:
-                                        ;Stack Start 08C0
-                                        ;Stack Max Length C0
-                                        ;User Code Start 0900
-                                        ;KeyData location 08E0 (placed there by NMI routine)
-STARTROM:       ORG 0x0000
-                jp 0x0200		        ;Jump to MONSTART
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                ld hl,(0x08c0)
+;Keyboard functions:
+;Shift-Insert range 0900 - 4000 (03FF??)
+;Shift-Delete range 0900 - 03FF (03FF is set to 00 on use of delete
+;function).
+;Shift -Address jumps to location stored at 08D2 and 08D3
+;
+;Info:
+;Stack Start 08C0
+;Stack Max Length C0
+;User Code Start 0900
+;KeyData location 08E0 (placed there by NMI routine)
+
+STARTSTACK:     EQU $08C0               ; Stack Max Length C0
+VECTOR0:        EQU $08C0               ; user vector 0
+VECTOR1:        EQU $08C2               ; user vector 1
+VECTOR2:        EQU $08C4               ; user vector 2
+VECTOR3:        EQU $08C6               ; user vector 3
+VECTOR4:        EQU $08C8               ; user vector 4
+VECTOR5:        EQU $08CA               ; user vector 5
+VECTOR6:        EQU $08CC               ; Temporary holder of current address?
+X0:             EQU $08D0
+SHIFTINS:       EQU $08D2
+SHIFTDEL:       EQU $08D4
+TUNEADDR:       EQU $08D6
+ADDRESS:        EQU $08D8               ; current address in nibbles over 4 bytes
+ADDRESS0:       EQU $08D8
+ADDRESS1:       EQU $08D9
+ADDRESS2:       EQU $08DA
+ADDRESS3:       EQU $08DB
+X1:             EQU $08DC
+X2:             EQU $08DD
+MODE:           EQU $08DF               ; Monitor mode (0 = Address Mode, 1 = Data Mode)
+KEYDATA:        EQU $08E0               ; Key data location updated by NMI routine
+X3:             EQU $08E1
+STARTRAM:       EQU $0900               ; User Code Start 0900
+
+
+STARTROM:       ORG $0000
+RESTART00:      jp STARTMON		         ; Jump to STARTMON @ $0200
+                db $FF
+                db $FF
+                db $FF
+                db $FF
+                db $FF
+RESTART08:      ld hl,(VECTOR0)          ;jump to vector stored at $08c0
                 jp (hl)
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                ld hl,(0x08c2)
+                db $FF
+                db $FF
+                db $FF
+                db $FF
+RESTART10:      ld hl,(VECTOR1)          ;jump to vector stored at $08c2
                 jp (hl)
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                ld hl,(0x08c4)
+                db $FF
+                db $FF
+                db $FF
+                db $FF
+RESTART18:      ld hl,(VECTOR2)          ;jump to vector stored at $08c4
                 jp (hl)
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                ld hl,(0x08c6)
+                db $FF
+                db $FF
+                db $FF
+                db $FF
+RESTART20:      ld hl,(VECTOR3)         ;jump to vector stored at $08c6
                 jp (hl)
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                ld hl,(0x08c8)
+                db $FF
+                db $FF
+                db $FF
+                db $FF
+RESTART28:      ld hl,(VECTOR4)         ;jump to vector stored at $08c8
                 jp (hl)
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                ld hl,(0x08ca)
+                db $FF
+                db $FF
+                db $FF
+                db $FF
+RESTART30:      ld hl,(VECTOR5)         ;jump to vector stored at $08ca
                 jp (hl)
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-RESTART38:      ld hl,(0x08cc)
+                db $FF
+                db $FF
+                db $FF
+                db $FF
+RESTART38:      ld hl,(VECTOR6)         ;jump to vector stored at $08cc
                 jp (hl)
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                push af
-                in a,(0x00)
-                ld (0x08e0),a
-                pop af
-                retn
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-SEVSEGDATA:     org 0x0080
-                ex de,hl
-                jr z,0x0050
-                xor l
-                ld l,0xa7
-                rst 0x20
-                add hl,hl
-                rst 0x28
-                cpl
-                ld l,a
-                and 0xc3
-                call pe,0x47c7
-                ex (sp),hl
-                ld h,(hl)
-                jr z,0x007c
-                ld c,(hl)
-                jp nz,0x6b2d
-                ex de,hl
-                ld c,a
-                cpl
-                ld c,e
-                and a
-                ld b,(hl)
-                jp pe,0xace0
-                and h
-                xor (hl)
-                ret
-                djnz 0x00ae
-                jr 0x00ac
-                inc l
-                nop
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                nop
-                add hl,bc
-                nop
-                nop
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                ret m
-                db 0xFF
-                nop
-                nop
-DEMOTEXT:       ORG 0x00c0              ;Data table for text message demo.
-                db 0x1b                 ;ROUTINE
-                db 0x18
-                db 0x1e
-                db 0x1d
-                db 0x12
-                db 0x17
-                db 0x0e
-                db 0x29                 ;[space]
-                db 0x0b                 ;BY
-                db 0x22
-                db 0x29                 ;[space]
-                db 0x17                 ;NIC.   (Nic Enots - Ken Stone's old programming pseudonym))
-                db 0x12
-                db 0x0c
-                db 0x24
-                db 0x29                 ;[space]
-                db 0x29                 ;[space]
-                db 0x29                 ;[space]
-                db 0x29                 ;[space]
-                db 0x29                 ;[space]
-                db 0xfe                 ;(repeat text)
-                db 0x1c                 ;STONE  (Text for real surname hidden in code)
-                db 0x1d
-                db 0x18
-                db 0x17
-                db 0x0a
-                db 0xff                 ;(end text)
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                call 0x0289
+
+NMINT:          ORG $066                ;NMI keyboard event
+                push af                 ;save af ;good idea! fixes Mon1
+                in a,($00)              ;a = key port
+                ld (KEYDATA),a          ;save in ram
+                pop af                  ;restore af
+                retn                    ;correct return. fixes Mon1
+
+
+SEVSEGDATA:     org $0080
+                db $EB                  ; 0
+                db $28                  ; 1
+                db $CD                  ; 2
+                db $AD                  ; 3
+                db $2E                  ; 4
+                db $A7                  ; 5
+                db $E7                  ; 6
+                db $29                  ; 7
+                db $EF                  ; 8
+                db $2F                  ; 9
+                db $6F                  ; A
+                db $E6                  ; B
+                db $C3                  ; C
+                db $EC                  ; D
+                db $C7                  ; E
+                db $47                  ; F
+                db $E3                  ; G
+                db $66                  ; H
+                db $28                  ; I
+                db $E8                  ; J
+                db $4E                  ; K
+                db $C2                  ; L
+                db $2D                  ; M
+                db $6B                  ; N
+                db $EB                  ; O
+                db $4F                  ; P
+                db $2F                  ; Q
+                db $4B                  ; R
+                db $A7                  ; S
+                db $46                  ; T
+                db $EA                  ; U
+                db $E0                  ; V
+                db $AC                  ; W
+                db $A4                  ; X
+                db $AE                  ; Y
+                db $C9                  ; Z
+                db $10                  ; .
+                db $08                  ; i
+                db $18                  ; !
+                db $04                  ; -
+                db $2C                  ; 
+                db $00                  ; space
+                db $6E                  ; h
+                db $CD                  ; Z
+                db $FF
+                db $FF
+                db $FF
+                db $FF
+
+INITADDR:       db $00                  ;inital address (start of RAM)
+                db $00                  ;0
+                db $09                  ;9
+                db $00                  ;0
+                db $00                  ;0
+                db $FF
+                db $FF
+                db $FF
+                db $FF
+                db $FF
+                db $FF
+                db $FF
+                db $FF                
+
+                db $f8                  ; An address?
+                db $FF                  ;
+                db $00                  ;
+                db $00                  ;
+
+DEMOTEXT:       ORG $00C0               ; Data table for text message demo.
+                db $1b                  ; R
+                db $18                  ; O
+                db $1e                  ; U  
+                db $1d                  ; T
+                db $12                  ; I
+                db $17                  ; N
+                db $0e                  ; E
+                db $29                  ; [space]
+                db $0b                  ; B
+                db $22                  ; Y
+                db $29                  ; [space]
+                db $17                  ; N   (Nic. Enots - Ken Stone's old programming pseudonym))
+                db $12                  ; I
+                db $0C                  ; C
+                db $24                  ; .
+                db $29                  ; [space]
+                db $29                  ; [space]
+                db $29                  ; [space]
+                db $29                  ; [space]
+                db $29                  ; [space]
+                db $fe                  ; (repeat text)
+                db $1c                  ; STONE  (Text for real surname hidden in code)
+                db $1d
+                db $18
+                db $17
+                db $0a
+                db $ff                  ; (end text)
+                db $FF
+                db $FF
+                db $FF
+                db $FF
+                db $FF
+KEYPLUS:        call GETEDITADDR        ;+ key
                 inc bc
-                jr 0x00ea
-                call 0x0289
+                jr DATAMODE
+KEYMINUS:       call GETEDITADDR        ;- key
                 dec bc
-                call 0x0490
-                call 0x0270
-                ld hl,0x08df
-                set 0,(hl)
-                res 1,(hl)
-                jp 0x0378
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-TABLES:         ORG 0x0100              ;tables
-FRQTBL:         defb 0xfd               ;(division table for frequencies)
-                djnz 0x0113
-                defb 0xfd
-                ld de,0x12ef
-                pop hl
-                inc de
-                ld d,h
-                inc d
-                ret
-                djnz 0x00cc
-                djnz 0x00c2
-                djnz 0x00bb
-                add hl,de
-                sbc a,a
-                ld a,(de)
-                sub (hl)
-                inc e
-                add a,b
-                ld e,0x86
-                jr nz,0x019b
-                ld (0x2477),hl
-                ld (hl),c
-                ld h,0x6a
-                jr z,0x0188
-                ld hl,(0x2d5f)
-                ld e,c
-                cpl
-                ld d,h
-                ld (0x3550),a
-                ld c,e
-                jr c,0x0177
-                inc a
-                ld b,e
-                ccf
-                ccf
-                ld b,e
-                inc a
-                ld b,a
-                jr c,0x0184
-                dec (hl)
-                ld d,b
-                ld (0x2f54),a
-                ld e,c
-                dec l
-                ld e,a
-                ld hl,(0x2864)
-                ld l,d
-                ld h,0x71
-                inc h
-                ld (hl),a
-                ld (0x207f),hl
-                add a,(hl)
-                ld e,0x8e
-                inc e
-                sub (hl)
-                ld a,(de)
-                sub h
-                add hl,de
-                xor c
-                jr 0x010a
-                ld d,0xbe
-                dec d
-                ret
-                inc d
-                push de
-                inc de
-                pop hl
-                ld (de),a
-                rst 0x28
-                ld de,0x10fd
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-PLAYTONE:       org 0x0170          ;TONE routine. 0170
-                push bc
+DATAMODE:       call SETEDITADDR
+                call GETADDRDATA
+                ld hl,MODE              ; Load HL with the MODE indicator address 
+                set 0,(hl)              ; Sets bit 0 of the MODE indicator address to 1, indicating it IS in DATA mode
+                res 1,(hl)              ; Sets bit 1 of the MODE indicator address to 0, indicating it is NOT in ADDRESS mode
+                jp POP_HLAF             ; POPs registers HL and AF and Returns
+
+
+FRQTBL:         dw $fd  $10               ;(division table for frequencies)
+                db $10, $FD
+                db $11, $EF
+                db $12, $E1
+                db $13, $54
+                db $14, $C9
+                db $10, $BE
+                db $10, $B2
+                db $10, $A9
+                db $19, $9F
+                db $1A, $96
+                db $1C, $80
+                db $1E, $86
+                db $20, $7F
+                db $22, $77
+                db $24, $71
+                db $26, $6A
+                db $28, $64
+                db $2A, $5F
+                db $2D, $59
+                db $2F, $54
+                db $32, $50
+                db $35, $4B
+                db $38, $47
+                db $3C, $43
+                db $3F, $3F
+                db $43, $3C
+                db $47, $38
+                db $4B, $35
+                db $50, $32
+                db $54, $2F
+                db $59, $2D
+                db $5F, $2A
+                db $64, $28
+                db $6A, $26
+                db $71, $24
+                db $77, $22
+                db $7F, $20
+                db $86, $1E
+                db $8E, $1C
+                db $96, $1A
+                db $94, $19
+                db $A9, $18
+                db $B3, $16
+                db $BE, $15
+                db $C9, $14
+                db $D5, $13
+                db $E1, $12
+                db $EF, $11
+                db $FD, $10
+                db $FF, $FF
+
+PLAYTONE:       org $0170               ; a is the tone number          
+                push bc                 ; save bc,de,hl,af
                 push de
                 push hl
                 push af
-                and a               ;Set Z Flag
-                jr nz,0x017a        ;If not zero, Jump Rel to ptnotzero
-                ld e,a              ;Clear E
-                jr 0x017c           ;Jump Rel to ptzero
-ptAisnotzero:   ld e,0x80           ;Load E with 80h
-ptAiszero:      ld hl,0x0100        ;(^division table for frequencies)
-                add a,a
-                add a,l
-                ld l,a
-                ld c,(hl)
-                inc hl
-lengthloop:     ld b,(hl)
-                ld a,e
-                out (0x01),a
-toneloop:       djnz 0x0188
-                ld b,(hl)
-                xor a
-                out (0x01),a
-                djnz 0x018e
-                dec c
-                jr nz,0x0184
-                pop af
+                and a                   ; Set Z Flag
+                jr nz,ptAisnotzero      ; If not zero, Jump Rel to ptAisnotzero
+                ld e,a                  ; Clear E
+                jr ptAiszero            ; Jump Rel to ptzero
+ptAisnotzero:   ld e,$80                ; Load E with 80h; high bit is speaker
+ptAiszero:      ld hl,FRQTBL            ; (^division table for frequencies)
+                add a,a                 ; offset a words into table
+                add a,l                 ; l += a * 2
+                ld l,a                  ;
+                ld c,(hl)               ; bc = (hl) ;freq division
+                inc hl                  ;
+LENGTHLOOP:     ld b,(hl)               ;
+                ld a,e                  ; a = e
+                out ($01),a             ; speaker bit = 1
+TONELOOP:       djnz TONELOOP           ; repeat while (--b > 0)
+                ld b,(hl)               ; restore b
+                xor a                   ; a = 0
+                out ($01),a             ; speaker bit = 0
+TONELOOP2:      djnz TONELOOP2          ; repeat while (--b > 0)
+                dec c                   ; c--
+                jr nz,LENGTHLOOP        ; if (c != 0) goto lengthloop
+                pop af                  ; restore bc,de,hl,af
                 pop hl
                 pop de
                 pop bc
-                ret
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-PLAYTUNE:       org 0x01a0  ;MUSIC routine.
+                ret                     ; return
+
+PLAYTUNE:       org $01A0               ; MUSIC routine.
                 push af
                 push hl
-                ld hl,(0x08d6)
-                ld a,(hl)
-                cp 0xff
-                jr nz,0x01ad
+STARTTUNE:      ld hl,(TUNEADDR)
+LOADNOTE:       ld a,(hl)
+                cp $FF                  ; If the tune loads a value of FF, signifies end of Tune
+                jr nz,PLAYNOTE
                 pop hl
                 pop af
                 ret
-                cp 0xfe
-                jr z,0x01a2
+PLAYNOTE        cp $FE                  ; If the tune loads a value of FE, signifies to Repeat the Tune
+                jr z,STARTTUNE
                 inc hl
-                call 0x0170         ;Call PlayTone
-                jr 0x01a5
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                ld hl,0x08df
-                bit 0,(hl)
-                jr nz,0x01ce
-                set 0,(hl)
+                call PLAYTONE           ; Subroutine that plays the note loaded in A
+                jr LOADNOTE
+
+KEYADDRESS:     org $01C0               ; The ADDRESS Key routine:
+                ld hl,MODE              ; If currently in ADDRESS mode
+                bit 0,(hl)              ; then change the MODE bits to
+                jr nz,FLIPON            ; turn it into DATA mode.
+                set 0,(hl)              ; If not in ADDRESS mode, then make it so.
                 res 1,(hl)
-                jp 0x0378
-                res 0,(hl)
+                jp POP_HLAF
+FLIPON:         res 0,(hl)
                 set 1,(hl)
-                jp 0x0378
-                db 0xFF
-                db 0xFF
-                db 0xFF
-MPDISPLAY:      ORG 0x01d8              ;MULTIPASS DISPLAY
-                push bc
-                ld b,0x80
-                call 0x02a0             ;Call DISPLAY
-                djnz 0x01db
-                pop bc
+                jp POP_HLAF             ; Restore HL and AF then return to calling function.
+
+MPDISPLAY:      ORG $01d8               ; MULTIPASS DISPLAY
+                push bc                 ; Save BC
+                ld b,$80                ; B is used as the digit selector
+                call DISPLAY            ; DISPLAY routine sets the segments according to the data and then lights them up
+                djnz MPDISPLAY          ; Repeat for each digit
+                pop bc                  ; Restore BC
                 ret
-                db 0xFF
-                db 0xFF
-                ld bc,(0x08d2)
-                call 0x0490
-                call 0x0270
-                jp 0x0378
-                db 0xFF
-                ld bc,(0x08d4)
-                call 0x0490
-                call 0x0270
-                jp 0x0378
-                db 0xFF
-MONSTART:       ORG 0x0200              ;Main monitor program entry point.
-                ld (0x08e8),sp
-                ld sp,0x0900
-                push af
+
+KEYSHPLUS:      ld bc,(SHIFTINS)
+                call SETEDITADDR
+                call GETADDRDATA
+                jp POP_HLAF
+
+KEYSHMINUS :    ld bc,(SHIFTDEL)        ; Seems to be the same thing as above ???
+                call SETEDITADDR
+                call GETADDRDATA
+                jp POP_HLAF
+
+STARTMON:       ORG $0200               ; Main monitor program entry point.
+                ld (STORESP),sp         ; save stack point
+                ld sp,RAMSTART          ; sp = RAMSTART
+                push af                 ; save registers
                 push bc
                 push de
                 push hl
@@ -414,102 +350,74 @@ MONSTART:       ORG 0x0200              ;Main monitor program entry point.
                 push hl
                 ld a,i
                 push af
-                xor a
-                ld (0x08cc),a
-                ld (0x08cd),a
-                ld a,0xff
-                ld (0x08e0),a
-                jp 0x0240
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                ld sp,0x08c0
-                xor a
-                out (0x01),a
-                out (0x02),a
-                ld hl,0x00b0
-                ld de,0x08d8
-                ld bc,0x0005
-                ldir
-                call 0x0270
-                ld a,0x08
-                call 0x0170
-                ld a,0x0f
-                call 0x0170
-                ld a,0x01
-                ld (0x08df),a
-                call 0x02a0
-                call 0x0360
-                jr 0x0265
-                db 0xFF
-                db 0xFF
-                db 0xFF
-GETADDRDATA:    org  0x0270             ;GetAddressedData
-                push af
+                xor a                       ; Clear A
+                ld (VECTOR6),a              ; Load VECTOR6 with $0000
+                ld (VECTOR6+1),a
+                ld a,$ff
+                ld (KEYDATA),a              ; Set the KEY buffer = $FF
+                jp STARTMON2
+
+STARTMON2       ld sp,STACKSTART            ; STACKSTART is at $08C0
+                xor a                       ; Clear A
+                out ($01),a                 ; Blank the Diplays
+                out ($02),a                 ; (Should do this to ports 3 & 4 to clear the 8x8 as well)
+                ld hl,INITADDR              ; Load HL with $0900, the initial start address
+                ld de,ADDRESS               ; Load DE with the display address pointer
+                ld bc,$0005                 ; Load BC with 5
+                ldir                        ; Copies the 5 (why 5??) bytes from HL to DEMOTEXT
+BEEPMON:        call GETADDRDATA
+                ld a,$08
+                call PLAYTONE
+                ld a,$0f
+                call PLAYTONE
+                ld a,$01
+                ld (MODE),a
+MAINLOOP:       call DISPLAY
+                call GETKEY
+                jr MAINLOOP
+
+GETADDRDATA:    .org $0270                  ; 
+                push af                     ; save registers
                 push hl
                 push bc
-                call 0x0289
-                and 0xf0
+                call GETEDITADDR
+                and $f0
                 rrca
                 rrca
                 rrca
                 rrca
-                ld (0x08dc),a
+                ld (X1),a                   ; X1 and X2... Are they the DATA display buffers?
                 ld a,(bc)
-                and 0x0f
-                ld (0x08dd),a
+                and $0f
+                ld (X2),a
                 pop bc
                 pop hl
                 pop af
                 ret
-                                        ;GetEditorAddress
-                                        ;The address used by editor and shown on the 7 segment display is
-                                        ;stored in one location only, to prevent a situation where dislayed
-                                        ;address and real address could differ. In a trade off in
-                                        ;processing
-                                        ;time, it was more efficient to store the address in the optimal
-                                        ;from for the display routine. As such it needs converting to and
-                                        ;from this format when used by the monitor program.
-                                        ;The chosen location is the display buffer, where the address is
-                                        ;broken into nibbles and spread across four bytes, 08D8, 08D9,
-                                        ;08DA,
-                                        ;08DB, MSN to LSN. GetEditorAddress is used to retrieve this
-                                        ;address.
-                                        ;The data held here is only valid while the monitor program is
-                                        ;running. As soon as something else is written to the display it is
-                                        ;lost. Resetting the computer restores it to the default 0900h.
-                                        ;GetEditorAddress, when called, loads BC with the address currently
-                                        ;held In the display buffer. It also loads A with the data held at
-                                        ;the location addressed by BC.
-                                        ;E.G. If the LED display shows 0900 CD, calling 0289 will load BC
-                                        ;with 0900 (B is the MSB) and loads A with CD. This routine is not
-                                        ;transparent. HL is destroyed. BC and A hold the results. If this
-                                        ;routine is called during a user program that is not an extension ;;to
-                                        ;the monitor, the result will have no meaning.
-GETEDITADDR:    ORG 0x0289              ;GetEditorAddress
-                ld hl,0x08d8
+;
+;GetEditorAddress
+;The address used by editor and shown on the 7 segment display is stored in one
+;location only, to prevent a situation where displayed address and real address
+;could differ. In a trade off in processing time, it was more efficient to store
+;the address in the optimal form for the display routine. As such it needs
+;converting to and from this format when used by the monitor program.
+;The chosen location is the display buffer, where the address is broken into
+;nibbles and spread across four bytes, 08D8, 08D9, 08DA, 08db, MSN to LSN.
+;GetEditorAddress is used to retrieve this address.
+;The data held here is only valid while the monitor program is running. As soon as
+;something else is written to the display it is lost. Resetting the computer
+;restores it to the default 0900h.
+;
+;GetEditorAddress, when called, loads BC with the address currently held In the
+;display buffer. It also loads A with the data held at the location addressed by BC.
+;
+; E.G. If the LED display shows 0900 CD, calling 0289 will load BC with 0900 (B is
+;the MSB) and loads A with CD. This routine is not transparent. HL is destroyed. BC
+;and A hold the results. If this routine is called during a user program that is not
+;an extension to the monitor, the result will have no meaning.
+;
+GETEDITADDR:    ORG $0289
+                ld hl,ADDRESS
                 ld a,(hl)
                 rlca
                 rlca
@@ -529,283 +437,262 @@ GETEDITADDR:    ORG 0x0289              ;GetEditorAddress
                 ld c,a
                 ld a,(bc)
                 ret
-                db 0xFF
-DISPLAY:        org 0x02a0
-                push af
+
+DISPLAY:        org $02A0
+                push af                 ;save registers
                 push hl
                 push de
                 push bc
-                ld de,0x08d8
-                xor a
-                out (0x01),a
-                call 0x0350
-                bit 1,(hl)
-                jr z,0x02b3
-                set 4,a
-                out (0x02),a
-                ld a,0x20
-                out (0x01),a
-                ld b,0x20
-                djnz 0x02bb
-                xor a
-                out (0x01),a
-                call 0x0350
-                bit 1,(hl)
-                jr z,0x02c9
-                set 4,a
-                out (0x02),a
-                ld a,0x10
-                out (0x01),a
-                ld b,0x20
-                djnz 0x02d1
-                xor a
-                out (0x01),a
-                call 0x0350
-                bit 1,(hl)
-                jr z,0x02df
-                set 4,a
-                out (0x02),a
-                ld a,0x08
-                out (0x01),a
-                ld b,0x20
-                djnz 0x02e7
-                xor a
-                out (0x01),a
-                call 0x0350
-                bit 1,(hl)
-                jr z,0x02f5
-                set 4,a
-                out (0x02),a
-                ld a,0x04
-                out (0x01),a
-                ld b,0x20
-                djnz 0x02fd
-                xor a
-                out (0x01),a
-                nop
-                jp 0x0318
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                call 0x0289
+                ld de,ADDRESS           ;de = ADDRESS buffer
+                xor a                   ;a = 0
+                out ($01),a            ;clear digit port
+                call HEX2SEG            ;convert (de) to segments -> a
+                bit 1,(hl)              ;check mode bit 1
+                jr z,L2B3               ;if set
+                set 4,a                 ;  set segment 4 of digit (decimal point)
+L2B3:           out ($02),a            ;output a to segment port
+                ld a,$20               ;digit 020
+                out ($01),a            ;output a to digit port
+                ld b,$20               ;
+L2BB:           djnz L2BB               ;delay by 20
+                xor a                   ;
+                out ($01),a            ;clear digit port
+                call HEX2SEG            ;
+                bit 1,(hl)              ;
+                jr z,L2C9               ;
+                set 4,a                 ;
+L2C9:           out ($02),a            ;output a to segment port
+                ld a,$10               ;digit 010
+                out ($01),a            ;output a to digit port
+                ld b,$20               ;
+L2D1:           djnz L2D1               ;delay by 20
+                xor a                   ;
+                out ($01),a            ;clear digit port
+                call HEX2SEG            ;
+                bit 1,(hl)              ;
+                jr z,L2DF               ;
+                set 4,a                 ;
+L2DF:           out ($02),a            ;output a to segment port
+                ld a,$08               ;digit 080
+                out ($01),a            ;output a to digit port
+                ld b,$20               ;
+L2E7:           djnz L2E7               ;delay by 20
+                xor a                   ;
+                out ($01),a            ;clear digit port
+                call HEX2SEG            ;
+                bit 1,(hl)              ;
+                jr z,L2F5               ;
+                set 4,a   
+                                        ;
+L2F5:           out ($02),a            ;output a to segment port
+                ld a,$04               ;digit 040
+                out ($01),a            ;output a to digit port
+                ld b,$20  
+                                        ;
+L2FD:           djnz L2FD               ;delay by 20
+                xor a                   ;
+                out ($01),a            ;clear digit port
+                nop                     ;
+                jp DISPLAY2
+
+GOADDR:         call GETEDITADDR        ;go to current address
                 push bc
                 pop hl
-                ld sp,0x08c0
+                ld sp,STACKSTART
                 jp (hl)
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                call 0x0350
+
+DISPLAY2:       call HEX2SEG
                 bit 0,(hl)
-                jr z,0x0321
+                jr z,$0321
                 set 4,a
-                out (0x02),a
-                ld a,0x02
-                out (0x01),a
-                ld b,0x20
-                djnz 0x0329
+                out ($02),a
+                ld a,$02               ;digit 020
+                out ($01),a            ;output a to digit port
+                ld b,$20
+                djnz $0329             ;delay by 20
                 xor a
-                out (0x01),a
-                call 0x0350
+                out ($01),a            ;clear digit port
+                call HEX2SEG
                 bit 0,(hl)
-                jr z,0x0337
+                jr z,$0337
                 set 4,a
-                out (0x02),a
-                ld a,0x01
-                out (0x01),a
-                ld b,0x20
-                djnz 0x033f
+                out ($02),a
+                ld a,$01               ;digit 040
+                out ($01),a            ;output a to digit port
+                ld b,$20
+                djnz $033f             ;delay by 20
                 xor a
-                out (0x01),a
-                pop bc
+                out ($01),a            ;clear digit port
+                pop bc                  ;restore registers
                 pop de
                 pop hl
                 pop af
-                ret
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                                        ;Hex2SevenSeg converts the Hex value (0 to29) into the ;
-                                        ;corresponding seven-segment data. It is part of the display ;
-                                        ;destroyed, DE is incremented, A is converted from the value to its
-                                        ;7 segment form.
-HEX2SEG:        org 0x0350              ;Hex2SevenSeg
-                ld hl,0x0080
-                ld a,(de)
-                add a,l
+                ret                     ;return
+ 
+;Hex2SevenSeg converts the Hex value (0 to 29) into the ;
+;corresponding seven-segment data. It is part of the display ;
+;destroyed, DE is incremented, A is converted from the value to its
+;7 segment form.
+
+HEX2SEG:        org $0350              ;Hex2SevenSeg
+                ld hl,SEVSEGDATA        ;hl = 7seg table
+                ld a,(de)               ;a = (de)
+                add a,l                 ;hl += a
                 ld l,a
-                ld a,(hl)
-                inc de
-                ld hl,0x08df
-                ret
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                push af
+                ld a,(hl)               ;a = (hl + a)
+                inc de                  ;de++
+                ld hl,MODE              ;hl = mode
+                ret                     ;return
+
+GETKEY:         push af                 ;save af, hl
                 push hl
-                ld hl,0x08e0
-                ld a,0xff
+                ld hl,KEYDATA           ;hl = KEYDATA
+                ld a,$ff
                 cp (hl)
-                jr z,0x0378
-                ld a,(hl)
-                and 0x1f
-                bit 5,(hl)
-                jr nz,0x0373
-                add a,0x14
-                jp 0x03a8
-                db 0xFF
-                db 0xFF
-                pop hl
+                jr z,POP_HLAF           ;if (key)
+                ld a,(hl)               ;  a = (KEYDATA)
+                and $1f                ;  a = a & 1f
+                bit 5,(hl)              ;  test shift bit
+                jr nz,L373              ;  if (shift)
+                add a,$14              ;    a += $0014
+L373:           jp L3A8
+
+POP_HLAF:       pop hl                  ;restore hl, af
                 pop af
                 ret
-                db 0xFF
-                db 0xFF
-                pop hl
+
+L37D:           pop hl                  ; not sure why the above routine needs repeating
                 pop af
                 ret
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                call 0x0289
+
+L384:           call GETEDITADDR
                 push bc
                 pop ix
-                inc ix
+L38A:           inc ix
                 push ix
                 pop hl
                 ld a,h
-                cp 0x40
-                jr z,0x039c
+                cp $40
+                jr z,MAXMEM
                 ld a,(ix+0)
                 ld (ix-1),a
-                jr 0x038a
-                ld a,0x00
-                ld (0x3fff),a
-                call 0x0270
-                jp 0x0378
-                db 0xFF
-                add a,0x01
-                call 0x0170
-                jp 0x0421
-                call 0x0289
+                jr L38A
+                
+MAXMEM:         ld a,$00
+                ld ($3fff),a           ; Testing how much memory is installed?
+                call GETADDRDATA
+                jp POP_HLAF
+
+L3A8:           add a,$01
+                call PLAYTONE
+                jp L421
+                
+L3B0:           call GETEDITADDR
                 dec bc
-                ld ix,0x3ffe
-                ld a,(ix+0)
+                ld ix,$3ffe             ; strange address to load from, if you don't have max memory
+
+L3B8:           ld a,(ix+0)
                 ld (ix+1),a
                 dec ix
                 push ix
                 pop hl
                 ld a,c
                 cp l
-                jr nz,0x03b8
+                jr nz,L3B8
                 ld a,b
                 cp h
-                jr nz,0x03b8
-                ld (ix+1),0x00
-                call 0x0270
-                jp 0x0378
-                db 0xFF
-                db 0xFF
-                db 0xFF
-RUNWRITING:     org 0x03d8;             RUNNING WRITING
-                push hl
+                jr nz,L3B8
+                ld (ix+1),$00
+                call GETADDRDATA
+                jp POP_HLAF
+
+RUNWRITING:     org $03d8;             RUNNING WRITING
+                push hl                 ; Save registers
                 push af
                 push ix
                 push bc
-                xor a
-                ld (0x08df),a
-                ld b,0x06
-                ld hl,0x08d8
-                ld a,0x29
-                ld (hl),a
-                inc hl
-                djnz 0x03e8
-                ld hl,(0x08d0)
-                ld a,(hl)
-                cp 0xff
-                jr nz,0x03fa
-                pop bc
+                xor a                   ; Clear contents of A
+                ld (MODE),a             ; Set MODE to 0
+                ld b,$06                ; 6 display digits
+                ld hl,ADDRESS           ; load HL with the current user memory address
+                ld a,$29                ; not sure why you'd load A with 29H ??
+LOAD29H:        ld (hl),a               ; Put A (with 29H) into (HL) that points to the 
+                inc hl                  ; 
+                djnz LOAD29H            ; Loop 6 times
+L3EC:           ld hl,(X1)
+L3EF:           ld a,(hl)
+                cp $ff                  ; Is the character just loaded an $FF ?
+                jr nz,L3FA              ; If not, then JUMP to...
+                pop BC                  ; otherwise restore the registers
                 pop ix
                 pop af
                 pop hl
                 ret
-                cp 0xfe
-                jr z,0x03ec
-                ld ix,0x08d8
-                ld b,0x05
+L3FA:           cp $fe
+                jr z,L3EC
+                ld ix,ADDRESS
+                ld b,$05
                 ld a,(ix+1)
                 ld (ix+0),a
                 inc ix
-                djnz 0x0404
+                djnz $0404
                 ld a,(hl)
-                ld (0x08dd),a
+                ld (X2),a
                 inc hl
-                ld b,0x40
-                call 0x02a0
-                djnz 0x0415
-                jr 0x03ef
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                sub 0x01
-                ld (hl),0xff
+                ld b,$40
+L415:           call DISPLAY
+                djnz L415
+                jr L3EF
+
+ L421:          sub $01
+                ld (hl),$ff
                 bit 4,a
-                jp nz,0x04c0
+                jp nz,$04c0
                 bit 5,a
-                jp nz,0x04c0
-                ld hl,0x08df
+                jp nz,$04c0
+                ld hl,MODE
                 bit 0,(hl)
-                jp z,0x0455
+                jp z,L455
                 ld d,a
-                call 0x0289
-                ld hl,0x08df
+                call GETEDITADDR
+                ld hl,MODE
                 bit 3,(hl)
-                jr nz,0x0445
+                jr nz,L445
                 xor a
                 set 3,(hl)
+
+L445:           rlca
                 rlca
                 rlca
                 rlca
-                rlca
-                and 0xf0
+                and $f0
                 add a,d
                 ld (bc),a
-                call 0x0270
-                jp 0x037d
-                db 0xFF
-                db 0xFF
-                ld d,a
-                ld hl,0x08df
+                call GETADDRDATA
+                jp POP_HLAF2
+
+L455:           ld d,a
+                ld hl,MODE
                 res 3,(hl)
                 bit 4,(hl)
-                jr nz,0x0467
-                ld bc,0x0000
-                call 0x0490
+                jr nz,$0467
+                ld bc,$0000
+                call SETEDITADDR
                 set 4,(hl)
-                call 0x0289
+                call GETEDITADDR
                 ld a,b
                 rlca
                 rlca
                 rlca
                 rlca
-                and 0xf0
+                and $f0
                 ld e,a
                 ld a,c
                 rlca
                 rlca
                 rlca
                 rlca
-                and 0x0f
+                and $0f
                 add a,e
                 ld b,a
                 ld a,c
@@ -813,149 +700,125 @@ RUNWRITING:     org 0x03d8;             RUNNING WRITING
                 rlca
                 rlca
                 rlca
-                and 0xf0
+                and $f0
                 add a,d
                 ld c,a
-                call 0x0490
-                call 0x0270
-                jp 0x037d
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                                        ;SetEditorAddress 0490 is the opposite of the GetEditorAddress
-                                        ;0289 routine.
-                                        ;It loads the display buffer (08D8, 08D9, 08DA, 08DB) with the
-                                        ;value held in BC.
-                                        ;AThis routine is transparent.
-SETEDITADDR:    org 0x0490              ;SetEditorAddress
-                push af
+                call SETEDITADDR
+                call GETADDRDATA
+                jp L37D
+
+;SetEditorAddress 0490 is the opposite of the GetEditorAddress 0289 routine.
+;It loads the display buffer (ADDRESS0, ADDRESS1, ADDRESS2, ADDRESS3) with the
+;value held in BC. No registers affected.
+
+SETEDITADDR:    org $0490               ;SetEditorAddress
+                push af                 ;save af, hl
                 push hl
-                ld hl,0x08d8
-                ld a,b
-                and 0xf0
+                ld hl,ADDRESS           ;hl points to ADDRESS buffer
+                ld a,b                  ;a = b
+                and $f0                 ;mask out lower nibble
+                rlca                    ;rotate upper nibble into lower nibble
                 rlca
                 rlca
                 rlca
-                rlca
-                ld (hl),a
-                inc hl
-                ld a,b
-                and 0x0f
-                ld (hl),a
-                inc hl
-                ld a,c
-                and 0xf0
-                rlca
-                rlca
+                ld (hl),a               ;(hl) = a
+                inc hl                  ;hl++
+                ld a,b                  ;a = b
+                and $0f                 ;mask lower nibble
+                ld (hl),a               ;(hl) = a
+                inc hl                  ;hl++
+                ld a,c                  ;a = c
+                and $f0                 ;mask upper nibble
+                rlca                    ;rotate upper nibble into lower nibble
                 rlca
                 rlca
-                ld (hl),a
-                inc hl
-                ld a,c
-                and 0x0f
-                ld (hl),a
-                pop hl
+                rlca
+                ld (hl),a               ;(hl) = a
+                inc hl                  ;hl++
+                ld a,c                  ;a = c
+                and $0f                 ;mask lower nibble
+                ld (hl),a               ;(hl) = a
+                pop hl                  ;restore hl, af
                 pop af
-                ret
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                ld hl,0x08df
+                ret                     ;return
+
+                ld hl,MODE
                 res 3,(hl)
                 res 4,(hl)
-                cp 0x10
-                jp z,0x00e0
-                cp 0x11
-                jp z,0x00e6
-                cp 0x12
-                jp z,0x030c
-                cp 0x13
-                jp z,0x01c0
-                cp 0x14
-                jp z,0x0550
-                cp 0x15
-                jp z,0xffff
-                cp 0x16
-                jp z,0xffff
-                cp 0x17
-                jp z,0x01f2
-                cp 0x18
-                jp z,0x0570
-                cp 0x19
-                jp z,0xffff
-                cp 0x1a
-                jp z,0xffff
-                cp 0x1b
-                jp z,0xffff
-                cp 0x1c
-                jp z,0x0660
-                cp 0x1d
-                jp z,0xffff
-                cp 0x1e
-                jp z,0xffff
-                cp 0x1f
-                jp z,0xffff
-                cp 0x20
-                jp z,0xffff
-                cp 0x21
-                jp z,0xffff
-                cp 0x22
-                jp z,0xffff
-                cp 0x23
-                jp z,0xffff
-                cp 0x24
-                jp z,0x03b0
-                cp 0x25
-                jp z,0x0384
-                cp 0x26
-                jp z,0xffff
-                cp 0x27
-                jp z,0x01e4
-                jp 0x0378
-                RST   0x38
-                RST   0x38
-                RST   0x38
-                RST   0x38
-                RST   0x38
-                RST   0x38
-                RST   0x38
-                RST   0x38
-                RST   0x38
-                RST   0x38
-                RST   0x38
-                RST   0x38
-                RST   0x38
-                RST   0x38
-                call 0x0289
+                cp $10
+                jp z,KEYPLUS
+                cp $11
+                jp z,KEYMINUS
+                cp $12
+                jp z,GOADDR
+                cp $13
+                jp z,KEYADDRESS
+                cp $14
+                jp z,L550
+                cp $15
+                jp z,$ffff
+                cp $16
+                jp z,$ffff
+                cp $17
+                jp z,KEYSHMINUS
+                cp $18
+                jp z,USERPOSTBURN            ; USER burnt routine in EPROM after release.
+                cp $19
+                jp z,$ffff
+                cp $1a
+                jp z,$ffff
+                cp $1b
+                jp z,$ffff
+                cp $1c
+                jp z,$0660
+                cp $1d
+                jp z,$ffff
+                cp $1e
+                jp z,$ffff
+                cp $1f
+                jp z,$ffff
+                cp $20
+                jp z,$ffff
+                cp $21
+                jp z,$ffff
+                cp $22
+                jp z,$ffff
+                cp $23
+                jp z,$ffff
+                cp $24
+                jp z,L3B0
+                cp $25
+                jp z,L384
+                cp $26
+                jp z,$ffff
+                cp $27
+                jp z,KEYSHPLUS
+                jp POP_HLAF
+                RST   $38
+                RST   $38
+                RST   $38
+                RST   $38
+                RST   $38
+                RST   $38
+                RST   $38
+                RST   $38
+                RST   $38
+                RST   $38
+                RST   $38
+                RST   $38
+                RST   $38
+                RST   $38
+L550:           call GETEDITADDR
                 ld h,b
                 ld l,c
-                ld a,(0x08e1)
-                inc hl
+                ld a,(X3)
+L558:           inc hl
                 cp (hl)
-                jr nz,0x0558
+                jr nz,L558
                 ld b,h
                 ld c,l
-                call 0x0490
-                jp 0x0253
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
-                db 0xFF
+                call SETEDITADDR
+                jp BEEPMON
+
+USERPOSTBURN:   org $0570
+                db $00
