@@ -10,7 +10,7 @@
 ;User Code Start 0900
 ;KeyData location 08E0 (placed there by NMI routine)
 
-STARTSTACK:     EQU $08C0               ; Stack Max Length C0
+STACKSTART:     EQU $08C0               ; Stack Max Length C0
 VECTOR0:        EQU $08C0               ; user vector 0
 VECTOR1:        EQU $08C2               ; user vector 1
 VECTOR2:        EQU $08C4               ; user vector 2
@@ -32,7 +32,7 @@ X2:             EQU $08DD
 MODE:           EQU $08DF               ; Monitor mode (0 = Address Mode, 1 = Data Mode)
 KEYDATA:        EQU $08E0               ; Key data location updated by NMI routine
 X3:             EQU $08E1
-STARTRAM:       EQU $0900               ; User Code Start 0900
+RAMSTART:       EQU $0900               ; User Code Start 0900
 
 
 STARTROM:       ORG $0000
@@ -328,15 +328,15 @@ KEYSHPLUS:      ld bc,(SHIFTINS)
                 call GETADDRDATA
                 jp POP_HLAF
 
-KEYSHMINUS :    ld bc,(SHIFTDEL)        ; Seems to be the same thing as above ???
+KEYSHMINUS:     ld bc,(SHIFTDEL)        ; Seems to be the same thing as above ???
                 call SETEDITADDR
                 call GETADDRDATA
                 jp POP_HLAF
 
-STARTMON:       ORG $0200               ; Main monitor program entry point.
-                ld (STORESP),sp         ; save stack point
-                ld sp,RAMSTART          ; sp = RAMSTART
-                push af                 ; save registers
+STARTMON:       ORG $0200                   ; Main monitor program entry point.
+                ld (STACKSTART),sp          ; save stack point
+                ld sp,RAMSTART              ; sp = RAMSTART
+                push af                     ; save registers
                 push bc
                 push de
                 push hl
