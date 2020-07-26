@@ -5,7 +5,8 @@ Alan Laughton donated these ROM images to the repository.
 When I visited Colin Mitchell a few years back, he gave me all the TEC-1 stuff he had.  
 Thats all be scanned, imaged etc and in the repositories.  
 However, there was a tube of 2732 eproms which I have only just imaged.  
-No idea whats in them is TEC-1 related, would you like to have a look and see if there is anything of interest in them.  
+No idea whats in them is TEC-1 related, 
+would you like to have a look and see if there is anything of interest in them.  
 2 appear to be Character Font roms.
 ```
 
