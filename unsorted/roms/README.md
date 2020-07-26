@@ -13,7 +13,7 @@ would you like to have a look and see if there is anything of interest in them.
 
 So far, I've disassembled the ROMs in the simplest way possible. No consideration has been made of the assembly origin, word alignment or data areas vs code. A more careful disassembly and annotation of these ROMs needs to be conducted.
 
-Currently we have no idea where these ROMs came from or what projects they were associated with. The filenames are simply what was found on the labels of the chips and half of them had no label at all. 
+Currently we have no idea where these ROMs came from or what projects they were associated with. The filenames are simply what was found on the labels of the chips and half of them had no label at all. I haven't compared them yet to any of the existing ROMs.
 
 /bin - the original ROM images
 /disassembly - a simple disassembly
