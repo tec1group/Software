@@ -17,3 +17,11 @@ Currently we have no idea where these ROMs came from or what projects they were 
 
 /bin - the original ROM images
 /disassembly - a simple disassembly
+
+## Update:
+
+unlabeled-4 and unlabeled-5 are font ROMs for a video display
+
+![unlabelled-4](./disassembly/unlabeled-4.jpg "unlabelled-4")
+
+![unlabelled-5](./disassembly/unlabeled-5.jpg "unlabelled-5")
