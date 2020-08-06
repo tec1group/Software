@@ -65,6 +65,13 @@ Included:
 - Listing in Z80 ASM format (needs more work)
 - Fully commented source listing by Jim Roberton (PDF)
 
+## SMON Monitor (Simple Monitor)
+by Jim Robinson
+
+- A Tutorial Monitor that fits in a page (256 bytes)
+- Easy to understand with basic input/output
+- Fully commented source listing by Jim Roberton (PDF)
+
 ## SMON Monitor
 by Scott Gregory
 
