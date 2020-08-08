@@ -1,0 +1,185 @@
+# File /Users/slarti/Documents/TEC1D/TEC-1D-Stuff/code/games/Magic_square.z80
+0000			; Magic Square 
+0000			;  
+0000			; Keys Used are 4,5,6,8,9,A,C,D,E.  Uses the 8x8 LED Matrix connected to ports 5 & 6 
+0000			; Need to end up with a hollow square 
+0000			;  
+0000			SCREEN:     EQU     0D00H ;Screen data for 8x8                 (8-bytes) 
+0000			SQRDAT:     EQU     0D09H ;Store top, middle and bottom rows   (3-bytes) 
+0000			KEYFLG:     EQU     0D0CH ;Key Pressed Flag                    (1-byte) 
+0000			 
+0000			            ORG     0900H  
+0900			 
+0900			START:                
+0900 11 00 00		            LD      DE,0000H ;Random Number generator 
+0903			LOOP1:                
+0903 13			            INC     DE  
+0904 db 03		            IN      A,(03)  
+0906 cb 77		            BIT     6,A  
+0908 28 f9		            JR      Z,LOOP1  
+090a ed 5f		            LD      A,R  
+090c 82			            ADD     A,D  
+090d 32 09 0d		            LD      (SQRDAT),A  
+0910 8b			            ADC     A,E  
+0911 32 0a 0d		            LD      (SQRDAT+1),A  
+0914 82			            ADD     A,D  
+0915 83			            ADD     A,E  
+0916 07			            RLCA      
+0917 32 0b 0d		            LD      (SQRDAT+2),A  
+091a			PRINT:                
+091a cd ad 09		            CALL    FORMAT  
+091d			GAME:                 
+091d cd ea 09		            CALL    SCAN  
+0920 db 03		            IN      A,(03)  
+0922 cb 77		            BIT     6,A  
+0924 28 06		            JR      Z,KEYHIT  
+0926 af			            XOR     A  
+0927 32 0c 0d		            LD      (KEYFLG),A  
+092a 18 f1		            JR      GAME  
+092c			KEYHIT:               
+092c 3a 0c 0d		            LD      A,(KEYFLG)  
+092f b7			            OR      A  
+0930 20 eb		            JR      NZ,GAME  
+0932 3e ff		            LD      A,0FFH  
+0934 32 0c 0d		            LD      (KEYFLG),A  
+0937 21 03 0a		            LD      HL,DATTBL  
+093a 01 09 00		            LD      BC,0009H  
+093d db 00		            IN      A,(00)  
+093f e6 1f		            AND     1FH  
+0941 ed b1		            CPIR      
+0943 20 d8		            JR      NZ,GAME  
+0945 cd da 09		            CALL    BEEP  
+0948 2b			            DEC     HL  
+0949 11 09 00		            LD      DE,0009H  
+094c 06 03		            LD      B,03H  
+094e			LOOP2:                
+094e 19			            ADD     HL,DE  
+094f 7e			            LD      A,(HL)  
+0950 19			            ADD     HL,DE  
+0951 e5			            PUSH    HL  
+0952 6e			            LD      L,(HL) 
+0953 26 0d		            LD      H,0DH    ;Force to use RAM 
+0955 ae			            XOR     (HL)  
+0956 77			            LD      (HL),A  
+0957 e1			            POP     HL  
+0958 10 f4		            DJNZ    LOOP2  
+095a 21 09 0d		            LD      HL,SQRDAT  
+095d 7e			            LD      A,(HL)  
+095e e6 07		            AND     07H  
+0960 fe 07		            CP      07H  
+0962 20 b6		            JR      NZ,PRINT  
+0964 23			            INC     HL  
+0965 7e			            LD      A,(HL)  
+0966 e6 07		            AND     07H  
+0968 fe 05		            CP      05H  
+096a 20 ae		            JR      NZ,PRINT  
+096c 23			            INC     HL  
+096d 7e			            LD      A,(HL)  
+096e e6 07		            AND     07H  
+0970 fe 07		            CP      07H  
+0972 20 a6		            JR      NZ,PRINT  
+0974 cd ad 09		            CALL    FORMAT  
+0977 11 30 00		            LD      DE,0030H  
+097a cd dd 09		            CALL    BEEP+3  
+097d 06 03		            LD      B,03H  
+097f			LOOP3:                
+097f c5			            PUSH    BC  
+0980 16 10		            LD      D,10H  
+0982			LOOP4:                
+0982 cd ea 09		            CALL    SCAN  
+0985 15			            DEC     D  
+0986 20 fa		            JR      NZ,LOOP4  
+0988 af			            XOR     A  
+0989 d3 06		            OUT     (06),A  
+098b cd da 09		            CALL    BEEP  
+098e 01 00 15		            LD      BC,1500H  
+0991			LOOP5:                
+0991 0b			            DEC     BC  
+0992 78			            LD      A,B  
+0993 b1			            OR      C  
+0994 20 fb		            JR      NZ,LOOP5  
+0996 c1			            POP     BC  
+0997 10 e6		            DJNZ    LOOP3  
+0999			LOOP6:                
+0999 cd ea 09		            CALL    SCAN  
+099c db 00		            IN      A,(00)  
+099e e6 1f		            AND     1FH  
+09a0 fe 12		            CP      12H  
+09a2 20 f5		            JR      NZ,LOOP6  
+09a4 11 80 00		            LD      DE,0080H  
+09a7 cd dd 09		            CALL    BEEP+3  
+09aa c3 00 09		            JP      START  
+09ad			FORMAT:               
+09ad 06 03		            LD      B,03H  
+09af 21 09 0d		            LD      HL,SQRDAT  
+09b2 11 00 0d		            LD      DE,SCREEN  
+09b5			LOOP7:                
+09b5 c5			            PUSH    BC  
+09b6 7e			            LD      A,(HL)  
+09b7 cd c6 09		            CALL    BITCON  
+09ba 12			            LD      (DE),A  
+09bb 13			            INC     DE  
+09bc 12			            LD      (DE),A  
+09bd 13			            INC     DE  
+09be af			            XOR     A  
+09bf 12			            LD      (DE),A  
+09c0 13			            INC     DE  
+09c1 23			            INC     HL  
+09c2 c1			            POP     BC  
+09c3 10 f0		            DJNZ    LOOP7  
+09c5 c9			            RET       
+09c6			BITCON:               
+09c6 01 00 03		            LD      BC,0300H  
+09c9			LOOP8:                
+09c9 0f			            RRCA      
+09ca 30 02		            JR      NC,ROTC  
+09cc cb f9		            SET     7,C  
+09ce			ROTC:                 
+09ce cb 11		            RL      C  
+09d0 cb 11		            RL      C  
+09d2 cb 11		            RL      C  
+09d4 10 f3		            DJNZ    LOOP8  
+09d6 cb 19		            RR      C  
+09d8 79			            LD      A,C  
+09d9 c9			            RET       
+09da			BEEP:                 
+09da 11 50 50		            LD      DE,5050H  
+09dd 3e 80		            LD      A,80H  
+09df			LOOP9:                
+09df d3 01		            OUT     (01),A  
+09e1 42			            LD      B,D  
+09e2 10 fe		LOOP10:     DJNZ    LOOP10  
+09e4 ee 80		            XOR     80H  
+09e6 1d			            DEC     E  
+09e7 20 f6		            JR      NZ,LOOP9 
+09e9			;            XOR     A 
+09e9			;            OUT     (01),A  
+09e9 c9			            RET       
+09ea			SCAN:                 
+09ea 21 07 0d		            LD      HL,SCREEN+7  
+09ed 06 80		            LD      B,80H  
+09ef			LOOP11:               
+09ef 7e			            LD      A,(HL)  
+09f0 d3 05		            OUT     (05),A  
+09f2 78			            LD      A,B  
+09f3 d3 06		            OUT     (06),A  
+09f5 06 40		            LD      B,40H  
+09f7 10 fe		LOOP12:     DJNZ    LOOP12  
+09f9 2b			            DEC     HL  
+09fa 47			            LD      B,A  
+09fb af			            XOR     A  
+09fc d3 06		            OUT     (06),A  
+09fe cb 08		            RRC     B  
+0a00 30 ed		            JR      NC,LOOP11  
+0a02 c9			            RET       
+0a03			 
+0a03 04 05 06 08 09 0a 0c 0d 0e	DATTBL:     DB      04H,05H,06H,08H,09H,0AH,0CH,0DH,0EH ;key pressed 
+0a0c 06 04 00 07 02 00 03 01 00	            DB      06H,04H,00H,07H,02H,00H,03H,01H,00H ;bottom row bits of key pressed 
+0a15 09 09 09 09 09 09 09 09 09	            DB      09H,09H,09H,09H,09H,09H,09H,09H,09H ;first 3x3 location SQRDAT 
+0a1e 04 06 04 02 07 02 01 03 01	            DB      04H,06H,04H,02H,07H,02H,01H,03H,01H ;middle row bits of key pressed 
+0a27 0a 0a 0a 0a 0a 0a 0a 0a 0a	            DB      0AH,0AH,0AH,0AH,0AH,0AH,0AH,0AH,0AH ;second 3x3 location SQRDAT+1 
+0a30 00 04 06 00 02 07 00 01 03	            DB      00H,04H,06H,00H,02H,07H,00H,01H,03H ;top row bits of key pressed 
+0a39 0b 0b 0b 0b 0b 0b 0b 0b 0b	            DB      0BH,0BH,0BH,0BH,0BH,0BH,0BH,0BH,0BH ;third 3x3 location SQRDAT+2 
+0a42			 
+# End of file /Users/slarti/Documents/TEC1D/TEC-1D-Stuff/code/games/Magic_square.z80
+0a42

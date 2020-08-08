@@ -1,0 +1,25 @@
+; Flash a segment on and off
+
+            ORG    0900H 
+START:               
+            LD      A,0FFH 
+            OUT     (02),A
+LOOP1:
+            LD      A,01H 
+            OUT     (01),A
+            CALL    DELAY
+            XOR     A
+            OUT     (01),A
+            CALL    DELAY
+            JR      LOOP1
+DELAY:               
+            PUSH    BC 
+            LD      B,55H 
+D1:                  
+            LD      C,0FFH 
+D2:                  
+            DEC     C 
+            JR      NZ,D2 
+            DJNZ    D1
+            POP     BC 
+            RET       

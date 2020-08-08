@@ -1,0 +1,42 @@
+; Move Segment Around the LED
+
+
+            ORG    0900H 
+START:               
+            LD      A,3FH 
+            OUT     (01),A
+            LD      A,01H
+            CALL    PRINT
+            LD      A,02H
+            CALL    PRINT
+            LD      A,04H
+            CALL    PRINT
+            LD      A,20H
+            CALL    PRINT
+            LD      A,80H
+            CALL    PRINT
+            LD      A,40H
+            CALL    PRINT
+            LD      A,04H
+            CALL    PRINT
+            LD      A,08H
+            CALL    PRINT
+            JR      START
+
+PRINT:
+            OUT     (02),A
+            CALL    DELAY
+            RET
+
+DELAY:               
+            PUSH    BC 
+            LD      B,55H 
+D1:                  
+            LD      C,0FFH 
+D2:                  
+            DEC     C 
+            JR      NZ,D2
+            DJNZ    D1
+            POP     BC 
+            RET      
+

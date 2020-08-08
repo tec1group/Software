@@ -1,0 +1,100 @@
+0000			;TEC CLOCK 
+0000			;CLOCK DATA IS IN 0D07 (SEC), 0D08 (MIN), 0D09 (HRS) 
+0000			;DISPLAY IS AT 0D00-0D06 
+0000			;IDEAL WITH CRYSTAL OSCILLATOR 
+0000			 
+0000			            ORG     0900H  
+0900			SCREENS:    EQU     0D00H  
+0900			SCREENE:    EQU     0D06H  
+0900			CLKDATA:    EQU     0D07H  
+0900 3e 00		            LD      A,00H  
+0902 32 07 0d		            LD      (CLKDATA),A  
+0905 32 08 0d		            LD      (CLKDATA+1),A  
+0908 3e 12		            LD      A,12H  
+090a 32 09 0d		            LD      (CLKDATA+2),A  
+090d			 
+090d			START:                
+090d fd 21 07 0d	            LD      IY,CLKDATA  
+0911 06 02		            LD      B,02H  
+0913			LOOP1:                
+0913 fd 7e 00		            LD      A,(IY+0)  
+0916 c6 01		            ADD     A,01H  
+0918 27			            DAA       
+0919 fe 60		            CP      60H  
+091b 20 13		            JR      NZ,DISPLAY  
+091d af			            XOR     A  
+091e fd 77 00		            LD      (IY+0),A  
+0921 fd 23		            INC     IY  
+0923 10 ee		            DJNZ    LOOP1  
+0925 fd 7e 00		            LD      A,(IY+0)  
+0928 c6 01		            ADD     A,01H  
+092a 27			            DAA       
+092b fe 24		            CP      24H 
+092d 20 01		            JR      NZ,DISPLAY  
+092f af			            XOR     A  
+0930			DISPLAY:              
+0930 fd 77 00		            LD      (IY+0),A  
+0933 06 03		            LD      B,03H  
+0935 21 06 0d		            LD      HL,SCREENE  
+0938 dd 21 07 0d	            LD      IX,CLKDATA  
+093c			LOOP2:                
+093c dd 7e 00		            LD      A,(IX+0)  
+093f dd 23		            INC     IX  
+0941 c5			            PUSH    BC  
+0942 f5			            PUSH    AF  
+0943 e6 0f		            AND     0FH  
+0945 47			            LD      B,A  
+0946 cd 80 09		            CALL    TBLLOOKUP  
+0949 f1			            POP     AF  
+094a cb 3f		            SRL     A  
+094c cb 3f		            SRL     A  
+094e cb 3f		            SRL     A  
+0950 cb 3f		            SRL     A  
+0952 47			            LD      B,A  
+0953 cd 80 09		            CALL    TBLLOOKUP  
+0956 c1			            POP     BC  
+0957 10 e3		            DJNZ    LOOP2  
+0959 06 fc		            LD      B,0FCH  
+095b			LOOP3:                
+095b dd 21 00 0d	            LD      IX,SCREENS  
+095f c5			            PUSH    BC  
+0960 06 07		            LD      B,07H  
+0962 0e 40		            LD      C,40H  
+0964			LOOP4:                
+0964 dd 7e 00		            LD      A,(IX+0)  
+0967 d3 02		            OUT     (02),A  
+0969 79			            LD      A,C  
+096a d3 01		            OUT     (01),A  
+096c cb 39		            SRL     C  
+096e af			            XOR     A  
+096f 1e 39		            LD      E,39H  
+0971			LOOP5:                
+0971 1d			            DEC     E  
+0972 20 fd		            JR      NZ,LOOP5  
+0974 d3 01		            OUT     (01),A  
+0976 dd 23		            INC     IX  
+0978 10 ea		            DJNZ    LOOP4  
+097a c1			            POP     BC  
+097b 10 de		            DJNZ    LOOP3  
+097d c3 96 09		            JP      TIMEDELAY  
+0980			TBLLOOKUP:            
+0980 11 8c 09		            LD      DE,PATTERN  
+0983 f5			            PUSH    AF  
+0984 7b			            LD      A,E  
+0985 80			            ADD     A,B  
+0986 5f			            LD      E,A  
+0987 1a			            LD      A,(DE)  
+0988 77			            LD      (HL),A  
+0989 2b			            DEC     HL  
+098a f1			            POP     AF  
+098b c9			            RET       
+098c			PATTERN:              
+098c eb 28 cd ad 2e a7 e7 29 ef af	            DB      0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,0AFH  
+0996			TIMEDELAY:            
+0996 06 37		            LD      B,37H  
+0998			LOOP6:                
+0998 10 fe		            DJNZ    LOOP6  
+099a c3 0d 09		            JP      START  
+099d			 
+099d			 
+099d			 

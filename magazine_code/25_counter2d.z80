@@ -1,0 +1,47 @@
+; 00-99 Counter
+; Use '4' key to increment 
+
+            ORG    0900H 
+START:     	
+            XOR    A
+            LD     DE,TABLE
+LOOP1:
+            LD     HL,TABLE
+MULTIPLEX:
+            XOR    A
+            OUT    (01),A
+            LD     A,(HL)
+            OUT    (02),A
+            LD     A,01H
+            OUT    (01),A
+            LD     B,10H
+LOOP2:
+            DJNZ   LOOP2
+
+            XOR    A
+            OUT    (01),A
+            LD     A,(DE)
+            OUT    (02),A
+            LD     A,02H
+            OUT    (01),A
+            LD     B,10H
+LOOP3:
+            DJNZ   LOOP3
+
+            RST    20H
+            JR     NZ,MULTIPLEX ;MIGHT NOT NEED
+            CP     04H
+            JR     NZ,MULTIPLEX
+
+            XOR    A
+            INC    HL
+            LD     A,(HL)
+            CP     0FFH
+            JR     NZ,MULTIPLEX
+            INC    DE
+            LD     A,(DE)
+            CP     0FFH
+            JR     NZ,LOOP1
+            JR     START
+TABLE:
+            DB     0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,0AFH,0FFH 

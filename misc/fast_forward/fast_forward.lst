@@ -1,0 +1,139 @@
+0000			;Fast Forward by J Robinson 
+0000			; 
+0000			;Modified by Brian Chiha to work on all MONS provided you have the 4k7 NMI to D7 hardware fix 
+0000			;Set HL on line 0F01-02 to your start address 
+0000			;Enjoy... 
+0000			; 
+0000			            ORG    0F00H  
+0f00			SETUP: 
+0f00 21 00 00		            LD     HL,0000H		;Put start address to look at here 
+0f03 af			            XOR    A            ;Initial Key = 0 
+0f04 f5			            PUSH   AF           ;Save Previous key 
+0f05			 
+0f05			START: 
+0f05 cd 70 0f		            CALL   CON_HL_A		;Convert HL and its contents to screen display 
+0f08 cd 90 0f		            CALL   KEY_TONE		;Play a Beep 
+0f0b 11 00 04		            LD     DE,0400H		;Default Speed 
+0f0e			             
+0f0e db 03		            IN     A,(03)		;Check if key is pressed 
+0f10 cb 77		            BIT    6,A 
+0f12 20 3d		            JR     NZ,GET_PREV  ;No key pressed 
+0f14 db 00		            IN     A,(00)		;Get actual key 
+0f16 e6 1f		            AND    1FH			;Mask upper bits 
+0f18			 
+0f18			CHK_INP:						;Check input if any 
+0f18 fe 0a		            CP     0AH 			;Fast Foward 
+0f1a c2 23 0f		           	JP     NZ,FASTR		;Check Fast Reverse 
+0f1d 11 00 01		           	LD     DE,0100H		;Go Forward fast 
+0f20 23			           	INC    HL 
+0f21 18 1e		           	JR     DO_SCAN 
+0f23			             
+0f23			FASTR: 
+0f23 fe 0b		           	CP     0BH         	;Fast Reverse 
+0f25 c2 2e 0f		           	JP     NZ,SLOWR		;Check Slow Reverse 
+0f28 11 00 01		           	LD     DE,0100H		;Go Backward fast 
+0f2b 2b			            DEC    HL 
+0f2c 18 13		           	JR     DO_SCAN 
+0f2e			 
+0f2e			SLOWR: 
+0f2e fe 0d		           	CP     0DH 			;Slow Reverse 
+0f30 c2 39 0f		           	JP     NZ,STOP		;Check Stop 
+0f33 11 00 04		           	LD     DE,0400H		;Go Backward slow 
+0f36 2b			            DEC    HL 
+0f37 18 08		           	JR     DO_SCAN 
+0f39			 
+0f39			STOP: 
+0f39 fe 0c		           	CP     0CH 			;Stop 
+0f3b c2 40 0f		           	JP     NZ,SLOWF 		;Just move forward 
+0f3e 18 01		           	JR     DO_SCAN 
+0f40			 
+0f40			SLOWF: 
+0f40 23			            INC    HL           ;Move default speed forward 
+0f41			 
+0f41			DO_SCAN: 
+0f41 47			            LD     B,A 			;Save current key 
+0f42 f1			            POP    AF 
+0f43 78			            LD     A,B 
+0f44 f5			            PUSH   AF 
+0f45			            ;LD     DE,(SPEED)	;Display HL and A with Speed delay 
+0f45 e5			            PUSH   HL 
+0f46			RESCAN: 
+0f46 cd 55 0f		            CALL   SCAN 		;Display the screen 
+0f49 1b			            DEC    DE 
+0f4a 7a			            LD     A,D 
+0f4b b3			            OR     E 
+0f4c 20 f8		            JR     NZ,RESCAN  
+0f4e e1			            POP    HL 
+0f4f 18 b4		            JR     START 
+0f51			 
+0f51			GET_PREV:						;Retrive the prevoius key and re save it 
+0f51 f1			            POP    AF 
+0f52 f5			            PUSH   AF 
+0f53 18 c3		            JR     CHK_INP 
+0f55			 
+0f55			SCAN:                                   ;Multiplex the displays 
+0f55 06 20		            LD      B,20H               ;Segment Reference 
+0f57 21 00 0d		            LD      HL,DISP_BUFF        ;Set HL to Display Buffer 
+0f5a			 
+0f5a			SCAN_LOOP: 
+0f5a 7e			            LD      A,(HL)              ;Get Segment Value at HL 
+0f5b d3 02		            OUT     (02),A              ;Set on Segment 
+0f5d 78			            LD      A,B                 ;Get Segment reference 
+0f5e d3 01		            OUT     (01),A              ;Activate segment 
+0f60 06 80		            LD      B,80H               ;Segment delay 
+0f62 10 fe		D_LOOP:     DJNZ    D_LOOP 
+0f64 23			            INC     HL                  ;move to next location 
+0f65 47			            LD      B,A                 ;Save Segment reference 
+0f66 af			            XOR     A                   ;Clear A 
+0f67 d3 01		            OUT     (01),A              ;Deactivate Segment 
+0f69 cb 08		            RRC     B                   ;Move Segment Reference on to the Right 
+0f6b 30 ed		            JR      NC,SCAN_LOOP        ;If not passed the last segment, scan next segment 
+0f6d d3 02		            OUT     (02),A              ;Clear port 2 
+0f6f c9			            RET 
+0f70			 
+0f70			;Convert HL and A to Seven Segment Display 
+0f70			CON_HL_A: 
+0f70 01 00 0d		            LD      BC,DISP_BUFF        ;Location of display buffer  
+0f73 7c			            LD      A,H                 ;Get high byte of Address 
+0f74 cd 7c 0f		            CALL    CON_A               ;Convert A to Segment Hex 
+0f77 7d			            LD      A,L                 ;Get low byte of Address 
+0f78 cd 7c 0f		            CALL    CON_A               ;Convert A to Segment Hex 
+0f7b 7e			            LD      A,(HL)              ;Now get value at HL to convert (Data) 
+0f7c			 
+0f7c			CON_A: 
+0f7c f5			            PUSH    AF                  ;Save A to keep original value 
+0f7d 07			            RLCA                        ;Shift upper nibble to lower for masking 
+0f7e 07			            RLCA 
+0f7f 07			            RLCA 
+0f80 07			            RLCA 
+0f81 cd 85 0f		            CALL    CON_NIBBLE          ;Convert Lower nibble to segment hex 
+0f84 f1			            POP     AF                  ;Restore A 
+0f85			 
+0f85			CON_NIBBLE: 
+0f85 e6 0f		            AND     0FH                 ;Only look at lower nibble for indexing 
+0f87 11 9f 0f		            LD      DE,DISP_COD_TAB     ;Reference Segment convert table 
+0f8a 83			            ADD     A,E                 ;Index table with A 
+0f8b 5f			            LD      E,A                 ;Update DE with index 
+0f8c 1a			            LD      A,(DE)              ;Look up table 
+0f8d 02			            LD      (BC),A              ;Save it to display buffer 
+0f8e 03			            INC     BC                  ;Increment buffer location 
+0f8f c9			            RET 
+0f90			 
+0f90			KEY_TONE: 
+0f90 0e 40		            LD      C,40H               ;Half cycle count 
+0f92 af			            XOR     A                   ;Clear A 
+0f93			TONE_LOOP: 
+0f93 d3 01		            OUT     (01),A              ;Set or unset speaker bit 
+0f95 06 40		            LD      B,40H               ;Set delay 
+0f97 10 fe		TONE_DELAY: DJNZ    TONE_DELAY 
+0f99 ee 80		            XOR     80H                 ;Toggle speaker bit 
+0f9b 0d			            DEC     C                   ;Count down cycle 
+0f9c 20 f5		            JR      NZ,TONE_LOOP        ;Do more toning 
+0f9e c9			            RET 
+0f9f			 
+0f9f			DISP_COD_TAB: 
+0f9f eb 28 cd ad 2e a7 e7 29	            DB     0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H 
+0fa7 ef af 6f e6 c3 ec c7 47	            DB     0EFH,0AFH,6FH,0E6H,0C3H,0ECH,0C7H,47H 
+0faf			 
+0faf			DISP_BUFF:  EQU    0D00H      		;Display buffer 
+0faf			 

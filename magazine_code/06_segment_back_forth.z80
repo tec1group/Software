@@ -1,0 +1,31 @@
+; Move Segment Back and Forth across the Screen
+
+            ORG    0900H 
+START:               
+            LD      A,01H 
+            OUT     (02),A 
+LOOP1:               
+            OUT     (01),A 
+            CALL    DELAY 
+            RLCA
+            BIT     6,A     
+            JR      Z,LOOP1
+LOOP2:
+            RRCA
+            OUT     (01),A
+            CALL    DELAY
+            BIT     0,A
+            JR      Z,LOOP2
+            JR      LOOP1
+DELAY:               
+            PUSH    BC 
+            LD      B,55H 
+D1:                  
+            LD      C,0FFH 
+D2:                  
+            DEC     C 
+            JR      NZ,D2
+            DJNZ    D1
+            POP     BC 
+            RET      
+

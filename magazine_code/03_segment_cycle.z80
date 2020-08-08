@@ -1,0 +1,25 @@
+; Spin LED Around an Segment
+
+            ORG    0900H 
+START:               
+            LD      A,3FH 
+            OUT     (01),A
+            XOR     B 
+LOOP1:               
+            LD      A,B
+            OUT     (02),A
+            INC     B
+            CALL    DELAY
+            JR      LOOP1
+
+DELAY:               
+            PUSH    BC 
+            LD      B,20H 
+D1:                  
+            LD      C,0FFH 
+D2:                  
+            DEC     C 
+            JR      NZ,D2 
+            DJNZ    D1
+            POP     BC 
+            RET       

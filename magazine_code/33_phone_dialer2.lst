@@ -1,0 +1,146 @@
+0000			; Phone Dialer Part 2 
+0000			 
+0000			DISPLAY:    EQU    0D00H 
+0000			MEMORY:     EQU    DISPLAY+7 
+0000			KEYPRE:     EQU    0CFFH ;Key Pressed Flag, 00-False, FF-True                   (1-byte) 
+0000			 
+0000			 
+0000			            ORG    0900H  
+0900			START: 
+0900			            ; Clear the screen & memory 
+0900 06 20		            LD      B,20H 
+0902 cd 58 09		            CALL    CLEAR 
+0905			            ; Get Key input 
+0905 21 07 0d		            LD      HL,MEMORY 
+0908			KEYREAD: 
+0908 e7			            RST     20H 
+0909 fe 0a		            CP      0AH 
+090b 30 10		            JR      NC,NOTANO ;Not a number 
+090d 23			            INC     HL 
+090e			            ; Get Key Pressed and convert to LED 
+090e 11 b9 09		            LD      DE,TABLE 
+0911 83			            ADD     A,E 
+0912 5f			            LD      E,A 
+0913 cd 61 09		            CALL    SHIFT 
+0916 1a			            LD      A,(DE) 
+0917 77			            LD      (HL),A 
+0918 32 05 0d		            LD      (DISPLAY+5),A 
+091b 3e ff		            LD      A,0FFH 
+091d			NOTANO: 
+091d fe 0e		            CP      0EH 
+091f 28 05		            JR      Z,KEYEND 
+0921 cd 72 09		            CALL    SCAN 
+0924 18 e2		            JR      KEYREAD 
+0926			KEYEND: 
+0926 23			            INC     HL 
+0927 77			            LD      (HL),A 
+0928			            ;Clear the screen 
+0928 06 06		            LD      B,06H 
+092a cd 58 09		            CALL    CLEAR 
+092d			LOOP4: 
+092d 21 07 0d		            LD      HL,MEMORY 
+0930			LOOP7: 
+0930 7e			            LD      A,(HL) 
+0931 16 20		            LD      D,20H 
+0933 23			            INC     HL 
+0934 fe 0e		            CP      0EH 
+0936 28 0e		            JR      Z,EOF 
+0938 32 05 0d		            LD      (DISPLAY+5),A 
+093b			LOOP3: 
+093b cd 72 09		            CALL    SCAN 
+093e 15			            DEC     D 
+093f 20 fa		            JR      NZ,LOOP3 
+0941 cd 61 09		            CALL    SHIFT 
+0944 18 ea		            JR      LOOP7 
+0946			EOF: 
+0946 1e 02		            LD      E,02H 
+0948			LOOP6: 
+0948 16 20		            LD      D,20H 
+094a			LOOP5: 
+094a cd 72 09		            CALL    SCAN 
+094d 15			            DEC     D 
+094e 20 fa		            JR      NZ,LOOP5 
+0950 cd 61 09		            CALL    SHIFT 
+0953 1d			            DEC     E 
+0954 20 f2		            JR      NZ,LOOP6 
+0956 18 d5		            JR      LOOP4 
+0958			 
+0958			            ;Clear the screen 
+0958			CLEAR: 
+0958 af			            XOR     A 
+0959 21 00 0d		            LD      HL,DISPLAY 
+095c			LOOP1: 
+095c 77			            LD      (HL),A 
+095d 23			            INC     HL 
+095e 10 fc		            DJNZ    LOOP1 
+0960 c9			            RET 
+0961			 
+0961			            ;Shift screen one character to the left 
+0961			SHIFT: 
+0961 06 07		            LD      B,07H 
+0963 dd 21 ff 0c	            LD      IX,DISPLAY-1 
+0967			LOOP2: 
+0967 dd 7e 01		            LD      A,(IX+1) 
+096a dd 77 00		            LD      (IX+0),A 
+096d dd 23		            INC     IX 
+096f 10 f6		            DJNZ    LOOP2 
+0971 c9			            RET 
+0972			 
+0972			            ;Multiplex the screen 
+0972			SCAN: 
+0972 e5			            PUSH    HL 
+0973 d5			            PUSH    DE 
+0974 0e 20		            LD      C,20H 
+0976 21 00 0d		            LD      HL,DISPLAY 
+0979 16 06		            LD      D,06H 
+097b			LOOP8: 
+097b 06 80		            LD      B,80H 
+097d 7e			            LD      A,(HL) 
+097e d3 02		            OUT     (02),A 
+0980 79			            LD      A,C 
+0981 d3 01		            OUT     (01),A 
+0983 cb 09		            RRC     C 
+0985			LOOP9: 
+0985 10 fe		            DJNZ    LOOP9 
+0987 af			            XOR     A 
+0988 d3 01		            OUT     (01),A 
+098a 23			            INC     HL 
+098b			            ;RST     20H 
+098b cd 9f 09		            CALL    KRD 
+098e fe 0c		            CP      0CH 
+0990 28 06		            JR      Z,CPRESS 
+0992 15			            DEC     D 
+0993 20 e6		            JR      NZ,LOOP8 
+0995 d1			            POP     DE 
+0996 e1			            POP     HL 
+0997 c9			            RET 
+0998			CPRESS: 
+0998 d1			            POP     DE 
+0999 e1			            POP     HL 
+099a 3e ff		            LD      A,0FFH 
+099c c3 00 09		            JP      START 
+099f			 
+099f			KRD: 
+099f			            ; Test for key pressed with D6 set 
+099f db 03		            IN      A,(03) 
+09a1 cb 77		            BIT     6,A  ; Bit 6, If not set A=NZ 
+09a3 28 05		            JR      Z,MP2 
+09a5			            ; Store 0 for last key if no key pressed 
+09a5 af			            XOR     A 
+09a6 32 ff 0c		            LD      (KEYPRE),A 
+09a9 c9			            RET 
+09aa			MP2: 
+09aa			            ; Key has been pressed 
+09aa 3a ff 0c		            LD      A,(KEYPRE) 
+09ad b7			            OR      A 
+09ae c0			            RET     NZ  ; Just return if same 
+09af 3e ff		            LD      A,0FFH 
+09b1 32 ff 0c		            LD      (KEYPRE),A 
+09b4			            ; Get Key 
+09b4 db 00		            IN      A,(00) 
+09b6 e6 1f		            AND     01FH ; Mask unwanted bits 
+09b8 c9			            RET 
+09b9			 
+09b9			TABLE: 
+09b9 eb 28 cd ad 2e a7 e7 29 ef af	            DB      0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,0AFH  
+09c3			 

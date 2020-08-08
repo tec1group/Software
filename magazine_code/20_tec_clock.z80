@@ -1,0 +1,100 @@
+;TEC CLOCK
+;CLOCK DATA IS IN 0D07 (SEC), 0D08 (MIN), 0D09 (HRS)
+;DISPLAY IS AT 0D00-0D06
+;IDEAL WITH CRYSTAL OSCILLATOR
+
+            ORG     0900H 
+SCREENS:    EQU     0D00H 
+SCREENE:    EQU     0D06H 
+CLKDATA:    EQU     0D07H 
+            LD      A,00H 
+            LD      (CLKDATA),A 
+            LD      (CLKDATA+1),A 
+            LD      A,12H 
+            LD      (CLKDATA+2),A 
+
+START:               
+            LD      IY,CLKDATA 
+            LD      B,02H 
+LOOP1:               
+            LD      A,(IY+0) 
+            ADD     A,01H 
+            DAA      
+            CP      60H 
+            JR      NZ,DISPLAY 
+            XOR     A 
+            LD      (IY+0),A 
+            INC     IY 
+            DJNZ    LOOP1 
+            LD      A,(IY+0) 
+            ADD     A,01H 
+            DAA      
+            CP      24H
+            JR      NZ,DISPLAY 
+            XOR     A 
+DISPLAY:             
+            LD      (IY+0),A 
+            LD      B,03H 
+            LD      HL,SCREENE 
+            LD      IX,CLKDATA 
+LOOP2:               
+            LD      A,(IX+0) 
+            INC     IX 
+            PUSH    BC 
+            PUSH    AF 
+            AND     0FH 
+            LD      B,A 
+            CALL    TBLLOOKUP 
+            POP     AF 
+            SRL     A 
+            SRL     A 
+            SRL     A 
+            SRL     A 
+            LD      B,A 
+            CALL    TBLLOOKUP 
+            POP     BC 
+            DJNZ    LOOP2 
+            LD      B,0FCH 
+LOOP3:               
+            LD      IX,SCREENS 
+            PUSH    BC 
+            LD      B,07H 
+            LD      C,40H 
+LOOP4:               
+            LD      A,(IX+0) 
+            OUT     (02),A 
+            LD      A,C 
+            OUT     (01),A 
+            SRL     C 
+            XOR     A 
+            LD      E,39H 
+LOOP5:               
+            DEC     E 
+            JR      NZ,LOOP5 
+            OUT     (01),A 
+            INC     IX 
+            DJNZ    LOOP4 
+            POP     BC 
+            DJNZ    LOOP3 
+            JP      TIMEDELAY 
+TBLLOOKUP:           
+            LD      DE,PATTERN 
+            PUSH    AF 
+            LD      A,E 
+            ADD     A,B 
+            LD      E,A 
+            LD      A,(DE) 
+            LD      (HL),A 
+            DEC     HL 
+            POP     AF 
+            RET      
+PATTERN:             
+            DB      0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,0AFH 
+TIMEDELAY:           
+            LD      B,37H 
+LOOP6:               
+            DJNZ    LOOP6 
+            JP      START 
+
+
+

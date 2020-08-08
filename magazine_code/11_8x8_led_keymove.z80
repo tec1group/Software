@@ -1,0 +1,39 @@
+; Move an 8x8 LED with keyboard
+; Use -,5,2,0 for the keys
+; Stores position in BC (X,Y)
+
+            ORG    0900H 
+START:
+            LD      BC,0101H
+            LD      A,B
+            OUT     (05),A
+            LD      A,C
+            OUT     (06),A
+KEYWAIT:
+            RST     08H
+LEFT:
+            CP      11H       ;'+' Key Left
+            JR      NZ, RIGHT
+            RRC     B
+            JR      UPDATEX
+RIGHT:
+            CP      05H       ;'5' Key Right
+            JR      NZ, UP
+            RLC     B
+UPDATEX:
+            LD      A,B
+            OUT     (05),A
+            JR      KEYWAIT
+UP:
+            CP      02H       ;'2' Key Left
+            JR      NZ, DOWN
+            RLC     C
+            JR      UPDATEY
+DOWN:
+            CP      00H       ;'0' Key Right
+            JR      NZ, KEYWAIT
+            RRC     C
+UPDATEY:
+            LD      A,C
+            OUT     (06),A
+            JR      KEYWAIT

@@ -1,0 +1,27 @@
+; Speech Module Test Program
+
+            ORG    0900H 
+START:
+            LD     HL,DATA
+LOOP:
+            LD     A,(HL)
+            CP     0FFH
+            JR     Z,AGAIN
+            OUT    (07),A
+            INC    HL
+            JR     LOOP
+AGAIN:
+			HALT
+			JR     START
+DATA:
+            DB     0DH,17H,17H,02H,2AH,0CH,2CH,04H
+            DB     04H,2AH,0FH,10H,00H,31H,16H,0DH
+            DB     33H,04H,04H,00H,00H,00H,00H,00H
+            DB     1BH,07H,2DH,35H,00H,36H,07H,2FH
+            DB     04H,06H,00H,1AH,10H,00H,12H,13H
+            DB     00H,0DH,13H,03H,13H,03H,37H,13H
+            DB     03H,08H,18H,10H,09H,31H,16H,11H
+            DB     33H,04H,04H,04H,38H,20H,00H,30H
+            DB     0CH,1DH,37H,09H,13H,32H,04H,0FFH
+
+

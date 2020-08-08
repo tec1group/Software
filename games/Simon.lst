@@ -1,0 +1,185 @@
+# File /Users/slarti/Documents/TEC1D/TEC-1D-Stuff/code/games/Simon.z80
+0000			;SIMON Game written by Jim Robertson 
+0000			;----------------------------------- 
+0000			; The 4 LED Segments from the right represent keys 0,4,8,C. 
+0000			; The segments light up and the order they light up represents the 
+0000			; keys to press. 
+0000			; 
+0000			; Modified by B Chiha to auto populate random numbers at startup. 
+0000			; 
+0000			            ORG     0A00H  
+0a00			SETUP:                
+0a00 cd e7 0a		            CALL    RANGEN      ;Set up random numbers from 0B00 to 0BFF 
+0a03 ed 5f		            LD      A,R         ;Get random number for random table lookup 
+0a05 6f			            LD      L,A         ;at 0Bxx 
+0a06			START: 
+0a06 0e 01		            LD      C,01H 
+0a08 cd 90 0a		            CALL    DELAY 
+0a0b 26 0b		            LD      H,0BH 
+0a0d			GAME: 
+0a0d 41			            LD      B,C         ;Working counter 
+0a0e e5			            PUSH    HL 
+0a0f			LOOP: 
+0a0f 7e			            LD      A,(HL)      ;Get Random value 
+0a10 cd a4 0a		            CALL    SOUND 
+0a13 2c			            INC     L 
+0a14 cd 90 0a		            CALL    DELAY       ;Call delay which shortens on each call 
+0a17 10 f6		            DJNZ    LOOP 
+0a19 e1			            POP     HL 
+0a1a 41			            LD      B,C 
+0a1b e5			            PUSH    HL 
+0a1c			PLAYER: 
+0a1c cd cc 0a		            CALL    KEYPRESS 
+0a1f 20 fb		            JR      NZ,PLAYER   ;No key pressed 
+0a21 0f			            RRCA                ;Check for keys 0,4,8,C by shifting 
+0a22 0f			            RRCA                ;twice to the right..Clever! 
+0a23 fe 04		            CP      04H         ;Compare with 4 to see if valid key 
+0a25 30 f5		            JR      NC,PLAYER 
+0a27 e5			            PUSH    HL 
+0a28 21 d9 0a		            LD      HL,DSPTBL   ;Display Table 
+0a2b 85			            ADD     A,L 
+0a2c 6f			            LD      L,A 
+0a2d 7e			            LD      A,(HL)      ;Get display value based on key press 
+0a2e e1			            POP     HL 
+0a2f be			            CP      (HL)        ;Complare key pressed with value in lookup 
+0a30 20 12		            JR      NZ,ERROR 
+0a32 cd a4 0a		            CALL    SOUND 
+0a35 2c			            INC     L 
+0a36			KEYWAIT: 
+0a36 cd cc 0a		            CALL    KEYPRESS    ;Get another key 
+0a39 28 fb		            JR      Z,KEYWAIT   ;Loop until key released 
+0a3b 10 df		            DJNZ    PLAYER 
+0a3d e1			            POP     HL 
+0a3e cd 90 0a		            CALL    DELAY 
+0a41 0c			            INC     C 
+0a42 18 c9		            JR      GAME        ;Jump back to start of game 
+0a44			ERROR: 
+0a44 3e 30		            LD      A,30H       ;Incorrect answer 
+0a46 cd a4 0a		            CALL    SOUND 
+0a49 41			            LD      B,C 
+0a4a af			            XOR     A 
+0a4b			HEXBCD: 
+0a4b 3c			            INC     A 
+0a4c 27			            DAA     
+0a4d 10 fc		            DJNZ    HEXBCD 
+0a4f 3d			            DEC     A 
+0a50 27			            DAA 
+0a51 4f			            LD      C,A 
+0a52 af			SCAN:       XOR     A           ;Multiplex 
+0a53 d3 02		            OUT     (02),A 
+0a55 3e 04		            LD      A,04H 
+0a57 d3 01		            OUT     (01),A 
+0a59 79			            LD      A,C 
+0a5a cd 85 0a		            CALL    BCDHEX 
+0a5d 06 00		            LD      B,00H 
+0a5f 10 fe		LOOP1:      DJNZ    LOOP1 
+0a61 af			            XOR     A 
+0a62 d3 02		            OUT     (02),A 
+0a64 3e 08		            LD      A,08H 
+0a66 d3 01		            OUT     (01),A 
+0a68 79			            LD      A,C 
+0a69 0f			            RRCA 
+0a6a 0f			            RRCA 
+0a6b 0f			            RRCA 
+0a6c 0f			            RRCA 
+0a6d cd 85 0a		            CALL    BCDHEX 
+0a70 06 00		            LD      B,00H 
+0a72 10 fe		LOOP2:      DJNZ    LOOP2 
+0a74 cd cc 0a		            CALL    KEYPRESS 
+0a77 14			            INC     D 
+0a78 fe 12		            CP      12H        ;Check if GO pressed 
+0a7a 20 d6		            JR      NZ,SCAN    ;Keep scanning until GO pressed 
+0a7c 6a			            LD      L,D        ;Put random number in L 
+0a7d af			            XOR     A 
+0a7e d3 01		            OUT     (01),A 
+0a80 cd a4 0a		            CALL    SOUND 
+0a83 18 81		            JR      START 
+0a85			BCDHEX: 
+0a85 e6 0f		            AND     0FH        ;Mask high nibble 
+0a87 21 dd 0a		            LD      HL,SEGTBL 
+0a8a 85			            ADD     A,L 
+0a8b 6f			            LD      L,A 
+0a8c 7e			            LD      A,(HL)     ;Get Segment 
+0a8d d3 02		            OUT     (02),A     ;Display number 
+0a8f c9			            RET 
+0a90			DELAY: 
+0a90 11 00 40		            LD      DE,4000H 
+0a93 79			            LD      A,C        ;Frame count 
+0a94 07			            RLCA 
+0a95 07			            RLCA 
+0a96			LOOP3: 
+0a96 15			            DEC     D 
+0a97 3d			            DEC     A 
+0a98 20 fc		            JR      NZ,LOOP3 
+0a9a			LOOP4: 
+0a9a 1b			            DEC     DE 
+0a9b 7a			            LD      A,D 
+0a9c b3			            OR      E 
+0a9d 20 fb		            JR      NZ,LOOP4 
+0a9f 3e 04		            LD      A,04H 
+0aa1 d3 02		            OUT     (02),A 
+0aa3 c9			            RET 
+0aa4			SOUND: 
+0aa4 e5			            PUSH    HL 
+0aa5 d5			            PUSH    DE 
+0aa6 c5			            PUSH    BC 
+0aa7 4f			            LD      C,A 
+0aa8 07			            RLCA 
+0aa9 c6 18		            ADD     A,18H 
+0aab 21 e0 01		            LD      HL,01E0H 
+0aae 47			            LD      B,A 
+0aaf 79			            LD      A,C 
+0ab0 11 01 00		            LD      DE,0001H 
+0ab3 48			            LD      C,B 
+0ab4 e6 0f		            AND     0FH 
+0ab6			LOOP5: 
+0ab6 d3 01		            OUT     (01),A     ;Display value 
+0ab8 41			            LD      B,C 
+0ab9 10 fe		LOOP6:      DJNZ    LOOP6 
+0abb ee 80		            XOR     80H        ;Toggle speaker bit 
+0abd ed 52		            SBC     HL,DE 
+0abf 20 f5		            JR      NZ,LOOP5 
+0ac1 c1			            POP     BC 
+0ac2 d1			            POP     DE 
+0ac3 e1			            POP     HL 
+0ac4 3e 04		            LD      A,04H      ;G segment 
+0ac6 d3 02		            OUT     (02),A 
+0ac8 af			            XOR     A 
+0ac9 d3 01		            OUT     (01),A 
+0acb c9			            RET 
+0acc			KEYPRESS: 
+0acc db 03		            IN      A,(03)     ;Check if key is pressed 
+0ace cb 77		            BIT     6,A 
+0ad0 c0			            RET     NZ         ;No key pressed 
+0ad1 db 00		            IN      A,(00)     ;Get actual key 
+0ad3 e6 1f		            AND     1FH        ;Mask upper bits 
+0ad5 5f			            LD      E,A 
+0ad6 af			            XOR     A          ;Clear flags 
+0ad7 7b			            LD      A,E 
+0ad8 c9			            RET 
+0ad9			 
+0ad9 08 04 02 01	DSPTBL:     DB      08H,04H,02H,01H 
+0add eb 28 cd ad 2e a7 e7 29 ef 2f	SEGTBL:     DB      0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,2FH 
+0ae7			 
+0ae7			;Here is the random number generator that puts 1,2,4 and 8 in memory 
+0ae7			;between 0B00 and 0BFF.  Call this routine first 
+0ae7			RANGEN: 
+0ae7 06 00		            LD      B,00H 
+0ae9 21 00 0b		            LD      HL,0B00H 
+0aec 16 11		            LD      D,00010001B  ;(rotating 1 bits) 
+0aee			RG1: 
+0aee ed 5f		            LD      A,R 
+0af0			RG2: 
+0af0 cb 02		            RLC     D 
+0af2 3d			            DEC     A 
+0af3 20 fb		            JR      NZ,RG2 
+0af5 7a			            LD      A,D 
+0af6 e6 0f		            AND     0FH 
+0af8 77			            LD      (HL),A      ;Store randome number 
+0af9 23			            INC     HL 
+0afa f5			            PUSH    AF          ;Waste time to move R on a bit 
+0afb f1			            POP     AF          
+0afc 10 f0		            DJNZ    RG1 
+0afe c9			            RET 
+# End of file /Users/slarti/Documents/TEC1D/TEC-1D-Stuff/code/games/Simon.z80
+0aff

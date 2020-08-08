@@ -1,0 +1,102 @@
+; 000-999 Counter
+; Use '+' key to increment 
+; Use '-' key to decrement 
+; Use 'AD' key to clear 
+
+            ORG    0900H
+SCREEN:     EQU    0D00H 
+
+            LD     HL,SCREEN+3
+            XOR    A
+            LD     (HL),A
+            INC    HL
+            LD     (HL),A
+START:     	
+            LD     BC,SCREEN
+            LD     DE,SCREEN+3
+            LD     A,(DE)
+            CALL   BITE2N
+            INC    DE
+            LD     A,(DE)
+            CALL   NIBBLE
+            LD     HL,SCREEN+2
+            CALL   MULTIPLEX
+            LD     HL,SCREEN+3
+
+            RST    20H
+INCREMENT:
+            CP     10H
+            JR     NZ,DECREMENT
+            LD     A,(HL)
+            INC    A
+            DAA
+            LD     (HL),A
+            JR     NC,CLEAR
+            INC    HL
+            LD     A,(HL)
+            INC    A
+            DAA
+            LD     (HL),A
+            JR     CLEAR
+DECREMENT:
+            CP     11H
+            JR     NZ,RESET
+            LD     A,(HL)
+            DEC    A
+            DAA
+            LD     (HL),A
+            JR     NC,CLEAR
+            INC    HL
+            LD     A,(HL)
+            DEC    A
+            DAA
+            LD     (HL),A
+            JR     CLEAR
+RESET:
+            CP     13H
+            JR     NZ,CLEAR
+            XOR    A
+            LD     (HL),A
+            INC    HL
+            LD     (HL),A
+CLEAR:
+            LD     A,0FFH
+            JR     START
+BITE2N:
+            PUSH   AF
+            CALL   NIBBLE
+            POP    AF
+            RRA
+            RRA
+            RRA
+            RRA
+            CALL   NIBBLE
+            RET
+NIBBLE:
+            AND    0FH
+            LD     HL,TABLE
+            ADD    A,L
+            LD     L,A
+            LD     A,(HL)
+            LD     (BC),A
+            INC    BC
+            RET 
+MULTIPLEX:
+            LD     B,04H
+LOOP1:
+            LD     A,(HL)
+            OUT    (02),A
+            LD     A,B
+            OUT    (01),A
+            LD     B,50H
+LOOP2:
+            DJNZ   LOOP2
+            DEC    HL
+            LD     B,A
+            XOR    A
+            OUT    (01),A
+            RRC    B
+            JR     NC,LOOP1
+            RET
+TABLE:
+            DB     0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,0AFH 

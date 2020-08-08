@@ -1,0 +1,62 @@
+; Move an 8x8 LED around the Display
+
+
+            ORG    0900H 
+START:               
+            LD      A,01H 
+            OUT     (06),A
+            LD      C,08H
+            LD      A,01H
+LOOP1:
+            OUT     (05),A
+            CALL    DELAY
+            RLCA
+            DEC     C
+            JR      NZ,LOOP1
+
+            LD      A,80H 
+            OUT     (05),A
+            LD      C,07H
+            LD      A,02H
+LOOP2:
+            OUT     (06),A
+            CALL    DELAY
+            RLCA
+            DEC     C
+            JR      NZ,LOOP2
+
+            LD      A,80H 
+            OUT     (06),A
+            LD      C,07H
+            LD      A,40H
+LOOP3:
+            OUT     (05),A
+            CALL    DELAY
+            RRCA
+            DEC     C
+            JR      NZ,LOOP3
+
+            LD      A,01H 
+            OUT     (05),A
+            LD      C,07H
+            LD      A,40H
+LOOP4:
+            OUT     (06),A
+            CALL    DELAY
+            RRCA
+            DEC     C
+            JR      NZ,LOOP4
+
+            JR      START
+
+DELAY:               
+            PUSH    BC 
+            LD      B,20H 
+D1:                  
+            LD      C,0FFH 
+D2:                  
+            DEC     C 
+            JR      NZ,D2
+            DJNZ    D1
+            POP     BC 
+            RET      

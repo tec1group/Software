@@ -1,0 +1,310 @@
+# File /Users/slarti/Documents/TEC1D/TEC-1D-Stuff/code/games/Game_of_life.z80
+0000			; Conway's Game of Life 
+0000			; --------------------- 
+0000			; 
+0000			; Written by Brian Chiha 
+0000			; brian.chiha@gmail.com  -- July 2020 
+0000			; 
+0000			; Game of Life is a cellular automation simulation.  Each cell evolves based on the number 
+0000			; of cells that surround it.  The basic cell rules are: 
+0000			; 
+0000			;    * Any live cell with two or three live neighbours survives. 
+0000			;    * Any dead cell with three live neighbours becomes a live cell. 
+0000			;    * All other live cells die in the next generation. Similarly, all other dead cells stay dead. 
+0000			; 
+0000			; The simulation is written for the TEC using the 8x8 LED matrix. 
+0000			; 
+0000			; Setup 
+0000			; -----  
+0000			; 
+0000			; To be run on the TEC-1D with any Monitor.  For the keyboard to work 
+0000			; it requires EITHER a 4k7 resistor between the NMI (pin 17 on Z-80) and D6 (pin 
+0000			; 10 on the Z-80) OR the DAT (LCD) expanstion board fitted to port 3.  The  
+0000			; current TEC-1D boards have the JMON MOD resitor connection already there. 
+0000			; The 8x8 LED board is fitted to ports 5 and 6 with the port select strobe of the 
+0000			; left hand latch going to port 6. 
+0000			; 
+0000			; To Use 
+0000			; ------ 
+0000			; 
+0000			; Press 'GO' to start with a random cell placement. 
+0000			; Press '+' or '-' to cycle through pre defined cell placement. 
+0000			; Press the above keys at anytime to restart a simulation. 
+0000			; 
+0000			; Enjoy life taking on its own..... 
+0000			;  
+0000			; The 8x8 cells are structured using 64 bytes, where each memory location is a live cell EG: 
+0000			;  CURMAT: 
+0000			;  0x0D10      1 0 1 1 1 0 1 1  = BB 
+0000			;  0x0D18      0 1 0 0 1 1 0 0  = 4C 
+0000			;  0x0D20      1 1 1 0 0 0 1 0  = E2 
+0000			;  0x0D28      0 1 0 1 1 0 1 0  = 5A 
+0000			;  0x0D30      1 0 1 1 1 0 1 1  = BB 
+0000			;  0x0D38      0 1 0 0 1 1 0 0  = 4C 
+0000			;  0x0D40      1 1 1 0 0 0 1 0  = E2 
+0000			;  0x0D48      0 1 0 1 1 0 1 0  = 5A 
+0000			; 
+0000			; Cells are then printed vertically from left to right like so: 
+0000			;              1  0  1  0  1  0  1  0 
+0000			;              0  1  1  1  0  1  1  1 
+0000			;              1  0  1  0  1  0  1  0     
+0000			;              1  0  0  1  1  0  0  1 
+0000			;              1  1  0  1  1  1  0  1 
+0000			;              0  1  0  0  0  1  0  0 
+0000			;              1  0  1  1  1  0  1  1 
+0000			;              1  0  0  0  1  0  0  0 
+0000			; SCREEN:      BB 4C E2 5A BB 4C E2 5A 
+0000			; 
+0000			; Development Notes: 
+0000			; To make adding up the surrounding cells easier, I put an upper and lower zero buffer on either end 
+0000			; of the matrix.  This handles up and down checks.  For side checks, I see if the current cell is  
+0000			; on the left or right edge. If on the edge, I just ignore the cell.  
+0000			 
+0000			 
+0000			SCREEN:     EQU     0D00H ;Game Screen                                           (8-bytes) 
+0000			UPBUFF:     EQU     0D08H ;Zero row for up checks                                (8-bytes) 
+0000			CURMAT:     EQU     0D10H ;Current Cell Matrix, 8 bytes x 8 bytes                (64-bytes) 
+0000			DNBUFF:     EQU     0D50H ;Zero row for down checks                              (8-bytes) 
+0000			NEXMAT:     EQU     0D58H ;Next Interation Cell Matrix, 8 bytes x 8 bytes        (64-bytes) 
+0000			DATALC:     EQU     0A00H ;Data location for pre-defined examples                (160-bytes) 
+0000			 
+0000			            ORG     0900H  
+0900			START:                
+0900			            ;Copy Data to 0x0A00 
+0900 21 11 0a		            LD      HL,DSPTBL 
+0903 11 00 0a		            LD      DE,DATALC 
+0906 01 98 00		            LD      BC,0098H 
+0909 ed b0		            LDIR 
+090b			 
+090b			            ;Blank Buffs and Current Matrix 
+090b cd df 09		            CALL    CLEAR 
+090e			 
+090e			            ;Fill Current Matrix with Random cells for first iteration 
+090e cd c4 09		            CALL    RANFIL 
+0911			 
+0911			            ;Game Loop 
+0911			GAME: 
+0911 cd 78 09		            CALL    KEYHIT       ; Check if a Key was pressed and action it 
+0914 cd aa 09		            CALL    MATSCR       ; Convert the Matrix to Screen 
+0917 cd f0 09		            CALL    SCAN         ; Display the current Screen 
+091a			             
+091a			            ;Update the matrix with Conway Rules 
+091a dd 21 10 0d	            LD      IX,CURMAT 
+091e 21 58 0d		            LD      HL,NEXMAT 
+0921 06 40		            LD      B,40H        ; 64 cells 
+0923			CELLS: 
+0923 af			            XOR     A            ; Cell Counter 
+0924			            ;Look up 
+0924 dd 86 f8		            ADD     A,(IX-08H)   ; Minus 8 
+0927			            ;Look down 
+0927 dd 86 08		            ADD     A,(IX+08H)   ; Plus 8 
+092a			 
+092a			CHECKLT:    ;Check if on left edge 
+092a 4f			            LD      C,A          ; Save A (Counter) 
+092b dd e5		            PUSH    IX 
+092d d1			            POP     DE 
+092e 7b			            LD      A,E 
+092f			;            LD      A,IXL 
+092f e6 07		            AND     07H          ; On a wall 
+0931 79			            LD      A,C          ; Restore A (Counter) 
+0932 28 15		            JR      Z,CELLRT     ; On edge, skip left cells 
+0934			CELLLT: 
+0934			            ;Look upper left 
+0934 dd 86 f7		            ADD     A,(IX-09H)  ; Minus 9 
+0937			            ;Look left 
+0937 dd 86 ff		            ADD     A,(IX-01H)  ; Minus 1 
+093a			            ;Look lower left 
+093a dd 86 07		            ADD     A,(IX+07H)  ; Plus 7 
+093d			 
+093d			CHECKRT:    ;Check if on right edge 
+093d 4f			            LD      C,A          ; Save A (Counter) 
+093e dd e5		            PUSH    IX 
+0940 d1			            POP     DE 
+0941 7b			            LD      A,E 
+0942			;            LD      A,IXL 
+0942 e6 07		            AND     07H          ; On a wall 
+0944 fe 07		            CP      07H 
+0946 79			            LD      A,C          ; Restore A (Counter) 
+0947 28 09		            JR      Z,EVAL       ; On edge, skip right cells 
+0949			CELLRT: 
+0949			            ;Look upper right 
+0949 dd 86 f9		            ADD     A,(IX-07H)  ; Minus 7 
+094c			            ;Look right 
+094c dd 86 01		            ADD     A,(IX+01H)  ; Plus 1 
+094f			            ;Look lower right 
+094f dd 86 09		            ADD     A,(IX+09H)  ; Plus 9 
+0952			 
+0952			EVAL:       ;Evaluate surrounding cell count to create or destroy current cell 
+0952 0e 01		            LD      C,01H       ; Alive 
+0954 fe 03		            CP      03H         ; Check if 3 cells around 
+0956 28 0c		            JR      Z,STOREC 
+0958 0e 00		            LD      C,00H       ; Dead 
+095a fe 02		            CP      02H         ; Check if 2 cells around 
+095c 20 06		            JR      NZ,STOREC 
+095e dd 7e 00		            LD      A,(IX+0)    ; Current Cell 
+0961 e6 01		            AND     01H         ; Keep it alive if already alive. 
+0963 4f			            LD      C,A 
+0964			STOREC: 
+0964 79			            LD      A,C         ; C stores cell evaluation 
+0965 77			            LD      (HL),A      ; Update cell on Next Matric 
+0966			 
+0966 23			            INC     HL 
+0967 dd 23		            INC     IX 
+0969			 
+0969 10 b8		            DJNZ    CELLS 
+096b			 
+096b			            ;Move next matrix to current 
+096b 21 58 0d		            LD      HL,NEXMAT 
+096e 11 10 0d		            LD      DE,CURMAT 
+0971 01 40 00		            LD      BC,0040H 
+0974 ed b0		            LDIR 
+0976			 
+0976 18 99		            JR      GAME 
+0978			 
+0978			;Keyboard Check 
+0978			KEYHIT: 
+0978 db 03		            IN      A,(03)     ;Check if key is pressed 
+097a cb 77		            BIT     6,A 
+097c c0			            RET     NZ         ;No key pressed 
+097d db 00		            IN      A,(00)     ;Get actual key 
+097f e6 1f		            AND     1FH        ;Mask upper bits 
+0981 5f			            LD      E,A 
+0982 af			            XOR     A          ;Clear flags 
+0983 7b			            LD      A,E 
+0984 b7			            OR      A          ;Check for zero (random option) 
+0985 20 04		            JR      NZ,PREDEF 
+0987 cd c4 09		            CALL    RANFIL 
+098a c9			            RET 
+098b			PREDEF:  
+098b 3d			            DEC     A           ;Start at index 0 
+098c 87			            ADD     A,A         ;2 bytes index 
+098d 87			            ADD     A,A         ;4 bytes index 
+098e 87			            ADD     A,A         ;8 bytes index 
+098f 21 00 0a		            LD      HL,DATALC   ;Display Table 
+0992 6f			            LD      L,A         ;Index it 
+0993 11 10 0d		            LD      DE,CURMAT   ;Current Matrix 
+0996			            ;Based on the load a pre-defined cells to the Matrix, Uses A for index 
+0996 06 08		            LD      B,08H 
+0998			L1: 
+0998 7e			            LD      A,(HL) 
+0999 c5			            PUSH    BC 
+099a 4f			            LD      C,A 
+099b 06 08		            LD      B,08H 
+099d			L2: 
+099d af			            XOR     A 
+099e cb 01		            RLC     C 
+09a0 8f			            ADC     A,A 
+09a1 12			            LD      (DE),A 
+09a2 13			            INC     DE 
+09a3 10 f8		            DJNZ    L2 
+09a5 23			            INC     HL 
+09a6 c1			            POP     BC 
+09a7 10 ef		            DJNZ    L1 
+09a9 c9			            RET 
+09aa			 
+09aa			;Convert Matrix to screen.  Convert each row to bits in byte.  Save to screen 
+09aa			MATSCR: 
+09aa 21 10 0d		            LD      HL,CURMAT 
+09ad 11 00 0d		            LD      DE,SCREEN 
+09b0 06 08		            LD      B,08H 
+09b2			M1: 
+09b2 c5			            PUSH    BC 
+09b3 01 00 08		            LD      BC,0800H 
+09b6			M2: 
+09b6 7e			            LD      A,(HL) 
+09b7 81			            ADD     A,C 
+09b8 07			            RLCA 
+09b9 4f			            LD      C,A 
+09ba 23			            INC     HL 
+09bb 10 f9		            DJNZ    M2 
+09bd 0f			            RRCA 
+09be 12			            LD      (DE),A 
+09bf 1c			            INC     E 
+09c0 c1			            POP     BC 
+09c1 10 ef		            DJNZ    M1 
+09c3 c9			            RET 
+09c4			 
+09c4			;Fill the Current Matrix with random cells (live or dead) 
+09c4			RANFIL: 
+09c4 21 10 0d		            LD      HL,CURMAT 
+09c7 06 40		            LD      B,40H    ;Eight rows of eight bytes 
+09c9			RF1: 
+09c9 c5			            PUSH    BC 
+09ca ed 5f		            LD      A,R      ;Random Number Generation 
+09cc 47			            LD      B,A 
+09cd 0f			            RRCA             ;Multiply by 32 
+09ce 0f			            RRCA 
+09cf 0f			            RRCA 
+09d0 ee 1f		            XOR     1FH 
+09d2 80			            ADD     A,B 
+09d3 de ff		            SBC     A,0FFH 
+09d5 c1			            POP     BC 
+09d6 0f			            RRCA             ;Check bit 0 if set then make live 
+09d7 3e 00		            LD      A,00H 
+09d9 8f			            ADC     A,A      ;Just add the carry flag 
+09da 77			            LD      (HL),A 
+09db 23			            INC     HL 
+09dc 10 eb		            DJNZ    RF1 
+09de c9			            RET 
+09df			 
+09df			; Blank out Matrix 
+09df			CLEAR: 
+09df 21 08 0d		            LD      HL,UPBUFF 
+09e2 11 09 0d		            LD      DE,UPBUFF+1 
+09e5 af			            XOR     A 
+09e6 77			            LD      (HL),A 
+09e7 01 4f 00		            LD      BC,NEXMAT-UPBUFF-1  
+09ea ed b0		            LDIR 
+09ec 32 10 0d		            LD      (CURMAT),A  
+09ef c9			            RET 
+09f0			 
+09f0			; Multiplex the 8x8 Display 
+09f0			SCAN:                 
+09f0 e5			            PUSH    HL  
+09f1 06 80		            LD      B,80H   ;Wait on Scan 
+09f3			S81:                
+09f3 c5			            PUSH    BC 
+09f4 06 01		            LD      B,01H   ;Counter for 8x8 
+09f6 21 00 0d		            LD      HL,SCREEN 
+09f9			S82:                
+09f9 7e			            LD      A,(HL)  
+09fa d3 06		            OUT     (06),A 
+09fc 78			            LD      A,B  
+09fd d3 05		            OUT     (05),A 
+09ff 06 40		            LD      B,40H  
+0a01 10 fe		S83:        DJNZ    S83  
+0a03 23			            INC     HL 
+0a04 47			            LD      B,A  
+0a05 af			            XOR     A  
+0a06 d3 05		            OUT     (05),A  
+0a08 cb 00		            RLC     B  
+0a0a 30 ed		            JR      NC,S82  
+0a0c c1			            POP     BC  
+0a0d 10 e4		            DJNZ    S81 
+0a0f e1			            POP     HL  
+0a10 c9			            RET 
+0a11			 
+0a11			; Dipslay Table.  16 Predefined shapes, stored as in 8 byte screen format 
+0a11			;            ORG     0A00H    ;This address is important, lower byte must be 00 
+0a11 00 e7 00 00 00 00 e7 00	DSPTBL:     DB      00H,0E7H,00H,00H,00H,00H,0E7H,00H    ;Blinkers 
+0a19 00 07 0e 00 00 70 e0 00	            DB      00H,07H,0EH,00H,00H,70H,0E0H,00H     ;Toad 
+0a21 c0 c0 0c 0c 30 30 03 03	            DB      0C0H,0C0H,0CH,0CH,30H,30H,03H,03H    ;Beacon 
+0a29 00 04 04 06 00 73 15 06	            DB      00H,04H,04H,06H,00H,73H,15H,06H      ;Pulsar 
+0a31 20 a0 60 00 00 00 00 00	            DB      20H,0A0H,60H,00H,00H,00H,00H,00H     ;Glider 
+0a39 08 2a 08 6b 08 14 08 00	            DB      08H,2AH,08H,6BH,08H,14H,08H,00H      ;Why Not 
+0a41 10 28 58 a6 65 1a 14 08	            DB      10H,28H,58H,0A6H,65H,1AH,14H,08H     ;Boat 
+0a49 c0 80 50 00 14 00 05 03	            DB      0C0H,80H,50H,00H,14H,00H,05H,03H     ;Barbers Pole 
+0a51 00 08 18 00 72 15 09 06	            DB      00H,08H,18H,00H,72H,15H,09H,06H      ;Drummer 
+0a59 00 00 00 30 18 10 00 00	            DB      00H,00H,00H,30H,18H,10H,00H,00H      ;R-pentomino 
+0a61 00 00 77 08 63 08 77 00	            DB      00H,00H,77H,08H,63H,08H,77H,00H      ;Carnival 
+0a69 00 08 18 38 18 08 00 00	            DB      00H,08H,18H,38H,18H,08H,00H,00H      ;Arrow 
+0a71 00 00 00 1c 14 1c 00 00	            DB      00H,00H,00H,1CH,14H,1CH,00H,00H      ;Square 
+0a79 00 a0 20 a0 00 00 00 00	            DB      00H,0A0H,20H,0A0H,00H,00H,00H,00H    ;Face to Pulsar 
+0a81 03 19 36 30 30 36 19 03	            DB      03H,19H,36H,30H,30H,36H,19H,03H      ;Fumarole 
+0a89 08 28 02 c0 03 40 14 10	            DB      08H,28H,02H,0C0H,03H,40H,14H,10H     ;Phoenix  
+0a91 00 62 95 89 a1 81 42 3c	            DB      00H,62H,95H,89H,0A1H,81H,42H,3CH     ;Pacman 
+0a99 18 24 42 81 81 42 24 18	            DB      18H,24H,42H,81H,81H,42H,24H,18H      ;Octagon 
+0aa1 38 44 82 41 41 82 44 38	            DB      38H,44H,82H,41H,41H,82H,44H,38H      ;Heart 
+0aa9			 
+# End of file /Users/slarti/Documents/TEC1D/TEC-1D-Stuff/code/games/Game_of_life.z80
+0aa9
