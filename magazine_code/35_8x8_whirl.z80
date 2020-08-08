@@ -1,0 +1,53 @@
+;Whirl
+
+            ORG     0900H 
+START:
+            CALL    SCAN          ;Display on Screen
+            ;Rotate Clockwise by 90 degrees
+            LD      DE,SCRROT   
+            LD      B,08H
+W1:
+            PUSH    BC
+            LD      B,08H
+            LD      HL,SCRDAT
+            XOR     A
+W2:
+            RLC     (HL)
+            RRA
+            INC     HL
+            DJNZ    W2
+            LD      (DE),A
+            INC     DE
+            POP     BC
+            DJNZ    W1
+            ;Copy DE (Rotated screen) to SCRDAT
+            LD      BC,0008H
+            LD      DE,SCRDAT
+            LD      HL,SCRROT
+            LDIR                   ;Copy it across
+            JR      START
+SCAN:
+            LD      B,50H
+S1:
+            PUSH    BC
+            LD      B,80H
+            LD      HL,SCRDAT
+S2:
+            LD      A,(HL)
+            OUT     (05),A
+            LD      A,B
+            OUT     (06),A
+            LD      B,40H
+S3:         DJNZ    S3
+            LD      B,A
+            XOR     A
+            OUT     (06),A
+            INC     HL
+            RRC     B
+            JR      NC,S2
+            POP     BC
+            DJNZ    S1
+            RET
+
+SCRDAT:     DB      18H,30H,60H,0FFH,0FFH,60H,30H,18H
+SCRROT:           

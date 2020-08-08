@@ -1,0 +1,39 @@
+; Move an 8x8 LED back & forth
+
+
+            ORG    0900H 
+            LD      H,01H
+START:               
+            LD      A,H 
+            OUT     (05),A
+            LD      C,08H
+            LD      A,01H
+LOOP1:
+            OUT     (06),A
+            CALL    DELAY
+            RLCA
+            DEC     C
+            JR      NZ,LOOP1
+
+            LD      C,08H
+            LD      A,80H
+LOOP2: 
+            OUT     (06),A
+            CALL    DELAY
+            RRCA
+            DEC     C
+            JR      NZ,LOOP2
+
+            INC     H
+            JR      START
+DELAY:               
+            PUSH    BC 
+            LD      B,10H 
+D1:                  
+            LD      C,0FFH 
+D2:                  
+            DEC     C 
+            JR      NZ,D2
+            DJNZ    D1
+            POP     BC 
+            RET      

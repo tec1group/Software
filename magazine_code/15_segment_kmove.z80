@@ -1,0 +1,24 @@
+; Move Segment Around with Keyboard
+; '4' - Left, 'C' - Right
+
+
+            ORG    0900H 
+START:               
+            LD      A,04H
+            OUT     (02),A
+            LD      B,A
+LOOP1:
+            LD      A,B
+            OUT     (01),A
+KEYWAIT:
+            RST     08H
+LEFT:
+            CP      04H
+            JR      NZ,RIGHT
+            RLC     B
+            JR      LOOP1
+RIGHT:
+            CP      0CH
+            JR      NZ,KEYWAIT
+            RRC     B
+            JR      LOOP1

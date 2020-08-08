@@ -1,0 +1,57 @@
+; Display two pixels at once
+
+            ORG    0900H 
+START:     	
+			LD     C,05H
+LOOP1:
+			LD     A,01H
+			OUT    (01),A
+			LD     A,47H
+			OUT    (02),A
+			CALL   DELAY
+			CALL   SECOND
+			DEC    C
+			JR     NZ,LOOP1
+
+			LD     C,05H
+LOOP2:
+			LD     A,01H
+			OUT    (01),A
+			LD     A,0C7H
+			OUT    (02),A
+			CALL   DELAY
+			CALL   SECOND
+			DEC    C
+			JR     NZ,LOOP2
+
+			LD     C,05H
+LOOP3:
+			LD     A,01H
+			OUT    (01),A
+			LD     A,0C6H
+			OUT    (02),A
+			CALL   DELAY
+			CALL   SECOND
+			DEC    C
+			JR     NZ,LOOP3
+
+			JR     START
+
+SECOND:
+			LD     A,20H
+			OUT    (01),A
+			LD     A,80H
+			OUT    (02),A
+			CALL   DELAY
+			RET
+DELAY:               
+            PUSH    BC 
+            LD      B,20H 
+D1:                  
+            LD      C,0FFH 
+D2:                  
+            DEC     C 
+            JR      NZ,D2
+            DJNZ    D1
+            POP     BC 
+            RET      

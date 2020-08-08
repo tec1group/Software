@@ -1,0 +1,46 @@
+; Aliens Attack Sound Effect
+
+            ORG    0900H 
+START:
+            LD      HL,S1+1
+            LD      A,01H
+            LD      (HL),A
+            LD      B,30H
+LOOP1:
+            CALL    S2
+            INC     (HL)
+            DJNZ    LOOP1
+            JR      START
+
+S0:			;SOUND START
+            PUSH    AF
+            PUSH    DE
+S1:
+			LD      DE,0020H
+LOOP2:
+			DEC     DE
+			LD      A,D
+			OR      E
+			JR      NZ,LOOP2
+			POP     DE
+			POP     AF
+			RET
+S2:
+			PUSH    AF
+			PUSH    BC
+			LD      BC,00AAH
+LOOP3:
+			LD      A,80H
+			OUT     (01),A
+			LD      A,00H
+			OUT     (01),A
+			CALL    S0
+			DEC     BC
+			LD      A,B
+			OR      C
+			JR      NZ,LOOP3
+			POP     BC
+			POP     AF
+			RET
+
+

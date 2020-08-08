@@ -1,0 +1,33 @@
+; Space Invaders Sound effect
+
+            ORG    0900H 
+START:
+            LD      H,0FFH
+            LD      B,01H
+LOOP1:
+            INC     B
+            LD      A,80H
+            OUT     (01),A
+            CALL    SDELAY
+            XOR     A
+            OUT     (01),A
+            CALL    SDELAY
+
+            RST     20H
+            CP      04H
+            JR      Z,START
+
+            DEC     H
+            JP      NZ,LOOP1
+LOOP2:
+            RST     20H
+            CP      04H
+            JR      NZ,LOOP2
+            JR      START
+
+SDELAY:
+            LD      C,B
+LOOP3:
+            DEC     C
+            JR      NZ,LOOP3
+            RET

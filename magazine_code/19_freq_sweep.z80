@@ -1,0 +1,33 @@
+; Frequency Sweep
+
+            ORG    0900H 
+START:     	
+            LD     H,0FFH
+            LD     B,H
+LOOP1:
+            LD     A,00H
+            OUT    (01),A
+            LD     A,80H
+            OUT    (01),A
+            LD     A,B
+LOOP2:
+            DEC    A
+            JR     NZ,LOOP2
+            DJNZ   LOOP1
+
+            LD     B,00H
+LOOP3:
+            LD     A,00H
+            OUT    (01),A
+            LD     A,80H
+            OUT    (01),A
+            INC    B
+            LD     A,B
+LOOP4:
+            DEC    A
+            JR     NZ,LOOP4
+            LD     A,H
+            SUB    B
+            JR     NZ,LOOP3
+
+            JR     START

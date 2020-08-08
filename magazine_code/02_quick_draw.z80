@@ -1,0 +1,41 @@
+; Quick Draw Reaction Game
+; When the letter "G" appears, the first player to press their button wins
+; 
+; Player 1 uses the "+" button
+; Player 2 uses the "C" button
+; Any button to reset the game
+
+
+            ORG    0900H 
+START:               
+
+            XOR     A 
+            OUT     (01),A 
+            LD      DE,00H 
+DELAY:               
+            DEC     DE 
+            LD      A,D 
+            OR      E 
+            JR      NZ,DELAY 
+            LD      A,0E3H 
+            OUT     (02),A 
+            LD      A,08H 
+            OUT     (01),A 
+LOOP1:               
+            RST     08H 
+            CP      0CH 
+            JR      Z,RIGHT
+            CP      10H
+            JR      Z,LEFT 
+            JR      LOOP1 
+RIGHT:               
+            LD      A,01H 
+            JR      END 
+LEFT:                
+            LD      A,20H 
+END:                 
+            OUT     (01),A 
+            LD      A,28H 
+            OUT     (02),A 
+            RST     08H 
+            JR      START 

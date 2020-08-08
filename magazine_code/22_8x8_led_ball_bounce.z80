@@ -1,0 +1,44 @@
+; Move an 8x8 Up and Down, Left to Right
+
+
+            ORG    0900H 
+            LD      B,01H
+START:
+            LD      A,B
+            OUT     (05),A
+            LD      C,08H
+            LD      A,01H
+LOOP1:
+            OUT     (06),A
+            CALL    DELAY
+            RLC     A
+            DEC     C
+            JR      NZ,LOOP1
+
+            RLC     B
+
+            LD      A,B
+            OUT     (05),A
+            LD      C,08H
+            LD      A,80H
+LOOP2:
+            OUT     (06),A
+            CALL    DELAY
+            RRC     A
+            DEC     C
+            JR      NZ,LOOP2
+
+            RLC     B
+            JR      START
+
+DELAY:               
+            PUSH    BC 
+            LD      B,20H 
+D1:                  
+            LD      C,0FFH 
+D2:                  
+            DEC     C 
+            JR      NZ,D2 
+            DJNZ    D1
+            POP     BC 
+            RET      

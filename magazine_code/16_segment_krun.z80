@@ -1,0 +1,40 @@
+; Move Segment With the Keyboard with Auto move
+; '+' - Left, '4' - Right
+
+            ORG    0900H 
+START:               
+            LD      A,01H 
+            OUT     (02),A 
+            OUT     (01),A
+            LD      B,A
+LOOP1:
+            RST     20H
+            JR      Z,LEFT    ;key Pressed
+            LD      A,C  ;Previous if a invalid
+LEFT:
+            CP      10H
+            JR      NZ,RIGHT
+            RLC     B
+            JR      MOVE
+RIGHT:
+            CP      04H
+            JR      NZ,LOOP1
+            RRC     B
+MOVE:
+            LD      C,A
+            LD      A,B
+            OUT     (01),A
+            CALL    DELAY
+            JR      LOOP1
+DELAY:               
+            PUSH    BC 
+            LD      B,55H 
+D1:                  
+            LD      C,0FFH 
+D2:                  
+            DEC     C 
+            JR      NZ,D2
+            DJNZ    D1
+            POP     BC 
+            RET      
+

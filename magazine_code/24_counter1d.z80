@@ -1,0 +1,21 @@
+; 0-9 Counter
+; Use '4' key to increment 
+
+            ORG    0900H 
+START:     	
+            LD     A,01H
+            OUT    (01),A
+            LD     HL,TABLE
+            LD     B,0AH
+LOOP1:
+            LD     A,(HL)
+            OUT    (02),A
+LOOP2:
+            RST    08H
+            CP     04H
+            JR     NZ,LOOP2
+            INC    HL
+            DJNZ   LOOP1
+            JR     START
+TABLE:
+            DB     0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,0AFH 

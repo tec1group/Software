@@ -1,0 +1,400 @@
+0000			; Phone Dialer Part 3 
+0000			 
+0000			DISPLAY:    EQU     0D08H  
+0000			MEMORY:     EQU     0D10H  
+0000			KEYHIT:     EQU     0D00H  
+0000			KEYSTORE:   EQU     0D01H  
+0000			INDEX:      EQU     0D02H 
+0000			KEYPRE:     EQU     0CFFH ;Key Pressed Flag, 00-False, FF-True                   (1-byte) 
+0000			 
+0000			 
+0000			 
+0000			            ORG    1800H  
+1800			START:                
+1800			; Clear the screen & memory 
+1800 cd 0f 19		            CALL    CLEAR  
+1803			LOOP1:                
+1803			; Display Initial Message 
+1803 21 0d 1a		            LD      HL,INITMSG  
+1806 cd bb 19		            CALL    SCROLL  
+1809 fe 10		            CP      10H  
+180b 28 f6		            JR      Z,LOOP1  
+180d fe 0a		            CP      0AH  
+180f 38 ef		            JR      C,START  
+1811			 
+1811			; Enter Index 
+1811 cd 0f 19		            CALL    CLEAR  
+1814 3e ff		            LD      A,0FFH  
+1816 ed 47		            LD      I,A  
+1818 21 00 00		            LD      HL,0000H  
+181b 3e 01		            LD      A,01H  
+181d 32 00 0d		            LD      (KEYHIT),A  
+1820 cd 1b 19		            CALL    KEYVALUE  
+1823 79			            LD      A,C  
+1824 32 02 0d		            LD      (INDEX),A  
+1827 3e 01		            LD      A,01H  
+1829 32 00 0d		            LD      (KEYHIT),A  
+182c cd 1b 19		            CALL    KEYVALUE  
+182f 3a 02 0d		            LD      A,(INDEX)  
+1832 17			            RLA       
+1833 17			            RLA       
+1834 17			            RLA       
+1835 17			            RLA       
+1836 81			            ADD     A,C  
+1837 32 02 0d		            LD      (INDEX),A  
+183a			 
+183a			; Display the screen to show index briefly 
+183a 16 80		            LD      D,80H  
+183c			LOOP2:                
+183c cd 62 19		            CALL    SCAN  
+183f 15			            DEC     D  
+1840 20 fa		            JR      NZ,LOOP2  
+1842			 
+1842			; Clear screen and display menu 
+1842			LOOP3:                
+1842 cd 0f 19		            CALL    CLEAR  
+1845			LOOP4:                
+1845 21 2e 1a		            LD      HL,MENU  
+1848 cd bb 19		            CALL    SCROLL  
+184b			; LD      A,(HL) 
+184b fe 10		            CP      10H  
+184d 28 f6		            JR      Z,LOOP4  
+184f fe 0a		            CP      0AH  
+1851 38 ef		            JR      C,LOOP3  
+1853			 
+1853			; Enter Names into Memory 
+1853 cd 0f 19		            CALL    CLEAR  
+1856 cd 44 19		            CALL    MEMADDR  
+1859 16 1c		            LD      D,1CH  
+185b			LOOP5:                
+185b 1e 00		            LD      E,00H  
+185d			LOOP6:                
+185d 3e ff		            LD      A,0FFH  
+185f ed 47		            LD      I,A  
+1861			LOOP7:                
+1861 cd 9c 19		            CALL    SCAN2  
+1864 e7			            RST     20H  
+1865 ed 47		            LD      I,A  
+1867 fe 10		            CP      10H  
+1869 30 f6		            JR      NC,LOOP7 ;Look for Valid Keys 0-F only 
+186b 1c			            INC     E  
+186c 7b			            LD      A,E  
+186d fe 02		            CP      02H  
+186f 28 0b		            JR      Z,TOSHIFT  
+1871 ed 57		            LD      A,I  
+1873 fe 0f		            CP      0FH  
+1875 28 1e		            JR      Z,NUMBERS  
+1877 32 01 0d		            LD      (KEYSTORE),A  
+187a 18 e1		            JR      LOOP6  
+187c			TOSHIFT:              
+187c cd d8 19		            CALL    SHIFT  
+187f 3a 01 0d		            LD      A,(KEYSTORE)  
+1882 17			            RLA       
+1883 17			            RLA       
+1884 17			            RLA       
+1885 17			            RLA       
+1886 47			            LD      B,A  
+1887 ed 57		            LD      A,I  
+1889 80			            ADD     A,B  
+188a 77			            LD      (HL),A  
+188b 32 0d 0d		            LD      (DISPLAY+5),A  
+188e 23			            INC     HL  
+188f 15			            DEC     D  
+1890 20 c9		            JR      NZ,LOOP5  
+1892 c3 00 18		            JP      START  
+1895			NUMBERS:              
+1895 af			            XOR     A  
+1896 77			            LD      (HL),A  
+1897 cd d8 19		            CALL    SHIFT  
+189a 7a			            LD      A,D  
+189b 32 00 0d		            LD      (KEYHIT),A  
+189e cd 1b 19		            CALL    KEYVALUE  
+18a1 06 03		            LD      B,03H  
+18a3			LOOP8:                
+18a3 23			            INC     HL  
+18a4 af			            XOR     A  
+18a5 77			            LD      (HL),A  
+18a6 10 fb		            DJNZ    LOOP8  
+18a8 23			            INC     HL  
+18a9 3e 10		            LD      A,10H  
+18ab 77			            LD      (HL),A  
+18ac 00			            NOP       
+18ad			 
+18ad			; Scroll Name 
+18ad			SCROLLN:              
+18ad cd 0f 19		            CALL    CLEAR  
+18b0			LOOP9:                
+18b0 cd 44 19		            CALL    MEMADDR  
+18b3 cd bb 19		            CALL    SCROLL  
+18b6 fe 10		            CP      10H  
+18b8 28 f6		            JR      Z,LOOP9  
+18ba			DIALIT:               
+18ba			; Pause before dialiing 
+18ba 06 20		            LD      B,20H  
+18bc			LOOP10:               
+18bc cd 56 19		            CALL    PAUSE  
+18bf 10 fb		            DJNZ    LOOP10  
+18c1			 
+18c1 cd 0f 19		            CALL    CLEAR  
+18c4 cd 44 19		            CALL    MEMADDR  
+18c7			LOOP11:               
+18c7 7e			            LD      A,(HL)  
+18c8 23			            INC     HL  
+18c9 fe 00		            CP      00H  
+18cb 20 fa		            JR      NZ,LOOP11  
+18cd			 
+18cd			; Dialing Pulses 
+18cd			LOOP12:               
+18cd dd 21 03 1a	            LD      IX,TABLE  
+18d1			LOOP13:               
+18d1 dd 23		            INC     IX  
+18d3 cd f2 18		            CALL    BEEP  
+18d6 dd 7e 00		            LD      A,(IX+0)  
+18d9 be			            CP      (HL)  
+18da 20 f5		            JR      NZ,LOOP13  
+18dc			 
+18dc 06 10		            LD      B,10H  
+18de			LOOP14:               
+18de cd 56 19		            CALL    PAUSE  
+18e1 10 fb		            DJNZ    LOOP14  
+18e3			 
+18e3 23			            INC     HL  
+18e4 7e			            LD      A,(HL)  
+18e5 fe 00		            CP      00H  
+18e7 28 02		            JR      Z,GETKEY  
+18e9 18 e2		            JR      LOOP12  
+18eb			GETKEY:               
+18eb e7			            RST     20H  
+18ec fe 0d		            CP      0DH  
+18ee 28 bd		            JR      Z,SCROLLN  
+18f0 18 f9		            JR      GETKEY  
+18f2			 
+18f2			;Create a beep 
+18f2			BEEP:                 
+18f2 f5			            PUSH    AF  
+18f3 c5			            PUSH    BC  
+18f4 06 20		            LD      B,20H  
+18f6			LOOP15:               
+18f6 3e 80		            LD      A,80H  
+18f8 0e 20		            LD      C,20H  
+18fa d3 01		            OUT     (01),A  
+18fc			LOOP16:               
+18fc 0d			            DEC     C  
+18fd 20 fd		            JR      NZ,LOOP16  
+18ff 0e 20		            LD      C,20H  
+1901 af			            XOR     A  
+1902 d3 01		            OUT     (01),A  
+1904			LOOP17:               
+1904 0d			            DEC     C  
+1905 20 fd		            JR      NZ,LOOP17  
+1907 10 ed		            DJNZ    LOOP15  
+1909 cd 56 19		            CALL    PAUSE  
+190c c1			            POP     BC  
+190d f1			            POP     AF  
+190e c9			            RET       
+190f			 
+190f			;Clear the screen 
+190f			CLEAR:                
+190f 16 07		            LD      D,07H  
+1911 af			            XOR     A  
+1912 21 08 0d		            LD      HL,DISPLAY  
+1915			LOOP18:               
+1915 77			            LD      (HL),A  
+1916 23			            INC     HL  
+1917 15			            DEC     D  
+1918 20 fb		            JR      NZ,LOOP18  
+191a c9			            RET       
+191b			 
+191b			;KEY DIGIT 
+191b			KEYVALUE:             
+191b 11 03 1a		            LD      DE,TABLE  
+191e e7			            RST     20H  
+191f fe 0a		            CP      0AH  
+1921 30 19		            JR      NC,TOEND  
+1923 23			            INC     HL  
+1924 4f			            LD      C,A  
+1925 83			            ADD     A,E  
+1926 5f			            LD      E,A  
+1927 cd d8 19		            CALL    SHIFT  
+192a 1a			            LD      A,(DE) ;Get number from lookup TABLE 
+192b 77			            LD      (HL),A ;Store in HL 
+192c 32 0d 0d		            LD      (DISPLAY+5),A  
+192f 3e ff		            LD      A,0FFH  
+1931 ed 47		            LD      I,A  
+1933 3a 00 0d		            LD      A,(KEYHIT)  
+1936 3d			            DEC     A  
+1937 32 00 0d		            LD      (KEYHIT),A  
+193a c8			            RET     Z  
+193b af			            XOR     A  
+193c			TOEND:                
+193c fe 0e		            CP      0EH  
+193e c8			            RET     Z  
+193f cd 62 19		            CALL    SCAN  
+1942 18 d7		            JR      KEYVALUE  
+1944			 
+1944			;Find Memory Address by jumping every 20 for A 
+1944			MEMADDR:              
+1944 21 10 0d		            LD      HL,MEMORY  
+1947 3a 02 0d		            LD      A,(INDEX)  
+194a			LOOP19:               
+194a 16 20		            LD      D,20H  
+194c fe 00		            CP      00H  
+194e c8			            RET     Z  
+194f			LOOP20:               
+194f 23			            INC     HL  
+1950 15			            DEC     D  
+1951 20 fc		            JR      NZ,LOOP20  
+1953 3d			            DEC     A  
+1954 18 f4		            JR      LOOP19  
+1956			 
+1956			;Pause the Speaker 
+1956			PAUSE:                
+1956 af			            XOR     A  
+1957 d3 01		            OUT     (01),A  
+1959 11 ff 02		            LD      DE,02FFH  
+195c			LOOP21:               
+195c 1b			            DEC     DE  
+195d 7b			            LD      A,E  
+195e b2			            OR      D  
+195f 20 fb		            JR      NZ,LOOP21  
+1961 c9			            RET       
+1962			 
+1962			;Scan with key press 
+1962			SCAN:                 
+1962 e5			            PUSH    HL  
+1963 d5			            PUSH    DE  
+1964 0e 20		            LD      C,20H  
+1966 21 08 0d		            LD      HL,DISPLAY  
+1969 16 06		            LD      D,06H  
+196b			LOOP22:               
+196b 06 80		            LD      B,80H  
+196d 7e			            LD      A,(HL)  
+196e d3 02		            OUT     (02),A  
+1970 79			            LD      A,C  
+1971 d3 01		            OUT     (01),A  
+1973 cb 09		            RRC     C  
+1975			LOOP23:               
+1975 10 fe		            DJNZ    LOOP23  
+1977 af			            XOR     A  
+1978 d3 01		            OUT     (01),A  
+197a 23			            INC     HL  
+197b cd e9 19		            CALL    KRD 
+197e ed 47		            LD      I,A  
+1980 fe 0c		            CP      0CH  
+1982 28 0a		            JR      Z,CPRESS  
+1984 fe 0d		            CP      0DH  
+1986 28 0f		            JR      Z,DPRESS  
+1988 15			            DEC     D  
+1989 20 e0		            JR      NZ,LOOP22  
+198b d1			            POP     DE  
+198c e1			            POP     HL  
+198d c9			            RET       
+198e			CPRESS:               
+198e d1			            POP     DE  
+198f e1			            POP     HL  
+1990 3e ff		            LD      A,0FFH  
+1992 ed 47		            LD      I,A  
+1994 c3 00 18		            JP      START  
+1997			DPRESS:               
+1997 d1			            POP     DE  
+1998 e1			            POP     HL  
+1999 c3 ba 18		            JP      DIALIT ;Not sure this is wise?  Need to pop PC from stack??? 
+199c			 
+199c			;Scan without key press 
+199c			SCAN2:                
+199c e5			            PUSH    HL  
+199d d5			            PUSH    DE  
+199e 0e 20		            LD      C,20H  
+19a0 21 08 0d		            LD      HL,DISPLAY  
+19a3 16 06		            LD      D,06H  
+19a5			LOOP24:               
+19a5 06 20		            LD      B,20H  
+19a7 7e			            LD      A,(HL)  
+19a8 d3 02		            OUT     (02),A  
+19aa 79			            LD      A,C  
+19ab d3 01		            OUT     (01),A  
+19ad cb 09		            RRC     C  
+19af			LOOP25:               
+19af 10 fe		            DJNZ    LOOP25  
+19b1 af			            XOR     A  
+19b2 d3 01		            OUT     (01),A  
+19b4 23			            INC     HL  
+19b5 15			            DEC     D  
+19b6 20 ed		            JR      NZ,LOOP24  
+19b8 d1			            POP     DE  
+19b9 e1			            POP     HL  
+19ba c9			            RET       
+19bb			 
+19bb			;Scroll the text 
+19bb			SCROLL:               
+19bb 3e ff		            LD      A,0FFH  
+19bd ed 47		            LD      I,A  
+19bf			LOOP26:               
+19bf e7			            RST     20H  
+19c0 fe 0e		            CP      0EH ;End Pressed 
+19c2 c8			            RET     Z  
+19c3 7e			            LD      A,(HL)  
+19c4 16 20		            LD      D,20H  
+19c6 23			            INC     HL  
+19c7 fe 10		            CP      10H ;End of Table 
+19c9 c8			            RET     Z  
+19ca 32 0d 0d		            LD      (DISPLAY+5),A  
+19cd			LOOP27:               
+19cd cd 62 19		            CALL    SCAN  
+19d0 15			            DEC     D  
+19d1 20 fa		            JR      NZ,LOOP27  
+19d3 cd d8 19		            CALL    SHIFT  
+19d6 18 e7		            JR      LOOP26  
+19d8			 
+19d8			;Shift screen one character to the left 
+19d8			SHIFT:                
+19d8 06 07		            LD      B,07H  
+19da dd 21 07 0d	            LD      IX,DISPLAY-1  
+19de			LOOP28:               
+19de dd 7e 01		            LD      A,(IX+1)  
+19e1 dd 77 00		            LD      (IX+0),A  
+19e4 dd 23		            INC     IX  
+19e6 10 f6		            DJNZ    LOOP28  
+19e8 c9			            RET       
+19e9			KRD: 
+19e9			            ; Test for key pressed with D6 set 
+19e9 db 03		            IN      A,(03) 
+19eb cb 77		            BIT     6,A  ; Bit 6, If not set A=NZ 
+19ed 28 05		            JR      Z,MP2 
+19ef			            ; Store 0 for last key if no key pressed 
+19ef af			            XOR     A 
+19f0 32 ff 0c		            LD      (KEYPRE),A 
+19f3 c9			            RET 
+19f4			MP2: 
+19f4			            ; Key has been pressed 
+19f4 3a ff 0c		            LD      A,(KEYPRE) 
+19f7 b7			            OR      A 
+19f8 c0			            RET     NZ  ; Just return if same 
+19f9 3e ff		            LD      A,0FFH 
+19fb 32 ff 0c		            LD      (KEYPRE),A 
+19fe			            ; Get Key 
+19fe db 00		            IN      A,(00) 
+1a00 e6 1f		            AND     01FH ; Mask unwanted bits 
+1a02 c9			            RET 
+1a03			 
+1a03			           ; ORG     0B00H 
+1a03			TABLE:                
+1a03 eb 28 cd ad 2e a7 e7 29 ef af	            DB      0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,0AFH  
+1a0d			INITMSG:              
+1a0d c7 6b 46 c7 44 00 28 6b	            DB      0C7H,6BH,46H,0C7H,44H,00H,28H,6BH  
+1a15 ec c7 26 00 6b e4 00 eb	            DB      0ECH,0C7H,26H,00H,6BH,0E4H,00H,0EBH  
+1a1d eb 04 ad e7 00 4f 44 c7	            DB      0EBH,04H,0ADH,0E7H,00H,4FH,44H,0C7H  
+1a25 a7 a7 00 c7 00 00 00 00 10	            DB      0A7H,0A7H,00H,0C7H,00H,00H,00H,00H,10H  
+1a2e			MENU:                 
+1a2e 00 c7 6b 46 c7 44 00 6b	            DB      00H,0C7H,6BH,46H,0C7H,44H,00H,6BH  
+1a36 6f 65 c7 00 c7 6b 46 c7	            DB      6FH,65H,0C7H,00H,0C7H,6BH,46H,0C7H  
+1a3e 44 00 47 00 c7 6b 46 c7	            DB      44H,00H,47H,00H,0C7H,6BH,46H,0C7H  
+1a46 44 00 4f 6e eb 6b c7 00	            DB      44H,00H,4FH,6EH,0EBH,6BH,0C7H,00H  
+1a4e 6b e4 00 46 6e c7 6b 00	            DB      6BH,0E4H,00H,46H,6EH,0C7H,6BH,00H  
+1a56 c7 00 a7 4f 6f c3 c7 84	            DB      0C7H,00H,0A7H,4FH,6FH,0C3H,0C7H,84H 
+1a5e 47 00 c3 c2 c7 6f 44 84	            DB      47H,00H,0C3H,0C2H,0C7H,6FH,44H,84H 
+1a66 c3 00 44 c7 46 ea 44 6b	            DB      0C3H,00H,44H,0C7H,46H,0EAH,44H,6BH 
+1a6e 84 6f 00 ec 28 6f c2 84	            DB      84H,6FH,00H,0ECH,28H,6FH,0C2H,84H 
+1a76 ec 00 c7 6b ec 84 c7 00	            DB      0ECH,00H,0C7H,6BH,0ECH,84H,0C7H,00H 
+1a7e 00 00 00 10	            DB      00H,00H,00H,10H  
+1a82			 

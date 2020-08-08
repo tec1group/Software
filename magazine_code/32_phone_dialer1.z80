@@ -1,0 +1,61 @@
+; Phone Dialer Part 1
+
+SCREEN:     EQU    0D00H
+
+            ORG    0900H 
+START:
+            ; Clear the screen
+            LD      B,08H
+            XOR     A
+            LD      HL,SCREEN
+LOOP1:            
+            LD      (HL),A
+            INC     HL
+            DJNZ    LOOP1
+
+            ; Check if key pressed
+KEY:            
+            RST     20H
+            CP      0AH
+            JR      NC, SCAN ; Key is A or Higher
+
+            ; Get Key Pressed and convert to LED
+            LD      DE,DISPLAY
+            ADD     A,E
+            LD      E,A
+            LD      HL,SCREEN
+LOOP2:
+            LD      A,(HL)
+            CP      00
+            JR      Z,STORE
+            INC     HL
+            JR      LOOP2
+            
+            ; Copy number to screen
+STORE:
+            LD      A,(DE)
+            LD      (HL),A
+
+            ; Multiplex the LEDs to display HL contents
+SCAN:
+            LD      C,20H
+            LD      HL,SCREEN
+            LD      D,06H
+LOOP3:
+            LD      B,00H
+            LD      A,(HL)
+            OUT     (02),A
+            LD      A,C
+            OUT     (01),A
+            RRC     C
+LOOP4:
+            DJNZ    LOOP4
+            XOR     A
+            OUT     (01),A
+            INC     HL
+            DEC     D
+            JR      NZ,LOOP3
+            JR      KEY
+DISPLAY:
+            DB      0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,0AFH 
+
