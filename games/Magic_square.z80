@@ -1,0 +1,182 @@
+; Magic Square
+; 
+; Keys Used are 4,5,6,8,9,A,C,D,E.  Uses the 8x8 LED Matrix connected to ports 5 & 6
+; Need to end up with a hollow square
+; 
+SCREEN:     EQU     0D00H ;Screen data for 8x8                 (8-bytes)
+SQRDAT:     EQU     0D09H ;Store top, middle and bottom rows   (3-bytes)
+KEYFLG:     EQU     0D0CH ;Key Pressed Flag                    (1-byte)
+
+            ORG     0900H 
+
+START:               
+            LD      DE,0000H ;Random Number generator
+LOOP1:               
+            INC     DE 
+            IN      A,(03) 
+            BIT     6,A 
+            JR      Z,LOOP1 
+            LD      A,R 
+            ADD     A,D 
+            LD      (SQRDAT),A 
+            ADC     A,E 
+            LD      (SQRDAT+1),A 
+            ADD     A,D 
+            ADD     A,E 
+            RLCA     
+            LD      (SQRDAT+2),A 
+PRINT:               
+            CALL    FORMAT 
+GAME:                
+            CALL    SCAN 
+            IN      A,(03) 
+            BIT     6,A 
+            JR      Z,KEYHIT 
+            XOR     A 
+            LD      (KEYFLG),A 
+            JR      GAME 
+KEYHIT:              
+            LD      A,(KEYFLG) 
+            OR      A 
+            JR      NZ,GAME 
+            LD      A,0FFH 
+            LD      (KEYFLG),A 
+            LD      HL,DATTBL 
+            LD      BC,0009H 
+            IN      A,(00) 
+            AND     1FH 
+            CPIR     
+            JR      NZ,GAME 
+            CALL    BEEP 
+            DEC     HL 
+            LD      DE,0009H 
+            LD      B,03H 
+LOOP2:               
+            ADD     HL,DE 
+            LD      A,(HL) 
+            ADD     HL,DE 
+            PUSH    HL 
+            LD      L,(HL)
+            LD      H,0DH    ;Force to use RAM
+            XOR     (HL) 
+            LD      (HL),A 
+            POP     HL 
+            DJNZ    LOOP2 
+            LD      HL,SQRDAT 
+            LD      A,(HL) 
+            AND     07H 
+            CP      07H 
+            JR      NZ,PRINT 
+            INC     HL 
+            LD      A,(HL) 
+            AND     07H 
+            CP      05H 
+            JR      NZ,PRINT 
+            INC     HL 
+            LD      A,(HL) 
+            AND     07H 
+            CP      07H 
+            JR      NZ,PRINT 
+            CALL    FORMAT 
+            LD      DE,0030H 
+            CALL    BEEP+3 
+            LD      B,03H 
+LOOP3:               
+            PUSH    BC 
+            LD      D,10H 
+LOOP4:               
+            CALL    SCAN 
+            DEC     D 
+            JR      NZ,LOOP4 
+            XOR     A 
+            OUT     (06),A 
+            CALL    BEEP 
+            LD      BC,1500H 
+LOOP5:               
+            DEC     BC 
+            LD      A,B 
+            OR      C 
+            JR      NZ,LOOP5 
+            POP     BC 
+            DJNZ    LOOP3 
+LOOP6:               
+            CALL    SCAN 
+            IN      A,(00) 
+            AND     1FH 
+            CP      12H 
+            JR      NZ,LOOP6 
+            LD      DE,0080H 
+            CALL    BEEP+3 
+            JP      START 
+FORMAT:              
+            LD      B,03H 
+            LD      HL,SQRDAT 
+            LD      DE,SCREEN 
+LOOP7:               
+            PUSH    BC 
+            LD      A,(HL) 
+            CALL    BITCON 
+            LD      (DE),A 
+            INC     DE 
+            LD      (DE),A 
+            INC     DE 
+            XOR     A 
+            LD      (DE),A 
+            INC     DE 
+            INC     HL 
+            POP     BC 
+            DJNZ    LOOP7 
+            RET      
+BITCON:              
+            LD      BC,0300H 
+LOOP8:               
+            RRCA     
+            JR      NC,ROTC 
+            SET     7,C 
+ROTC:                
+            RL      C 
+            RL      C 
+            RL      C 
+            DJNZ    LOOP8 
+            RR      C 
+            LD      A,C 
+            RET      
+BEEP:                
+            LD      DE,5050H 
+            LD      A,80H 
+LOOP9:               
+            OUT     (01),A 
+            LD      B,D 
+LOOP10:     DJNZ    LOOP10 
+            XOR     80H 
+            DEC     E 
+            JR      NZ,LOOP9
+;            XOR     A
+;            OUT     (01),A 
+            RET      
+SCAN:                
+            LD      HL,SCREEN+7 
+            LD      B,80H 
+LOOP11:              
+            LD      A,(HL) 
+            OUT     (05),A 
+            LD      A,B 
+            OUT     (06),A 
+            LD      B,40H 
+LOOP12:     DJNZ    LOOP12 
+            DEC     HL 
+            LD      B,A 
+            XOR     A 
+            OUT     (06),A 
+            RRC     B 
+            JR      NC,LOOP11 
+            RET      
+
+DATTBL:     DB      04H,05H,06H,08H,09H,0AH,0CH,0DH,0EH ;key pressed
+            DB      06H,04H,00H,07H,02H,00H,03H,01H,00H ;bottom row bits of key pressed
+            DB      09H,09H,09H,09H,09H,09H,09H,09H,09H ;first 3x3 location SQRDAT
+            DB      04H,06H,04H,02H,07H,02H,01H,03H,01H ;middle row bits of key pressed
+            DB      0AH,0AH,0AH,0AH,0AH,0AH,0AH,0AH,0AH ;second 3x3 location SQRDAT+1
+            DB      00H,04H,06H,00H,02H,07H,00H,01H,03H ;top row bits of key pressed
+            DB      0BH,0BH,0BH,0BH,0BH,0BH,0BH,0BH,0BH ;third 3x3 location SQRDAT+2
+

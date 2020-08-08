@@ -1,0 +1,761 @@
+# File /Users/slarti/Documents/TEC1D/TEC-1D-Stuff/code/games/TEC_maze.z80
+0000			; TEC Maze Treasure Hunt. 
+0000			; 
+0000			; By 
+0000			; Brian Chiha -- June 2020 
+0000			; brian.chiha@gmail.com 
+0000			;  
+0000			; Glowing Orb Treasure Hunt 
+0000			; ------------------------- 
+0000			; 
+0000			; Setup 
+0000			; -----  
+0000			; 
+0000			; To be run on the TEC-1D with either JMON or MON2.  For the keyboard to work 
+0000			; it requires EITHER a 4k7 (or 2k2) resistor between the NMI (pin 17 on Z-80) 
+0000			; and D6 (pin 10 on the Z-80) OR the DAT (LCD) expanstion board fitted to port 3. 
+0000			; The current TEC-1D boards have the JMON MOD resitor connection already there. 
+0000			; The 8x8 LED board is fitted to ports 5 and 6 with the port select strobe of the 
+0000			; left hand latch going to port 6. 
+0000			; 
+0000			; To Play 
+0000			; ------- 
+0000			; 
+0000			; The aim is to move around the maze, and pick up all glowing orbs. Once all are found, 
+0000			; get back to your starting spot.  To move use the following keys 
+0000			; 
+0000			;         6 
+0000			;     1 < O > 9 
+0000			;         4 
+0000			; 
+0000			; Your character is a 1x1 Steady LED.  Orbs are flashing (glistening!) 1x1 LED's. 
+0000			; The Seven Segments display your current location (Address) and the number of treasures 
+0000			; to collect (Data).  You must find all orbs to win.  Just move over the orb to 
+0000			; pick it up but only when you can see it! 
+0000			; 
+0000			; The Maze has a total of 64 rooms on an 8x8 grid.  Rooms are represented vertically 
+0000			; with A-H and horizontally with 0-7.  Top left is 'A0'.  Orbs and initially  
+0000			; player positions are randomly placed at the start of the game.  The number of orbs 
+0000			; to find is random for each game. 
+0000			 
+0000			;Data locations 
+0000			SCREEN:     EQU     0D00H ;Game Screen                                           (8-bytes) 
+0000			ROTSCR:     EQU     0D08H ;Pre Screen area for rotation                          (8-bytes) 
+0000			TRESUR:     EQU     0D10H ;Treasure Location 1 byte per row                      (8-bytes) 
+0000			PLAYRM:     EQU     0D18H ;Player current room lnib=vertical, unib=horizontal    (1-byte) 
+0000			PLAYSC:     EQU     0D19H ;Player current Treasure Count                         (1-byte) 
+0000			PLAYER:     EQU     0D1AH ;Position of player X (Byte 1) and Y (Byte 2)          (2-bytes) 
+0000			CURRRM:     EQU     0D1CH ;Current room number 00-3F (64 rooms)                  (1-byte) 
+0000			STARTR:     EQU     0D1DH ;Start room to signify end of game                     (1-byte) 
+0000			RANDNO:     EQU     0D1EH ;Random number for more randomness                     (1-byte) 
+0000			KEYPRE:     EQU     0D1FH ;Key Pressed Flag, 00-False, FF-True                   (1-byte) 
+0000			LEDSCR:     EQU     0D20H ;LED Display for Map Reference and treasure count      (6-bytes) 
+0000			TRELOC:     EQU     0D26H ;Position of treasure X (Byte 1) and Y (Byte 2)        (2-bytes) 
+0000			 
+0000			            ORG     0900H  
+0900			START:                
+0900			            ;Welcome Screen 
+0900 cd e5 0b		            CALL    CLRSCR 
+0903 cd a0 0b		            CALL    INTROM 
+0906			 
+0906			            ;New game setup 
+0906 cd 8d 0a		            CALL    SETUP 
+0909			 
+0909			GAME: 
+0909			 
+0909 cd 2a 09		            CALL    PLAYMV     ;Player movement 
+090c			            ; Display Updates 
+090c cd d0 0a		            CALL    UPDSCR     ;Update Screen 
+090f cd ff 0a		            CALL    UPDSCO     ;Update 7-Segments 
+0912 cd 33 0b		            CALL    SCAN       ;Scan the 8x8 and Seven Segments 
+0915			 
+0915			            ;Check if treausre count = 0 and player is in starting position 
+0915			            ;then display game over and restart 
+0915 3a 19 0d		            LD      A,(PLAYSC) 
+0918 b7			            OR      A 
+0919 20 ee		            JR      NZ,GAME   ;Still treasure remaining 
+091b 3a 1d 0d		            LD      A,(STARTR) 
+091e 47			            LD      B,A 
+091f 3a 1c 0d		            LD      A,(CURRRM) 
+0922 90			            SUB     B 
+0923 20 e4		            JR      NZ,GAME   ;Not in starting room 
+0925 cd c1 0b		            CALL    GAMEOV    ;Call game over routine 
+0928 18 d6		            JR      START 
+092a			 
+092a			;Player Movement.  This includes map movements, and collisions on walls.  Player 
+092a			;can move up (6), down (4), left (1) and right (9). When player moves off the screen 
+092a			;A new map is drawn.  This method is a bit messy and could be optimised 
+092a			PLAYMV: 
+092a			            ; Test for key pressed with D6 set 
+092a db 03		            IN      A,(03) 
+092c cb 77		            BIT     6,A  ; Bit 6, If not set A=NZ 
+092e 28 05		            JR      Z,MP1 
+0930			            ; Store 0 for last key if no key pressed 
+0930 af			            XOR     A 
+0931 32 1f 0d		            LD      (KEYPRE),A 
+0934 c9			            RET 
+0935			MP1: 
+0935			            ; Key has been pressed 
+0935 3a 1f 0d		            LD      A,(KEYPRE) 
+0938 b7			            OR      A 
+0939 c0			            RET     NZ  ; Just return if same 
+093a 3e ff		            LD      A,0FFH 
+093c 32 1f 0d		            LD      (KEYPRE),A 
+093f			            ; Get Key 
+093f db 00		            IN      A,(00) 
+0941 e6 1f		            AND     01FH ; Mask unwanted bits 
+0943 ed 5b 1a 0d	            LD      DE,(PLAYER)    ;Player position for checking 
+0947 21 1c 0d		            LD      HL,CURRRM 
+094a			            ; Check for Valid Keys 
+094a			LEFT: 
+094a fe 01		            CP      01H  ; Left 
+094c 20 07		            JR      NZ, RIGHT 
+094e 7b			            LD      A,E     ;X pos 
+094f 07			            RLCA 
+0950 38 23		            JR      C,MOVELT ;Carry means move to new room and save new player position 
+0952 5f			            LD      E,A 
+0953 18 3c		            JR     CHKCOL   ;Check for collision 
+0955			RIGHT: 
+0955 fe 09		            CP      09H  ; Right 
+0957 20 07		            JR      NZ, UP 
+0959 7b			            LD      A,E     ;X pos 
+095a 0f			            RRCA 
+095b 38 1c		            JR      C,MOVERT ;Carry means move to new room and save new player position 
+095d 5f			            LD      E,A 
+095e 18 31		            JR     CHKCOL   ;Check for collision 
+0960			UP: 
+0960 fe 06		            CP      06H  ; Up 
+0962 20 07		            JR      NZ, DOWN 
+0964 7a			            LD      A,D     ;Y pos 
+0965 07			            RLCA 
+0966 38 15		            JR      C,MOVEUP ;Carry means move to new room and save new player position 
+0968 57			            LD      D,A 
+0969 18 26		            JR     CHKCOL   ;Check for collision 
+096b			DOWN: 
+096b fe 04		            CP      04H  ; Down 
+096d c0			            RET     NZ 
+096e 7a			            LD      A,D     ;Y pos 
+096f 0f			            RRCA 
+0970 38 12		            JR      C,MOVEDN ;Carry means move to new room and save new player position 
+0972 57			            LD      D,A 
+0973 18 1c		            JR     CHKCOL   ;Check for collision 
+0975			MOVELT: 
+0975 5f			            LD      E,A 
+0976 35			            DEC     (HL) 
+0977 18 10		            JR      UPDROO 
+0979			MOVERT: 
+0979 5f			            LD      E,A 
+097a 34			            INC     (HL) 
+097b 18 0c		            JR      UPDROO 
+097d			MOVEUP: 
+097d 57			            LD      D,A 
+097e 7e			            LD      A,(HL) 
+097f d6 08		            SUB     08H 
+0981 77			            LD      (HL),A 
+0982 18 05		            JR      UPDROO 
+0984			MOVEDN: 
+0984 57			            LD      D,A 
+0985 7e			            LD      A,(HL) 
+0986 c6 08		            ADD     A,08H 
+0988 77			            LD      (HL),A 
+0989			UPDROO: 
+0989			            ;Update to a new room and save new player location 
+0989 ed 53 1a 0d	            LD      (PLAYER),DE  ;Move player 
+098d cd ea 09		            CALL    NWROOM 
+0990 c9			            RET      ;Exit from PLAYMV 
+0991			 
+0991			;Check that player doesn't collide with wall.  IF so just exit and don't update player 
+0991			;position.  Else, Jump to UPDROO to wipe old player position and save new player position 
+0991			;DE = player position to test.  D = X, E = Y 
+0991			CHKCOL: 
+0991 21 00 0d		            LD      HL,SCREEN 
+0994			            ;Find X  Pos on screen 
+0994 7b			            LD      A,E 
+0995			MP2: 
+0995 07			            RLCA            ;1 Bit is always present 
+0996 38 03		            JR      C,MP3 
+0998 23			            INC     HL 
+0999 18 fa		            JR      MP2 
+099b			MP3: 
+099b 7e			            LD      A,(HL)  ;Get X column 
+099c a2			            AND     D       ;See if Y is set 
+099d 28 3b		            JR      Z,MP8      ;Collision!! If NZ 
+099f						;If collision check if treasure, (ie player = treloc) 
+099f						;then if so, remove treasure otherwise RET and don't update room 
+099f 2a 26 0d					LD      HL,(TRELOC) 
+09a2 b7			            OR      A 
+09a3 ed 52		            SBC     HL,DE  ;Compare HL and DE, if the same then Zero flag is set 
+09a5 19			            ADD     HL,DE 
+09a6 c0			            RET     NZ     ;Different so must be wall. 
+09a7			            ; Remove Treasure BIT then fall through and update player location 
+09a7 21 10 0d		            LD      HL,TRESUR  ; Treasure Rows 
+09aa 3a 18 0d		            LD      A,(PLAYRM) ; Current player room to find correct TRESUR 
+09ad f5			            PUSH    AF 
+09ae e6 0f		            AND     0FH       ; Get X pos 
+09b0			MP4: 
+09b0 b7			            OR      A         ;Check for 0 
+09b1 28 04		            JR      Z,MP5 
+09b3 3d			            DEC     A 
+09b4 23			            INC     HL        ;Move to correct row 
+09b5 18 f9		            JR      MP4 
+09b7			MP5: 
+09b7 f1			            POP     AF 
+09b8 07			            RLCA 
+09b9 07			            RLCA 
+09ba 07			            RLCA 
+09bb 07			            RLCA             
+09bc e6 0f		            AND     0FH       ;Get Y position 
+09be 06 01		            LD      B,01H     ;Set up bit to XOR with (HL) 
+09c0			MP6: 
+09c0 b7			            OR      A         ;Check for 0 
+09c1 28 05		            JR      Z,MP7 
+09c3 cb 00		            RLC     B 
+09c5 3d			            DEC     A 
+09c6 18 f8		            JR      MP6 
+09c8			MP7: 
+09c8 7e			            LD      A,(HL) 
+09c9 a8			            XOR     B          ;Remove Y Bit from A 
+09ca 77			            LD      (HL),A     ;Update HL with bit removed and fall through to update player pos 
+09cb 21 00 00		            LD      HL,0000H 
+09ce 22 26 0d		            LD      (TRELOC),HL ;Remove Treasure in room 
+09d1 3a 19 0d		            LD      A,(PLAYSC) 
+09d4 d6 01		            SUB     01H       ;Decrease treasure count 
+09d6 27			            DAA 
+09d7 32 19 0d		            LD      (PLAYSC),A 
+09da			MP8: 
+09da			            ;No collision to move player to new position and update screen to 
+09da			            ;remove pevious player position  
+09da ed 53 1a 0d	            LD      (PLAYER),DE  ;Move player 
+09de			            ;Copy Rotated Original room to Screen 
+09de 01 08 00		            LD      BC,0008H ;Copy rotation area to screen 
+09e1 21 08 0d		            LD      HL,ROTSCR  
+09e4 11 00 0d		            LD      DE,SCREEN  
+09e7 ed b0		            LDIR 
+09e9 c9			            RET      ;Exit from PLAYMV 
+09ea			 
+09ea			;Go to a new room.  This finds the next room and rotates it to the correct direction 
+09ea			NWROOM: 
+09ea cd 14 0b		            CALL    UPDRCO   ;Update room coordinates 
+09ed cd 49 0a					CALL    CRETRE   ;Create Treasure if room has active treasure 
+09f0 21 46 0c					LD      HL,MAZERM 
+09f3 3a 1c 0d					LD      A,(CURRRM) 
+09f6 85						ADD     A,L 
+09f7 6f						LD      L,A      ;Index the currect room 
+09f8 7e						LD      A,(HL)   ;Get Map 
+09f9			            ;LSB is the room reference 
+09f9			            ;MSB is the rotation 
+09f9 f5			            PUSH    AF 
+09fa e6 0f		            AND     0FH      ;Get Room to use LSB 
+09fc 21 3c 0c		            LD      HL,ROOMLU 
+09ff 87			            ADD     A,A      ;Double it for two byte indexing 
+0a00 85			            ADD     A,L 
+0a01 6f			            LD      L,A      ;Index the room 
+0a02 7e			            LD      A,(HL) 
+0a03 23			            INC     HL 
+0a04 66			            LD      H,(HL) 
+0a05 6f			            LD      L,A 
+0a06 01 08 00		            LD      BC,0008H ;Copy map data to rotation area 
+0a09 11 08 0d		            LD      DE,ROTSCR  
+0a0c ed b0		            LDIR 
+0a0e f1			            POP     AF       ;Get rotation 
+0a0f 07			            RLCA 
+0a10 07			            RLCA 
+0a11 07			            RLCA 
+0a12 07			            RLCA 
+0a13 e6 0f		            AND     0FH 
+0a15 47			            LD      B,A  ;Save rotation for rotation count if needed 
+0a16 b7			            OR      A    ;If no rotaion needed just copy to screen 
+0a17 20 0c		            JR      NZ,ROTCW 
+0a19 01 08 00		            LD      BC,0008H ;Copy rotation area to screen 
+0a1c 21 08 0d		            LD      HL,ROTSCR  
+0a1f 11 00 0d		            LD      DE,SCREEN  
+0a22 ed b0		            LDIR 
+0a24 c9			            RET     ;Exit 
+0a25			            ;Rotate map B times anti-clockwise and update screen at the same time 
+0a25			ROTCW:                 
+0a25 c5			            PUSH    BC 
+0a26 11 00 0d		            LD      DE,SCREEN  
+0a29 06 08		            LD      B,08H  
+0a2b			ROT1:                
+0a2b c5			            PUSH    BC  
+0a2c 06 08		            LD      B,08H  
+0a2e 21 08 0d		            LD      HL,ROTSCR  
+0a31 af			            XOR     A  
+0a32			ROT2:                
+0a32 cb 06		            RLC     (HL)  
+0a34 1f			            RRA       
+0a35 23			            INC     HL  
+0a36 10 fa		            DJNZ    ROT2  
+0a38 12			            LD      (DE),A  
+0a39 13			            INC     DE  
+0a3a c1			            POP     BC  
+0a3b 10 ee		            DJNZ    ROT1 
+0a3d 01 08 00		            LD      BC,0008H ;Copy new screen data to rotation area 
+0a40 21 00 0d		            LD      HL,SCREEN  
+0a43 ed b0		            LDIR 
+0a45 c1			            POP     BC 
+0a46 10 dd		            DJNZ    ROTCW  ; Repeat for all rotations 
+0a48 c9						RET 
+0a49			 
+0a49			;Create Treasure.  Using the bits set in TRESUR, see if room has treasure.  If so 
+0a49			;Place it somewhere within the four squares of center of the room.  If no treasure in room 
+0a49			;Clear out treasure location 
+0a49			CRETRE: 
+0a49			            ; Using PLAYRM (previously set), work out which row and column to check in TRESUR 
+0a49			            ; To set if the bit is set for the room. 
+0a49 21 10 0d		            LD      HL,TRESUR  ;Find the correct row (X coordinate) 
+0a4c 11 26 0d		            LD      DE,TRELOC  ;Treasure location X and Y if any 
+0a4f 3a 18 0d		            LD      A,(PLAYRM) 
+0a52 f5			            PUSH    AF 
+0a53 07			            RLCA 
+0a54 07			            RLCA 
+0a55 07			            RLCA 
+0a56 07			            RLCA             
+0a57 e6 0f		            AND     0FH       ;Get Y position 
+0a59 47			            LD      B,A       ;Save Y in B 
+0a5a f1			            POP     AF 
+0a5b e6 0f		            AND     0FH       ;Get X position 
+0a5d			CR1: 
+0a5d b7			            OR      A         ;Check for 0 
+0a5e 28 04		            JR      Z,CR2 
+0a60 3d			            DEC     A 
+0a61 23			            INC     HL 
+0a62 18 f9		            JR      CR1 
+0a64			CR2: 
+0a64 7e			            LD      A,(HL)    ;Now find if bit is set 
+0a65 4f			            LD      C,A 
+0a66 78			            LD      A,B       ;Y position 
+0a67			CR3: 
+0a67 b7			            OR      A         ;Check for 0 
+0a68 28 05		            JR      Z,CR4 
+0a6a cb 09		            RRC     C 
+0a6c 3d			            DEC     A 
+0a6d 18 f8		            JR      CR3 
+0a6f			CR4: 
+0a6f cb 41		            BIT     0,C       ;Check if bit is set, if so, treausre is found 
+0a71 28 16		            JR      Z,CR7     ;Not set 
+0a73			            ; To set a random location, I use row random number, and mask out lower and upper 
+0a73			            ; nibble with 3.  Then add 2 to it to get a number between 2-5 which are the  
+0a73			            ; center bits. 
+0a73 7e			            LD      A,(HL)    ;Row Bits 
+0a74 cd 7c 0a		            CALL    CR5 
+0a77 7e			            LD      A,(HL)    ;Row Bits 
+0a78 07			            RLCA 
+0a79 07			            RLCA 
+0a7a 07			            RLCA 
+0a7b 07			            RLCA              ;Fall through to call 
+0a7c			CR5: 
+0a7c e6 03		            AND     03H       ;Mask bottom 3 bits only 
+0a7e c6 02		            ADD     A,02H     ;Put in range of 2-5 
+0a80 47			            LD      B,A 
+0a81 3e 01		            LD      A,01H     ;Set one bit 
+0a83			CR6: 
+0a83 07			            RLCA 
+0a84 10 fd		            DJNZ    CR6 
+0a86 12			            LD      (DE),A 
+0a87 13			            INC     DE 
+0a88 c9			            RET 
+0a89			CR7:             
+0a89 12			            LD      (DE),A ;   A is 0 if here 
+0a8a 13			            INC     DE 
+0a8b 12			            LD      (DE),A ; 
+0a8c c9			            RET 
+0a8d			 
+0a8d			;Randomly place treasure and initial room for player 
+0a8d			SETUP: 
+0a8d			            ; Initial Player Position 
+0a8d 3e 08		            LD      A,08H   ;Around the middle of the screen 
+0a8f 32 1a 0d		            LD      (PLAYER),A 
+0a92 32 1b 0d		            LD      (PLAYER+1),A 
+0a95			            ; Starting Room 
+0a95 cd 61 0b		            CALL    RANDOM  ;Find Random Starting Room 
+0a98 e6 3f		            AND     3FH     ;0-63 rooms 
+0a9a 32 1c 0d		            LD      (CURRRM),A 
+0a9d 32 1d 0d		            LD      (STARTR),A  ;Save start room 
+0aa0			            ; Treasure Placement is done by placing a random number in eight rows 
+0aa0			            ; Each set bit on the row represents the column that the treasure is in. 
+0aa0			            ; Once the player enters a room with treasure it is placed somewhere in the 
+0aa0			            ; room.  If it get picked up, the bit is removed. 
+0aa0 0e 08		            LD      C,08H   ;8 rows 
+0aa2 21 10 0d		            LD      HL,TRESUR 
+0aa5			SUP1: 
+0aa5 cd 61 0b		            CALL    RANDOM 
+0aa8 77			            LD      (HL),A   ;Save random number to row 
+0aa9 23			            INC     HL 
+0aaa 0d			            DEC     C 
+0aab 20 f8		            JR      NZ,SUP1 
+0aad			            ; Add up treasures (bits in each row) and save into PLAYSC.  This code is a 
+0aad			            ; bit ineffcient but it only gets called once at startup. 
+0aad 11 08 00		            LD      DE,0008H   ;E=8 rows and D=0 total treasure  
+0ab0 21 10 0d		            LD      HL,TRESUR 
+0ab3			SUP2: 
+0ab3 7e			            LD      A,(HL) 
+0ab4 06 08		            LD      B,08H    ;8 bits per byte 
+0ab6			SUP3: 
+0ab6 07			            RLCA 
+0ab7 30 01		            JR      NC,SUP4 
+0ab9 14			            INC     D 
+0aba			SUP4: 
+0aba 10 fa		            DJNZ    SUP3 
+0abc 23			            INC     HL 
+0abd 1d			            DEC     E 
+0abe 20 f3		            JR      NZ,SUP2 
+0ac0 7a			            LD      A,D 
+0ac1 cd 93 0b		            CALL    HEX2BCD 
+0ac4 32 19 0d		            LD      (PLAYSC),A 
+0ac7			 
+0ac7			            ; Zero Default 
+0ac7 3e 00		            LD      A,00H 
+0ac9 32 1f 0d		            LD      (KEYPRE),A 
+0acc			 
+0acc cd ea 09		            CALL    NWROOM ;Draw first room and update room coordinates 
+0acf			 
+0acf c9			            RET 
+0ad0			 
+0ad0			;Redraw screen with player movement 
+0ad0			UPDSCR: 
+0ad0			            ;Place Player. Move HL to X pos, then OR with Y pos 
+0ad0			             
+0ad0 3a 1a 0d		            LD      A,(PLAYER) ; Get X pos 
+0ad3 21 00 0d		            LD      HL,SCREEN 
+0ad6			U1: 
+0ad6 07			            RLCA           ;1 Bit is always present 
+0ad7 38 03		            JR      C,U2   ;Move HL to X position 
+0ad9 23			            INC     HL 
+0ada 18 fa		            JR      U1 
+0adc			U2: 
+0adc 3a 1b 0d		            LD      A,(PLAYER+1) 
+0adf 47			            LD      B,A 
+0ae0 7e			            LD      A,(HL)  
+0ae1 b0			            OR      B       
+0ae2 77			            LD      (HL),A ;Update HL with Y position 
+0ae3			 
+0ae3			            ;Place Treasure if any. Move HL to X pos, then OR with Y pos 
+0ae3			            ;Treausre is only shown if RANDOM number > 80H (128 decimal) 
+0ae3			            ;This creates a glistening effect 
+0ae3 cd 61 0b		            CALL    RANDOM 
+0ae6 d6 20		            SUB     20H 
+0ae8 d0			            RET     NC    ;Dont print treasure if result is negative 
+0ae9			             
+0ae9 3a 26 0d		            LD      A,(TRELOC) ; Get X pos 
+0aec b7			            OR      A          ; If 0 no treasure 
+0aed c8			            RET     Z 
+0aee 21 00 0d		            LD      HL,SCREEN 
+0af1			U3: 
+0af1 07			            RLCA           ;1 Bit is always present 
+0af2 38 03		            JR      C,U4   ;Move HL to X position 
+0af4 23			            INC     HL 
+0af5 18 fa		            JR      U3 
+0af7			U4: 
+0af7 3a 27 0d		            LD      A,(TRELOC+1) 
+0afa 47			            LD      B,A 
+0afb 7e			            LD      A,(HL)  
+0afc b0			            OR      B       
+0afd 77			            LD      (HL),A ;Update HL with Y position 
+0afe			 
+0afe			 
+0afe c9			            RET 
+0aff			 
+0aff			;Update segement data 
+0aff			;Update the LED's to display the LEDSCR buffer based off PLAYRM & PLAYSC 
+0aff			UPDSCO: 
+0aff 01 20 0d		            LD      BC,LEDSCR  ;Location of screen buffer 
+0b02 21 18 0d		            LD      HL,PLAYRM  ;Player Position (1) and Treasures (1) 
+0b05 af			            XOR     A          ;Blank first two entries 
+0b06 02			            LD      (BC),A 
+0b07 03			            INC     BC 
+0b08 02			            LD      (BC),A 
+0b09 03			            INC     BC 
+0b0a 7e			            LD      A,(HL) 
+0b0b cd 6e 0b		            CALL    SEGCON     ;Convert A to Segment Hex, Store in BC 
+0b0e 23			            INC     HL 
+0b0f 7e			            LD      A,(HL) 
+0b10 cd 6e 0b		            CALL    SEGCON     ;Convert A to Segment Hex, Store in BC 
+0b13 c9			            RET 
+0b14			 
+0b14			;Update room coordinates.  Based on the current room 
+0b14			;Divide Current room by 8, result = A (Vert), remainder = B (Horiz) 
+0b14			UPDRCO: 
+0b14 3a 1c 0d		            LD      A,(CURRRM) 
+0b17 5f			            LD      E,A     ;Current Room 
+0b18 0e 08		            LD      C,08H   ;Divisor 
+0b1a 06 08		            LD      B,08H   ;8 bit divide routine 
+0b1c af			            XOR     A 
+0b1d			SU1:  
+0b1d cb 13		            RL      E 
+0b1f 17			            RLA 
+0b20 91			            SUB     C 
+0b21 30 01		            JR      NC,SU2 
+0b23 81			            ADD     A,C 
+0b24			SU2: 
+0b24 10 f7		            DJNZ    SU1 
+0b26 47			            LD      B,A 
+0b27 7b			            LD      A,E 
+0b28 17			            RLA 
+0b29 2f			            CPL 
+0b2a 07			            RLCA            ;Store AB into PLAYRM 
+0b2b 07			            RLCA 
+0b2c 07			            RLCA 
+0b2d 07			            RLCA 
+0b2e 80			            ADD     A,B 
+0b2f 32 18 0d		            LD      (PLAYRM),A 
+0b32 c9			            RET 
+0b33			 
+0b33			;Utility Routines.. 
+0b33			 
+0b33			; Multiplex the 8x8 Display and the Seven Segment LEDS 
+0b33			SCAN:                 
+0b33 06 10		            LD      B,10H  
+0b35			S1:                
+0b35 c5			            PUSH    BC  
+0b36 06 01		            LD      B,01H   ;Counter for 8x8 
+0b38 21 00 0d		            LD      HL,SCREEN 
+0b3b 11 25 0d		            LD      DE,LEDSCR+5  
+0b3e			S2:                
+0b3e 7e			            LD      A,(HL)  
+0b3f d3 06		            OUT     (06),A 
+0b41 1a			            LD      A,(DE) 
+0b42 d3 02		            OUT     (02),A  
+0b44 78			            LD      A,B  
+0b45 d3 05		            OUT     (05),A 
+0b47 fe 80		            CP      80H     ;If port 80 (Speaker), Skip 
+0b49 28 02		            JR      Z,S3  
+0b4b d3 01		            OUT     (01),A  
+0b4d			S3: 
+0b4d 06 40		            LD      B,40H  
+0b4f 10 fe		S4:         DJNZ    S4  
+0b51 47			            LD      B,A  
+0b52 af			            XOR     A  
+0b53 d3 05		            OUT     (05),A  
+0b55 d3 01		            OUT     (01),A 
+0b57 1b			            DEC     DE 
+0b58 23			            INC     HL 
+0b59 cb 00		            RLC     B  
+0b5b 30 e1		            JR      NC,S2  
+0b5d c1			            POP     BC  
+0b5e 10 d5		            DJNZ    S1  
+0b60 c9			            RET       
+0b61			 
+0b61			;Random number generator.  A - Returns a number between 00 and FF 
+0b61			RANDOM: 
+0b61 ed 5f		            LD      A,R 
+0b63 47			            LD      B,A 
+0b64 3a 1e 0d		            LD      A,(RANDNO) 
+0b67 a8			            XOR     B 
+0b68 87			            ADD     A,A 
+0b69 a8			            XOR     B 
+0b6a 32 1e 0d		            LD      (RANDNO),A 
+0b6d c9			            RET 
+0b6e			 
+0b6e			;Convert A to two display bytes for Seven Segment, Store Result in location of BC 
+0b6e			SEGCON: 
+0b6e f5			            PUSH    AF 
+0b6f 07			            RLCA 
+0b70 07			            RLCA 
+0b71 07			            RLCA 
+0b72 07			            RLCA 
+0b73			            ; Need to check if displaying a letter or number.  This only applys for the  
+0b73			            ; player room coordinates.  If HL = PLAYRM then and on upper nibble then add 
+0b73			            ; 0A to the table index 
+0b73 11 18 0d		            LD      DE,PLAYRM 
+0b76 b7			            OR      A      ;Reset carry flag 
+0b77 ed 52		            SBC     HL,DE  ;Compare HL and DE, if the same then Zero flag is set 
+0b79 19			            ADD     HL,DE 
+0b7a 20 05		            JR      NZ,SC1 
+0b7c 11 90 0c		            LD      DE,SEGTBL+0AH 
+0b7f 18 03		            JR      SC2 
+0b81			SC1: 
+0b81 11 86 0c		            LD      DE,SEGTBL 
+0b84			SC2: 
+0b84 cd 8b 0b		            CALL    SC3 
+0b87 f1			            POP     AF 
+0b88 11 86 0c		            LD      DE,SEGTBL 
+0b8b			SC3: 
+0b8b			 
+0b8b e6 0f		            AND     0FH 
+0b8d 83			            ADD     A,E 
+0b8e 5f			            LD      E,A 
+0b8f 1a			            LD      A,(DE) 
+0b90 02			            LD      (BC),A 
+0b91 03			            INC     BC 
+0b92 c9			            RET 
+0b93			 
+0b93			;Hex to BCD converter.  Converts A in Hex to BCD equivilant. 
+0b93			HEX2BCD: 
+0b93 c5			            PUSH    BC 
+0b94 4f			            LD      C,A 
+0b95 06 08		            LD      B,08H 
+0b97 af			            XOR     A 
+0b98			H1: 
+0b98 cb 21		            SLA     C 
+0b9a 8f			            ADC     A,A 
+0b9b 27			            DAA 
+0b9c 10 fa		            DJNZ    H1 
+0b9e c1			            POP     BC 
+0b9f c9			            RET 
+0ba0			 
+0ba0			;8x8 Scroll routine to scroll data from right to left.  Data is referenced in HL 
+0ba0			;First Byte is number of columns to scroll followed by vertical byte display upwards 
+0ba0			;This routine includes the 8x8 multiplex 
+0ba0			INTROM: 
+0ba0 21 98 0c		            LD      HL,INTMSG 
+0ba3 7e			            LD      A,(HL)    ;Column count 
+0ba4 4f			            LD      C,A 
+0ba5			SL1: 
+0ba5 06 07		            LD      B,07H 
+0ba7 dd 21 00 0d	            LD      IX,SCREEN 
+0bab			SL2: 
+0bab dd 7e 01		            LD      A,(IX+1)   ;Shift seven columns 
+0bae dd 77 00		            LD      (IX+0),A 
+0bb1 dd 23		            INC     IX 
+0bb3 10 f6		            DJNZ    SL2 
+0bb5 23			            INC     HL 
+0bb6 7e			            LD      A,(HL) 
+0bb7 32 07 0d		            LD      (SCREEN+7),A 
+0bba cd f3 0b		            CALL    SCAN88 
+0bbd 0d			            DEC     C 
+0bbe 20 e5		            JR      NZ,SL1 
+0bc0 c9			            RET 
+0bc1			 
+0bc1			;8x8 Flasher routine.  This displays data for the 8x8 similar to the scroll but shows 
+0bc1			;one page (8x8) at a time instead of sequentially scrolling.  Data is referenced in HL 
+0bc1			;First byte is the number of pages to show followed by vertical byte display upwards 
+0bc1			;Useful for animations using the 8x8.  This is used as a game over screen.  It loops 
+0bc1			;until any key is pressed 
+0bc1			GAMEOV: 
+0bc1 21 d2 0c		            LD      HL,OVRMSG 
+0bc4 7e			            LD      A,(HL)    ;Page count 
+0bc5 23			            INC     HL 
+0bc6 4f			            LD      C,A 
+0bc7			F1: 
+0bc7 c5			            PUSH    BC 
+0bc8 11 00 0d		            LD      DE,SCREEN  
+0bcb 01 08 00		            LD      BC,0008H   
+0bce ed b0		            LDIR              ;Copy Through to screen area 
+0bd0 06 0b		            LD      B,0BH 
+0bd2			F2: 
+0bd2 c5			            PUSH    BC 
+0bd3 cd f3 0b		            CALL    SCAN88 
+0bd6 c1			            POP     BC 
+0bd7 10 f9		            DJNZ    F2 
+0bd9 c1			            POP     BC 
+0bda db 03		            IN      A,(03) 
+0bdc cb 77		            BIT     6,A  ; Bit 6, If not set A=NZ 
+0bde c8			            RET     Z 
+0bdf 0d			            DEC     C 
+0be0 20 e5		            JR      NZ,F1    ;Do next screen 
+0be2 18 dd		            JR      GAMEOV 
+0be4 c9			            RET 
+0be5			 
+0be5			CLRSCR: 
+0be5 21 00 0d		            LD      HL,SCREEN 
+0be8 11 01 0d		            LD      DE,SCREEN+1 
+0beb af			            XOR     A 
+0bec 77			            LD      (HL),A 
+0bed 01 07 00		            LD      BC,07H 
+0bf0 ed b0		            LDIR 
+0bf2 c9			            RET 
+0bf3			 
+0bf3			; Multiplex the 8x8 Display 
+0bf3			SCAN88:                 
+0bf3 e5			            PUSH    HL  
+0bf4 06 15		            LD      B,15H  
+0bf6			S81:                
+0bf6 c5			            PUSH    BC 
+0bf7 06 01		            LD      B,01H   ;Counter for 8x8 
+0bf9 21 00 0d		            LD      HL,SCREEN 
+0bfc			S82:                
+0bfc 7e			            LD      A,(HL)  
+0bfd d3 06		            OUT     (06),A 
+0bff 78			            LD      A,B  
+0c00 d3 05		            OUT     (05),A 
+0c02 06 20		            LD      B,20H  
+0c04 10 fe		S83:        DJNZ    S83  
+0c06 23			            INC     HL 
+0c07 47			            LD      B,A  
+0c08 af			            XOR     A  
+0c09 d3 05		            OUT     (05),A  
+0c0b cb 00		            RLC     B  
+0c0d 30 ed		            JR      NC,S82  
+0c0f c1			            POP     BC  
+0c10 10 e4		            DJNZ    S81 
+0c12 e1			            POP     HL  
+0c13 c9			            RET       
+0c14			 
+0c14			; Game Data 
+0c14			 
+0c14			; Five room squares are used.  A Cross, T junction, straight, Bend and Cul-de-sac. 
+0c14			; In order to use these indifferent rotations the room reference byte is split into 
+0c14			; two. The LSB is the room to use and the MSB is the rotation of it.   
+0c14			; The LSB for the rooms are 
+0c14			; 
+0c14			; Cross = 0 
+0c14			; T junction = 1 
+0c14			; Straight = 2 
+0c14			; Bend = 3 
+0c14			; Cul-de-sac = 4 
+0c14			; 
+0c14			; Maps are rotated 90 anti-clockwise with 0=no rotation, 1=90, 2=180 and 3=270 
+0c14			; EG: a Bend at 180 degress is 23H 
+0c14			; 
+0c14 c3 c3 00 00 00 00 c3 c3	CROSSR:     DB      0C3H,0C3H,00H,00H,00H,00H,0C3H,0C3H      ;Cross (+) 
+0c1c c3 c3 c0 c0 c0 c0 c3 c3	TJUNCR:     DB      0C3H,0C3H,0C0H,0C0H,0C0H,0C0H,0C3H,0C3H  ;T Junction (T)  
+0c24 c3 c3 c3 c3 c3 c3 c3 c3	STRGTR:     DB      0C3H,0C3H,0C3H,0C3H,0C3H,0C3H,0C3H,0C3H  ;Straight (=) 
+0c2c ff ff 03 03 03 03 c3 c3	BENDRM:     DB      0FFH,0FFH,03H,03H,03H,03H,0C3H,0C3H      ;Bend (L) 
+0c34 ff ff c3 c3 c3 c3 c3 c3	CULDSR:     DB      0FFH,0FFH,0C3H,0C3H,0C3H,0C3H,0C3H,0C3H  ;Cul-De-Sac (C) 
+0c3c			 
+0c3c			; Room Lookup 
+0c3c 14 0c 1c 0c 24 0c 2c 0c 34 0c	ROOMLU:     DW      CROSSR,TJUNCR,STRGTR,BENDRM,CULDSR 
+0c46			; Map 
+0c46 04 01 02 02 23 33 02 24	MAZERM:     DB      04H,01H,02H,02H,23H,33H,02H,24H 
+0c4e 33 13 33 02 13 03 02 23	            DB      33H,13H,33H,02H,13H,03H,02H,23H 
+0c56 11 23 03 24 33 02 23 12	            DB      11H,23H,03H,24H,33H,02H,23H,12H 
+0c5e 14 03 02 02 00 23 11 13	            DB      14H,03H,02H,02H,00H,23H,11H,13H 
+0c66 33 24 33 23 11 31 03 23	            DB      33H,24H,33H,23H,11H,31H,03H,23H 
+0c6e 03 02 31 12 12 03 23 12	            DB      03H,02H,31H,12H,12H,03H,23H,12H 
+0c76 33 24 12 03 13 04 13 12	            DB      33H,24H,12H,03H,13H,04H,13H,12H 
+0c7e 03 02 21 24 04 02 02 13	            DB      03H,02H,21H,24H,04H,02H,02H,13H 
+0c86			 
+0c86			;SPOILER - This is the actual maze 
+0c86			;            0 1 2 3 4 5 6 7 
+0c86			;           +-+-+-+-+-+-+-+-+ 
+0c86			;       A   |         |     | 
+0c86			;           +-+ +-+-+ + +-+-+ 
+0c86			;       B   |   |     |     | 
+0c86			;           + +-+ +-+-+-+-+ + 
+0c86			;       C   |   |   |     | | 
+0c86			;           + + +-+-+ +-+ + + 
+0c86			;       D   | |         |   | 
+0c86			;           +-+-+-+-+ + + +-+ 
+0c86			;       E   |   |   |   |   | 
+0c86			;           + +-+ + + + +-+ + 
+0c86			;       F   |     | | |   | | 
+0c86			;           +-+-+ + + +-+ + + 
+0c86			;       G   |   | |   |   | | 
+0c86			;           + +-+ +-+-+-+-+ + 
+0c86			;       H   |       |       | 
+0c86			;           +-+-+-+-+-+-+-+-+ 
+0c86			 
+0c86			; 0-H to Seven Segment Table 
+0c86 eb 28 cd ad 2e a7 e7 29	SEGTBL:     DB      0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H 
+0c8e ef 2f 6f e6 c3 ec c7 47	            DB      0EFH,2FH,6FH,0E6H,0C3H,0ECH,0C7H,47H 
+0c96 e3 6e		            DB      0E3H,6EH  
+0c98			 
+0c98			; Intro Message 
+0c98 39 00		INTMSG:     DB      39H,00H ;Size + Gap 
+0c9a 40 40 7f 7f 40 40 00	            DB      40H,40H,7FH,7FH,40H,40H,00H      ;T 
+0ca1 7f 7f 49 49 00	            DB      7FH,7FH,49H,49H,00H              ;E 
+0ca6 1c 3e 63 41 41 00	            DB      1CH,3EH,63H,41H,41H,00H          ;C 
+0cac 00 00		            DB      00H,00H                          ;_ 
+0cae 7f 7f 30 18 18 30 7f 7f 00	            DB      7FH,7FH,30H,18H,18H,30H,7FH,7FH,00H ;M 
+0cb7 03 0e 3c 64 3c 0e 03 00	            DB      03H,0EH,3CH,64H,3CH,0EH,03H,00H  ;A 
+0cbf 63 67 6b 73 63 00	            DB      63H,67H,6BH,73H,63H,00H          ;Z 
+0cc5 7f 7f 49 49 00	            DB      7FH,7FH,49H,49H,00H              ;E 
+0cca 00 00 00 00 00 00 00 00	            DB      00H,00H,00H,00H,00H,00H,00H,00H  ;_ 
+0cd2			 
+0cd2			; Game Over Message 
+0cd2 02			OVRMSG:     DB      02H ;Page count 
+0cd3 08 08 eb fc ea 09 04 00	            DB      08H,08H,0EBH,0FCH,0EAH,09H,04H,00H  ;Boogie 
+0cdb 04 09 ea fc eb 08 08 00	            DB      04H,09H,0EAH,0FCH,0EBH,08H,08H,00H  ;Woogie 
+# End of file /Users/slarti/Documents/TEC1D/TEC-1D-Stuff/code/games/TEC_maze.z80
+0ce3
