@@ -26,13 +26,13 @@ Make sure you are signed into GitHub with your account
 ### Step 4. Create a pull request 
 1. Go to the Pull requests tab. There will be a prompt to create a pull request from your latest changes. Alternatively you can just press "New"
 ![1](./assets/7.png)
-2. Choose the destination (i.e. base, usually master) and the source (i.e. compare, your branch). Fill out a description of the changes you have made and anything else that might seem reasonable. Press "Creat pull request"
+2. Choose the destination (i.e. base, usually master) and the source (i.e. compare, your branch). Fill out a description of the changes you have made and anything else that might seem reasonable. Press "Create pull request"
 ![1](./assets/8.png)
-3. Add the people who you want to review and approve your pull request 
+3. Add the people you want to review and approve your pull request 
 ![1](./assets/9.png)
 
 ### Step 5. Your pull request can then be reviewed
-1. Once the pull request has been examnined it can be merged with master
+1. Once the pull request has been examined, it can be merged with master. 
 ![1](./assets/10.png)
 ![1](./assets/11.png)
 2. Your branch can then be deleted
