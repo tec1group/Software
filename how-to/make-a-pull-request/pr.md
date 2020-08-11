@@ -13,7 +13,7 @@ Make sure you are signed into GitHub with your account
    ![1](./assets/2.png)
 3. Select "Create branch" on the drop down
    ![3](./assets/3.png)
-4. You are now in your new branch
+4. You are now in your new branch. Because you branched from master your new branch will have all the same files as master.
    ![1](./assets/4.png)
 
 ### Step 3. Make your changes
