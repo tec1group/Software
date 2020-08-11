@@ -1,0 +1,29 @@
+; Multiplex Example for 8x8 LED
+
+
+            ORG    0900H 
+START:
+            LD      B,08H
+            LD      A,01H
+            LD      HL,DATA
+LOOP1:
+            OUT     (05),A
+            PUSH    AF
+            LD      A,(HL)
+            OUT     (06),A
+            CALL    SDELAY
+            INC     HL
+            POP     AF
+            RLC     A
+            DEC     B
+            JR      NZ,LOOP1
+            JR      START
+SDELAY:               
+            PUSH    BC 
+            LD      B,0FFH 
+D1:                  
+            DJNZ    D1
+            POP     BC 
+            RET
+DATA:
+            DB 00H,1FH,3FH,64H,64H,3FH,1FH,00H      

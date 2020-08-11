@@ -1,0 +1,142 @@
+; Segment Game by Jim Robinson
+; This game the player is to press any key when a moving target is in 
+; the bottom segment on the 3rd LED segment from the right.  On each 
+; hit the moving segment restarts and moves faster.
+;
+;    A D D R E S S       D A T A
+;  --   --   --   --     --   --
+; |  | |  | |  | |  |   |  | |  |
+;  --   --   --   --     --   --
+; |  | |  | |  | |  |   |  | |  |
+;  --   --   --   --     --   --
+;                 ^^
+;                 ||
+;          This segment lit up
+
+
+
+SCORE:      EQU     0D00H ;Score in HEX              (1-byte)
+SPEED:      EQU     0D01H ;Speed variable            (1-byte)
+
+            ORG     0900H 
+
+            LD      DE,3800H 
+            LD      (SPEED),DE  ;Initial Speed
+            XOR     A 
+            LD      (SCORE),A   ;Initial Score is 0
+START:
+            LD      HL,DATTBL   ;Segment table lookup
+NXTSEG:
+            LD      A,(HL) 
+            LD      B,A         ;LED to Use
+            INC     HL 
+            LD      A,(HL) 
+            LD      C,A         ;Segment to Use
+            INC     HL 
+            LD      A,B         ;Check if last segment which is 0xFF
+            CP      0FFH        ;Its game over if zero
+            JR      Z,GAMOVR 
+            OUT     (01),A      ;Light up LED and Segment
+            LD      A,C 
+            OUT     (02),A 
+            CALL    DELAY       ;Delay the movement
+            CALL    KEYCHK      ;Check for key hit
+            CP      12H         ;If segment is hit, KEYCHK returns 12H in A register
+            JR      Z,START     ;Reset Segments and do it again
+            JR      NXTSEG      ;Display next Segment
+DELAY: 
+            LD      DE,(SPEED) 
+D1:         DEC     DE 
+            LD      A,D 
+            OR      A           ;Check if 0 
+            RET     Z           ;Delay is done, exit
+            JR      D1          ;Keep decreasing to delay
+KEYCHK: 
+                                ;Replace RST 20/NOP to LD A,I if JMON isn't used
+            RST     20H         ;JMON No Wait Key handler that sets key if pressed
+            NOP                 ;Pad out for JMON only
+            LD      E,A         ;Store key hit in E
+            LD      A,0FFH      ;Reset I register with FF
+            LD      I,A 
+            LD      A,E 
+            CP      0FFH        ;If FF then no key hit, so Return
+            RET     Z 
+            LD      A,B         ;Check if LED is on Third from RIGHT 
+            CP      04H 
+            RET     NZ          ;Exit if not
+            LD      A,C         ;Check if Bottom Segment is LIT
+            CP      80H  
+            RET     NZ          ;Exit if not
+
+            LD      A,(SCORE)   ;Update Score
+            INC     A
+            DAA                 ;Adjust for BCD addition 
+            LD      (SCORE),A   ;Save Score
+
+            LD      C,A         ;Save for Scan
+            CALL    SCAN        ;Display Score
+
+;            LD      A,03H       ;Segment hit and key hit, output pattern of eight
+;            OUT     (01),A      ;Light Data LEDS
+;            LD      A,0FFH 
+;            OUT     (02),A      ;With 8
+;            CALL    DELAY 
+            LD      DE,(SPEED)  ;Load Speed
+            DEC     D           ;Reduce Speed by 1 
+            LD      (SPEED),DE  
+            LD      A,12H       ;Tell main loop that segment was hit to reset segments 
+            RET
+GAMOVR:      
+            LD      DE,0BF00H    ;Some random address 
+            LD      (SPEED),DE  ;Set it to Speed (assume FF)
+            LD      A,0FFH 
+            OUT     (01),A      ;Light up all LEDS and speaker
+            LD      A,85H 
+            OUT     (02),A      ;Light up horizontal segments only 
+            CALL    DELAY 
+            RST     00          ;Quit
+SCAN:       LD      B,80H       ;Multiplex
+LOOP1:      PUSH    BC
+            XOR     A           
+            OUT     (02),A
+            LD      A,01H
+            OUT     (01),A
+            LD      A,C
+            CALL    BCDHEX
+            LD      B,00H
+LOOP2:      DJNZ    LOOP2
+            XOR     A
+            OUT     (02),A
+            LD      A,02H
+            OUT     (01),A
+            LD      A,C
+            RRCA
+            RRCA
+            RRCA
+            RRCA
+            CALL    BCDHEX
+            LD      B,00H
+LOOP3:      DJNZ    LOOP3
+            XOR     A
+            OUT     (01),A
+            POP     BC
+            DJNZ    LOOP1
+            RET
+BCDHEX:
+            AND     0FH        ;Mask high nibble
+            LD      HL,SEGTBL
+            ADD     A,L
+            LD      L,A
+            LD      A,(HL)     ;Get Segment
+            OUT     (02),A     ;Display number
+            RET
+
+            ;Data for Segments, First Byte is LED to select (Port 1),
+            ;and second byte is Segment to light up (Port 2)
+DATTBL:     DB      20H,01H,10H,01H,08H,01H,04H,01H
+            DB      04H,08H,04H,04H,08H,04H,10H,04H
+            DB      20H,04H,20H,40H,20H,80H,10H,80H
+            DB      08H,80H,04H,80H,02H,80H,01H,80H,0FFH
+SEGTBL:     DB      0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,2FH
+
+

@@ -1,0 +1,356 @@
+; Spiroid Aliens - by M Allison
+; -----------------------------
+
+; Converted (and fixed) by Brian Chiha. Can only be used on MON1
+;
+; Notes from Issue #12
+; --------------------
+; This is quite a long program and shows the length of listing required to achieve a degree
+; of realism. The game uses all of page 0800 and portions of 0900, 0A00, 0B00 and 0D00.
+; The main program is at 0800 (Should be called from 0803) with calls at the other pages.
+; The game consists of unusual- shaped aliens passing across the display. Each game consists
+; of 16 passes and you must shoot down the arrivals by pressing buttons 1, 2 or 3. To win
+; you must shoot down at least 11.
+; In the initial stages of the game, you must acquaint yourself with the connection betweeen
+; the spiroid shapes and buttons 1, 2, 3. After this you will be ready to launch an attack.
+
+            ORG     0800H 
+START:               
+            ;Set up Sound delay and segment reference
+            DW      0000H               ;Reserved for message
+            DB      00H                 ;Blank
+            LD      HL,DELAY+3          ;Aliens Attach Sound Delay Ref
+SPEED:            
+            LD      (HL),80H            ;Overwrite Sound Delay speed
+            INC     HL
+            XOR     A
+            LD      C,A
+            LD      (HL),A
+            LD      HL,SOUND_PLAY+3		;Aliens Attach Sound Play Ref
+            LD      (HL),20H            ;Overwrite Sound Speed
+            INC     HL
+            XOR     A
+            LD      (HL),A
+
+            LD      HL,SEGMENT+1        ;Seven Segment Reference
+            LD      (HL),01H            ;First Segment
+            
+            LD      B,10H               ;Number of Aliens Per round
+            LD      D,00H               ;init Score
+            LD      IY,KEYBOARD_COMP+1  ;Keyboard Compare Ref
+LOOP1:      ;Create Random Alien
+            CALL    GEN_ALIEN           ;Generate Random Alien
+
+            LD      A,(KEYBOARD_COMP+1) ;Keyboard Ref (Current Alien)
+            CP      C                   ;Compare with Last Alien Hit, if the same get new one
+            JR      Z,LOOP1             ;keep rotating until first value != last alien hit
+
+            ;Select which character to display
+            LD      HL,SEGMENT+1        ;Seven Segment Reference
+            NOP
+            CP      01H                 ;Is Alien #01
+            JR      Z,JUMP1
+            CP      02H                 ;Is Alien #02
+            JR      Z,JUMP2
+            LD      A,61H               ;Third Alien Symbol
+            JR      CONT1
+JUMP1:
+            LD      A,0FH               ;First Alien Symbol
+            JR      CONT1
+JUMP2:
+            LD      A,26H               ;Second Alien Symbol
+CONT1:
+            LD      (SYMBOL+1),A        ;Show Alien Character in Display
+            ;Output Alien to Segment and Display
+SEGMENT:
+            LD      A,00H               ;Set remotely
+            OUT     (01),A              ;Segment #
+SYMBOL:
+            LD      A,00H               ;Set remotely
+            OUT     (02),A              ;Segment Display
+            CALL    DELAY         ;
+            CALL    SOUND_PLAY
+
+            XOR     A
+
+;            RST     20H                 ;Get Keyboard Input
+;            CP      0FFH
+;            JR      NZ,JUMP3            ;If no key hit then set A=0
+;            LD      A,00H
+;JUMP3:
+;            AND     03H                 ;Check for keys 1,2, or 3 (or 0)
+
+            IN      A,(00H)             ;Get Keyboard Input
+            LD      E,A 
+            LD      A,72H
+            CP      E                   ;See if input is 72H? Don't know why yet
+            JR      NZ,JUMP3
+            LD      E,00H               ;Blank Key
+JUMP3:
+            LD      A,E
+            AND     03H                 ;Check for keys 1,2,or 3
+KEYBOARD_COMP:
+            CP      00H                 ;Set remotely
+            JR      Z,JUMP4
+            SLA     (HL)                ;Move Segment to display left one
+            LD      A,40H         
+            CP      (HL)                ;Is segment off the screen?
+            JR      Z,JUMP5
+            JR      SEGMENT             ;Jump Back to Segment display
+JUMP4:
+            LD      C,A                 ;Alien Hit saved in C
+            INC     D                   ;Score?
+            CALL    ALIEN_HIT
+            JR      JUMP6
+JUMP5:
+            LD      C,00H               ;Reset Last alien hit
+            CALL    ALIEN_MISS
+JUMP6:
+            LD      (HL),01H
+            DJNZ    LOOP1               ;Get Next Alien in current round
+            
+            LD      HL,SPEED+1          ;Sound Speed
+            LD      A,0BH
+            CP      D                   ;Is Score over 11 then WIN!?
+            JR      C,JUMP8
+            LD      A,(HL)
+            CP      0F0H                ;Is speed 0XF0
+            JR      Z,JUMP7             ;Goto Update Message
+            ADD     A,10H
+            LD      (HL),A              ;Add 10 to Score
+JUMP7:
+            LD      HL,SOUND2			;Update Message Reference
+            LD      (START),HL
+            PUSH    HL
+            CALL    PLAY_SOUND          ;Play Tone
+            POP     HL
+            LD      HL,MESSAGE2			;Update Message Reference
+            LD      (START),HL
+            CALL    DISPLAY_MSG         ;Display Message
+            JR      JUMP10
+JUMP8:
+            LD      A,(HL)              ;Get current score
+            CP      10H
+            JR      Z,JUMP9
+            SUB     10H
+            LD      (HL),A              ;Decrease Score unless at 10
+JUMP9:
+            LD      HL,SOUND1			;Update Message Reference
+            LD      (START),HL
+            PUSH    HL
+            CALL    PLAY_SOUND
+            POP     HL
+            LD      HL,MESSAGE1
+            LD      (START),HL
+            CALL    DISPLAY_MSG         ;Display Message
+JUMP10:
+            LD      A,3FH               ;All Segments on
+            OUT     (01),A
+            LD      A,8AH
+            OUT     (02),A
+            HALT
+            JP      START+2
+
+MESSAGES:
+MESSAGE1:   DB      00H,01H,0CH,09H,05H,0DH,12H,00H
+            DB      04H,05H,12H,13H,11H,0EH,16H,05H
+            DB      04H,1AH,00H,1FH
+SOUND1:     DB      04H,00H,04H,00H,04H,00H,01H,01H
+            DB      01H,1FH
+MESSAGE2:   DB      00H,05H,0DH,04H,00H,0EH,06H,00H
+            DB      05H,01H,11H,13H,08H,1AH,00H,1FH
+SOUND2:     DB      01H,1AH,01H,1AH,01H,1AH,1FH
+
+ALIEN_HIT: ;0B00
+            PUSH    AF
+            PUSH    BC
+            PUSH    DE
+            PUSH    HL
+            LD      HL,(DELAY+3)
+            PUSH    HL
+            LD      HL,(SOUND_PLAY+3)
+            PUSH    HL
+            LD      HL,SOUND_PLAY+4
+            XOR     A
+            LD      (HL),A
+            DEC     HL
+            LD      (HL),20H
+            LD      HL,DELAY+4
+            XOR     A
+            LD      (HL),A
+            DEC     HL
+            LD      (HL),24H
+            LD      HL,AH2+1
+            LD      A,01H
+            EXX
+            LD      DE,DELAY+4
+            LD      C,00H
+AH0:
+            LD      HL,AH_TABLE
+            LD      B,06H
+AH1:
+            LD      A,01H
+            LD      (DE),A
+AH2:
+            LD      A,01H
+            OUT     (01),A
+            LD      A,(HL)
+            OUT     (02),A
+            CALL    DELAY
+            XOR     A
+            LD      (DE),A
+            CALL    SOUND_PLAY
+            INC     HL
+            DEC     DE
+            EX      DE,HL
+            DEC     (HL)
+            EX      DE,HL
+            INC     DE
+            DJNZ    AH1
+            EXX
+            SLA     (HL)
+            EXX
+            INC     C
+            LD      A,06H
+            CP      C
+            JR      Z,AH3
+            JR      AH0
+AH3:
+            EXX
+            LD      (HL),01H
+            POP     HL
+            LD      (SOUND_PLAY+3),HL
+            POP     HL
+            LD      (DELAY+3),HL
+            POP     HL
+            POP     DE
+            POP     BC
+            POP     AF
+            RET
+AH_TABLE:
+            DB      01H,09H,29H,0A9H,0E9H,0EBH
+
+ALIEN_MISS: ;0A00
+            PUSH    AF
+            PUSH    BC
+            PUSH    HL
+            LD      HL,(DELAY+3)
+            PUSH    HL
+            LD      HL,(SOUND_PLAY+3)
+            PUSH    HL
+            LD      B,09H
+            LD      HL,SOUND_PLAY+3
+            LD      (HL),05H
+            INC     HL
+            XOR     A
+            LD      (HL),A
+            LD      HL,DELAY+3
+AM1:
+            LD      (HL),1FH
+            INC     HL
+            XOR     A
+            LD      (HL),A
+            DEC     HL
+AM2:            
+            CALL    SOUND_PLAY
+            DEC     (HL)
+            LD      A,01H
+            CP      (HL)
+            JR      Z,AM3
+            JR      AM2   
+AM3:
+            DJNZ    AM1
+            POP     HL
+            LD      (SOUND_PLAY+3),HL
+            POP     HL
+            LD      (DELAY+3),HL
+            POP     HL
+            POP     BC
+            POP     AF
+            RET
+
+DISPLAY_MSG: EQU 0270H ;Need to get from MON1
+;            CALL 0270H
+;            RET
+PLAY_SOUND: EQU 01B0H  ;Need to get from MON1
+;            CALL 01B0H
+;            RET
+
+
+;Generate Random Alien by Rotating 3 lots of aliens and picking either first or last
+;Place selected Alien in Keyboard Compare location
+GEN_ALIEN:
+            PUSH    HL
+            PUSH    BC
+            LD      HL,GA1+1
+GA1:
+            LD      B,01H      ;Value changes in code via HL
+GA2:
+            LD      A,R        ;Random number
+            DJNZ    GA2        ;Loop for more randomness
+            AND     08H        ;Take 4th bit
+            PUSH    HL
+            LD      HL,CHAR_TABLE
+            ADD     A,L        ;Index table
+            LD      L,A
+            LD      E,(HL)     ;Store char in E
+            LD      HL,CHAR_TABLE
+            LD      B,08H
+            LD      C,(HL)     ;First Alien
+GA3:            
+            INC     HL         ;Rotate Table to the left
+            LD      A,(HL)
+            DEC     HL
+            LD      (HL),A
+            INC     HL
+            DJNZ    GA3
+            LD      (HL),C     ;Load first Alien in last spot
+            POP     HL
+            INC     (HL)
+            LD      A,20H      ;If done 20H times
+            CP      (HL)
+            JR      Z,GA5
+GA4:
+            LD      (IY+00H),E ;Store next Char in Keyboard Compare
+            POP     BC
+            POP     HL
+            RET
+GA5:
+            LD      (HL),01H   ;Store 01 in HL
+            JR      GA4
+CHAR_TABLE:
+            DB      01H,02H,03H,01H,02H,03H,01H,02H,03H
+
+;Aliens Attack Sound Effect and delay
+DELAY:      ;General Delay
+            PUSH    AF
+            PUSH    DE
+			LD      DE,0020H
+SD1:
+			DEC     DE
+			LD      A,D
+			OR      E
+			JR      NZ,SD1
+			POP     DE
+			POP     AF
+			RET
+
+SOUND_PLAY:  ;SOUND Play
+			PUSH    AF
+			PUSH    BC
+			LD      BC,00AAH
+SP1:
+			LD      A,80H
+			OUT     (01),A
+			XOR     A
+			OUT     (01),A
+			CALL    DELAY
+			DEC     BC
+			LD      A,B
+			OR      C
+			JR      NZ,SP1
+			POP     BC
+			POP     AF
+			RET
+
+

@@ -1,0 +1,34 @@
+; Move an 8x8 LED fanout Mk 3
+
+
+            ORG    0900H 
+START:
+            LD      A,01H
+LOOP1:               
+            OUT     (05),A
+            OUT     (06),A
+            RLCA
+            CALL    DELAY
+            INC     A
+            JR      NZ,LOOP1
+            LD      A,0FEH
+LOOP2:
+            OUT     (05),A
+            OUT     (06),A
+            RLCA
+            CALL    DELAY
+            DEC     A
+            JR      NZ,LOOP2
+
+            JR      LOOP1
+DELAY:               
+            PUSH    BC 
+            LD      B,20H 
+D1:                  
+            LD      C,0FFH 
+D2:                  
+            DEC     C 
+            JR      NZ,D2
+            DJNZ    D1
+            POP     BC 
+            RET      

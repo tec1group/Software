@@ -1,0 +1,49 @@
+; Raindrops on the 8x8 LED
+
+
+            ORG    0900H 
+START:
+            CALL    RANDOM
+            LD      B,A
+            AND     07H
+            LD      H,0BH
+            LD      L,A
+            LD      A,B
+            LD      (HL),A
+            RRC     (HL)
+            LD      D,06H
+LOOP1:
+            CALL    MULTIPLEX
+            DEC     D
+            JR      NZ,LOOP1
+            JR      START
+MULTIPLEX:
+            LD      HL,0B00H
+            LD      B,01H
+LOOP2:
+            LD      A,(HL)
+            OUT     (05),A
+            LD      A,B
+            OUT     (06),A
+            LD      B,20H
+LOOP3:
+            DJNZ    LOOP3
+            INC     HL
+            LD      B,A
+            XOR     A
+            OUT     (06),A
+            RLC     B
+            JR      NC,LOOP2
+            RET
+
+RANDOM:
+            LD      A,R
+            LD      B,A
+            RRCA
+            RRCA
+            RRCA
+            XOR     1FH
+            ADD     A,B
+            SBC     A,0FFH
+            LD      R,A
+            RET

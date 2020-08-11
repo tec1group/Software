@@ -1,0 +1,145 @@
+# File /Users/slarti/Documents/TEC1D/TEC-1D-Stuff/code/games/Segment_game.z80
+0000			; Segment Game by Jim Robinson 
+0000			; This game the player is to press any key when a moving target is in  
+0000			; the bottom segment on the 3rd LED segment from the right.  On each  
+0000			; hit the moving segment restarts and moves faster. 
+0000			; 
+0000			;    A D D R E S S       D A T A 
+0000			;  --   --   --   --     --   -- 
+0000			; |  | |  | |  | |  |   |  | |  | 
+0000			;  --   --   --   --     --   -- 
+0000			; |  | |  | |  | |  |   |  | |  | 
+0000			;  --   --   --   --     --   -- 
+0000			;                 ^^ 
+0000			;                 || 
+0000			;          This segment lit up 
+0000			 
+0000			 
+0000			 
+0000			SCORE:      EQU     0D00H ;Score in HEX              (1-byte) 
+0000			SPEED:      EQU     0D01H ;Speed variable            (1-byte) 
+0000			 
+0000			            ORG     0900H  
+0900			 
+0900 11 00 38		            LD      DE,3800H  
+0903 ed 53 01 0d	            LD      (SPEED),DE  ;Initial Speed 
+0907 af			            XOR     A  
+0908 32 00 0d		            LD      (SCORE),A   ;Initial Score is 0 
+090b			START: 
+090b 21 a9 09		            LD      HL,DATTBL   ;Segment table lookup 
+090e			NXTSEG: 
+090e 7e			            LD      A,(HL)  
+090f 47			            LD      B,A         ;LED to Use 
+0910 23			            INC     HL  
+0911 7e			            LD      A,(HL)  
+0912 4f			            LD      C,A         ;Segment to Use 
+0913 23			            INC     HL  
+0914 78			            LD      A,B         ;Check if last segment which is 0xFF 
+0915 fe ff		            CP      0FFH        ;Its game over if zero 
+0917 28 46		            JR      Z,GAMOVR  
+0919 d3 01		            OUT     (01),A      ;Light up LED and Segment 
+091b 79			            LD      A,C  
+091c d3 02		            OUT     (02),A  
+091e cd 2a 09		            CALL    DELAY       ;Delay the movement 
+0921 cd 34 09		            CALL    KEYCHK      ;Check for key hit 
+0924 fe 12		            CP      12H         ;If segment is hit, KEYCHK returns 12H in A register 
+0926 28 e3		            JR      Z,START     ;Reset Segments and do it again 
+0928 18 e4		            JR      NXTSEG      ;Display next Segment 
+092a			DELAY:  
+092a ed 5b 01 0d	            LD      DE,(SPEED)  
+092e 1b			D1:         DEC     DE  
+092f 7a			            LD      A,D  
+0930 b7			            OR      A           ;Check if 0  
+0931 c8			            RET     Z           ;Delay is done, exit 
+0932 18 fa		            JR      D1          ;Keep decreasing to delay 
+0934			KEYCHK:  
+0934			                                ;Replace RST 20/NOP to LD A,I if JMON isn't used 
+0934 e7			            RST     20H         ;JMON No Wait Key handler that sets key if pressed 
+0935 00			            NOP                 ;Pad out for JMON only 
+0936 5f			            LD      E,A         ;Store key hit in E 
+0937 3e ff		            LD      A,0FFH      ;Reset I register with FF 
+0939 ed 47		            LD      I,A  
+093b 7b			            LD      A,E  
+093c fe ff		            CP      0FFH        ;If FF then no key hit, so Return 
+093e c8			            RET     Z  
+093f 78			            LD      A,B         ;Check if LED is on Third from RIGHT  
+0940 fe 04		            CP      04H  
+0942 c0			            RET     NZ          ;Exit if not 
+0943 79			            LD      A,C         ;Check if Bottom Segment is LIT 
+0944 fe 80		            CP      80H   
+0946 c0			            RET     NZ          ;Exit if not 
+0947			 
+0947 3a 00 0d		            LD      A,(SCORE)   ;Update Score 
+094a 3c			            INC     A 
+094b 27			            DAA                 ;Adjust for BCD addition  
+094c 32 00 0d		            LD      (SCORE),A   ;Save Score 
+094f			 
+094f 4f			            LD      C,A         ;Save for Scan 
+0950 cd 72 09		            CALL    SCAN        ;Display Score 
+0953			 
+0953			;            LD      A,03H       ;Segment hit and key hit, output pattern of eight 
+0953			;            OUT     (01),A      ;Light Data LEDS 
+0953			;            LD      A,0FFH  
+0953			;            OUT     (02),A      ;With 8 
+0953			;            CALL    DELAY  
+0953 ed 5b 01 0d	            LD      DE,(SPEED)  ;Load Speed 
+0957 15			            DEC     D           ;Reduce Speed by 1  
+0958 ed 53 01 0d	            LD      (SPEED),DE   
+095c 3e 12		            LD      A,12H       ;Tell main loop that segment was hit to reset segments  
+095e c9			            RET 
+095f			GAMOVR:       
+095f 11 00 bf		            LD      DE,0BF00H    ;Some random address  
+0962 ed 53 01 0d	            LD      (SPEED),DE  ;Set it to Speed (assume FF) 
+0966 3e ff		            LD      A,0FFH  
+0968 d3 01		            OUT     (01),A      ;Light up all LEDS and speaker 
+096a 3e 85		            LD      A,85H  
+096c d3 02		            OUT     (02),A      ;Light up horizontal segments only  
+096e cd 2a 09		            CALL    DELAY  
+0971 c7			            RST     00          ;Quit 
+0972 06 80		SCAN:       LD      B,80H       ;Multiplex 
+0974 c5			LOOP1:      PUSH    BC 
+0975 af			            XOR     A            
+0976 d3 02		            OUT     (02),A 
+0978 3e 01		            LD      A,01H 
+097a d3 01		            OUT     (01),A 
+097c 79			            LD      A,C 
+097d cd 9e 09		            CALL    BCDHEX 
+0980 06 00		            LD      B,00H 
+0982 10 fe		LOOP2:      DJNZ    LOOP2 
+0984 af			            XOR     A 
+0985 d3 02		            OUT     (02),A 
+0987 3e 02		            LD      A,02H 
+0989 d3 01		            OUT     (01),A 
+098b 79			            LD      A,C 
+098c 0f			            RRCA 
+098d 0f			            RRCA 
+098e 0f			            RRCA 
+098f 0f			            RRCA 
+0990 cd 9e 09		            CALL    BCDHEX 
+0993 06 00		            LD      B,00H 
+0995 10 fe		LOOP3:      DJNZ    LOOP3 
+0997 af			            XOR     A 
+0998 d3 01		            OUT     (01),A 
+099a c1			            POP     BC 
+099b 10 d7		            DJNZ    LOOP1 
+099d c9			            RET 
+099e			BCDHEX: 
+099e e6 0f		            AND     0FH        ;Mask high nibble 
+09a0 21 ca 09		            LD      HL,SEGTBL 
+09a3 85			            ADD     A,L 
+09a4 6f			            LD      L,A 
+09a5 7e			            LD      A,(HL)     ;Get Segment 
+09a6 d3 02		            OUT     (02),A     ;Display number 
+09a8 c9			            RET 
+09a9			 
+09a9			            ;Data for Segments, First Byte is LED to select (Port 1), 
+09a9			            ;and second byte is Segment to light up (Port 2) 
+09a9 20 01 10 01 08 01 04 01	DATTBL:     DB      20H,01H,10H,01H,08H,01H,04H,01H 
+09b1 04 08 04 04 08 04 10 04	            DB      04H,08H,04H,04H,08H,04H,10H,04H 
+09b9 20 04 20 40 20 80 10 80	            DB      20H,04H,20H,40H,20H,80H,10H,80H 
+09c1 08 80 04 80 02 80 01 80 ff	            DB      08H,80H,04H,80H,02H,80H,01H,80H,0FFH 
+09ca eb 28 cd ad 2e a7 e7 29 ef 2f	SEGTBL:     DB      0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,2FH 
+09d4			 
+09d4			 
+# End of file /Users/slarti/Documents/TEC1D/TEC-1D-Stuff/code/games/Segment_game.z80
+09d4

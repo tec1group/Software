@@ -1,0 +1,39 @@
+; Move Segment Around the LED with Move
+
+
+            ORG    0900H 
+START:               
+            LD      C,20H
+LOOP1:
+            LD      A,C 
+            OUT     (01),A
+            CALL    LOOKUP
+            RRC     C
+            BIT     7,C
+            JR      Z,LOOP1
+            JR      START
+LOOKUP:
+            LD      HL,TABLE  ;Table start address
+            LD      B,09H     ;Size of table
+LOOP2:
+            LD      A,(HL)
+            OUT     (02),A
+            CALL    DELAY
+            INC     HL
+            DEC     B
+            JP      NZ,LOOP2
+            RET
+TABLE:
+            DB      01H,02H,04H,20H,80H,40H,04H,08H,01H
+DELAY:               
+            PUSH    BC 
+            LD      B,20H 
+D1:                  
+            LD      C,0FFH 
+D2:                  
+            DEC     C 
+            JR      NZ,D2
+            DJNZ    D1
+            POP     BC 
+            RET      
+

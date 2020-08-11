@@ -1,0 +1,400 @@
+; Phone Dialer Part 3
+
+DISPLAY:    EQU     0D08H 
+MEMORY:     EQU     0D10H 
+KEYHIT:     EQU     0D00H 
+KEYSTORE:   EQU     0D01H 
+INDEX:      EQU     0D02H
+KEYPRE:     EQU     0CFFH ;Key Pressed Flag, 00-False, FF-True                   (1-byte)
+
+
+
+            ORG    0900H 
+START:               
+; Clear the screen & memory
+            CALL    CLEAR 
+LOOP1:               
+; Display Initial Message
+            LD      HL,INITMSG 
+            CALL    SCROLL 
+            CP      10H 
+            JR      Z,LOOP1 
+            CP      0AH 
+            JR      C,START 
+
+; Enter Index
+            CALL    CLEAR 
+            LD      A,0FFH 
+            LD      I,A 
+            LD      HL,0000H 
+            LD      A,01H 
+            LD      (KEYHIT),A 
+            CALL    KEYVALUE 
+            LD      A,C 
+            LD      (INDEX),A 
+            LD      A,01H 
+            LD      (KEYHIT),A 
+            CALL    KEYVALUE 
+            LD      A,(INDEX) 
+            RLA      
+            RLA      
+            RLA      
+            RLA      
+            ADD     A,C 
+            LD      (INDEX),A 
+
+; Display the screen to show index briefly
+            LD      D,80H 
+LOOP2:               
+            CALL    SCAN 
+            DEC     D 
+            JR      NZ,LOOP2 
+
+; Clear screen and display menu
+LOOP3:               
+            CALL    CLEAR 
+LOOP4:               
+            LD      HL,MENU 
+            CALL    SCROLL 
+; LD      A,(HL)
+            CP      10H 
+            JR      Z,LOOP4 
+            CP      0AH 
+            JR      C,LOOP3 
+
+; Enter Names into Memory
+            CALL    CLEAR 
+            CALL    MEMADDR 
+            LD      D,1CH 
+LOOP5:               
+            LD      E,00H 
+LOOP6:               
+            LD      A,0FFH 
+            LD      I,A 
+LOOP7:               
+            CALL    SCAN2 
+            RST     20H 
+            LD      I,A 
+            CP      10H 
+            JR      NC,LOOP7 ;Look for Valid Keys 0-F only
+            INC     E 
+            LD      A,E 
+            CP      02H 
+            JR      Z,TOSHIFT 
+            LD      A,I 
+            CP      0FH 
+            JR      Z,NUMBERS 
+            LD      (KEYSTORE),A 
+            JR      LOOP6 
+TOSHIFT:             
+            CALL    SHIFT 
+            LD      A,(KEYSTORE) 
+            RLA      
+            RLA      
+            RLA      
+            RLA      
+            LD      B,A 
+            LD      A,I 
+            ADD     A,B 
+            LD      (HL),A 
+            LD      (DISPLAY+5),A 
+            INC     HL 
+            DEC     D 
+            JR      NZ,LOOP5 
+            JP      START 
+NUMBERS:             
+            XOR     A 
+            LD      (HL),A 
+            CALL    SHIFT 
+            LD      A,D 
+            LD      (KEYHIT),A 
+            CALL    KEYVALUE 
+            LD      B,03H 
+LOOP8:               
+            INC     HL 
+            XOR     A 
+            LD      (HL),A 
+            DJNZ    LOOP8 
+            INC     HL 
+            LD      A,10H 
+            LD      (HL),A 
+            NOP      
+
+; Scroll Name
+SCROLLN:             
+            CALL    CLEAR 
+LOOP9:               
+            CALL    MEMADDR 
+            CALL    SCROLL 
+            CP      10H 
+            JR      Z,LOOP9 
+DIALIT:              
+; Pause before dialiing
+            LD      B,20H 
+LOOP10:              
+            CALL    PAUSE 
+            DJNZ    LOOP10 
+
+            CALL    CLEAR 
+            CALL    MEMADDR 
+LOOP11:              
+            LD      A,(HL) 
+            INC     HL 
+            CP      00H 
+            JR      NZ,LOOP11 
+
+; Dialing Pulses
+LOOP12:              
+            LD      IX,TABLE 
+LOOP13:              
+            INC     IX 
+            CALL    BEEP 
+            LD      A,(IX+0) 
+            CP      (HL) 
+            JR      NZ,LOOP13 
+
+            LD      B,10H 
+LOOP14:              
+            CALL    PAUSE 
+            DJNZ    LOOP14 
+
+            INC     HL 
+            LD      A,(HL) 
+            CP      00H 
+            JR      Z,GETKEY 
+            JR      LOOP12 
+GETKEY:              
+            RST     20H 
+            CP      0DH 
+            JR      Z,SCROLLN 
+            JR      GETKEY 
+
+;Create a beep
+BEEP:                
+            PUSH    AF 
+            PUSH    BC 
+            LD      B,20H 
+LOOP15:              
+            LD      A,80H 
+            LD      C,20H 
+            OUT     (01),A 
+LOOP16:              
+            DEC     C 
+            JR      NZ,LOOP16 
+            LD      C,20H 
+            XOR     A 
+            OUT     (01),A 
+LOOP17:              
+            DEC     C 
+            JR      NZ,LOOP17 
+            DJNZ    LOOP15 
+            CALL    PAUSE 
+            POP     BC 
+            POP     AF 
+            RET      
+
+;Clear the screen
+CLEAR:               
+            LD      D,07H 
+            XOR     A 
+            LD      HL,DISPLAY 
+LOOP18:              
+            LD      (HL),A 
+            INC     HL 
+            DEC     D 
+            JR      NZ,LOOP18 
+            RET      
+
+;KEY DIGIT
+KEYVALUE:            
+            LD      DE,TABLE 
+            RST     20H 
+            CP      0AH 
+            JR      NC,TOEND 
+            INC     HL 
+            LD      C,A 
+            ADD     A,E 
+            LD      E,A 
+            CALL    SHIFT 
+            LD      A,(DE) ;Get number from lookup TABLE
+            LD      (HL),A ;Store in HL
+            LD      (DISPLAY+5),A 
+            LD      A,0FFH 
+            LD      I,A 
+            LD      A,(KEYHIT) 
+            DEC     A 
+            LD      (KEYHIT),A 
+            RET     Z 
+            XOR     A 
+TOEND:               
+            CP      0EH 
+            RET     Z 
+            CALL    SCAN 
+            JR      KEYVALUE 
+
+;Find Memory Address by jumping every 20 for A
+MEMADDR:             
+            LD      HL,MEMORY 
+            LD      A,(INDEX) 
+LOOP19:              
+            LD      D,20H 
+            CP      00H 
+            RET     Z 
+LOOP20:              
+            INC     HL 
+            DEC     D 
+            JR      NZ,LOOP20 
+            DEC     A 
+            JR      LOOP19 
+
+;Pause the Speaker
+PAUSE:               
+            XOR     A 
+            OUT     (01),A 
+            LD      DE,02FFH 
+LOOP21:              
+            DEC     DE 
+            LD      A,E 
+            OR      D 
+            JR      NZ,LOOP21 
+            RET      
+
+;Scan with key press
+SCAN:                
+            PUSH    HL 
+            PUSH    DE 
+            LD      C,20H 
+            LD      HL,DISPLAY 
+            LD      D,06H 
+LOOP22:              
+            LD      B,80H 
+            LD      A,(HL) 
+            OUT     (02),A 
+            LD      A,C 
+            OUT     (01),A 
+            RRC     C 
+LOOP23:              
+            DJNZ    LOOP23 
+            XOR     A 
+            OUT     (01),A 
+            INC     HL 
+            CALL    KRD
+            LD      I,A 
+            CP      0CH 
+            JR      Z,CPRESS 
+            CP      0DH 
+            JR      Z,DPRESS 
+            DEC     D 
+            JR      NZ,LOOP22 
+            POP     DE 
+            POP     HL 
+            RET      
+CPRESS:              
+            POP     DE 
+            POP     HL 
+            LD      A,0FFH 
+            LD      I,A 
+            JP      START 
+DPRESS:              
+            POP     DE 
+            POP     HL 
+            JP      DIALIT ;Not sure this is wise?  Need to pop PC from stack???
+
+;Scan without key press
+SCAN2:               
+            PUSH    HL 
+            PUSH    DE 
+            LD      C,20H 
+            LD      HL,DISPLAY 
+            LD      D,06H 
+LOOP24:              
+            LD      B,20H 
+            LD      A,(HL) 
+            OUT     (02),A 
+            LD      A,C 
+            OUT     (01),A 
+            RRC     C 
+LOOP25:              
+            DJNZ    LOOP25 
+            XOR     A 
+            OUT     (01),A 
+            INC     HL 
+            DEC     D 
+            JR      NZ,LOOP24 
+            POP     DE 
+            POP     HL 
+            RET      
+
+;Scroll the text
+SCROLL:              
+            LD      A,0FFH 
+            LD      I,A 
+LOOP26:              
+            RST     20H 
+            CP      0EH ;End Pressed
+            RET     Z 
+            LD      A,(HL) 
+            LD      D,20H 
+            INC     HL 
+            CP      10H ;End of Table
+            RET     Z 
+            LD      (DISPLAY+5),A 
+LOOP27:              
+            CALL    SCAN 
+            DEC     D 
+            JR      NZ,LOOP27 
+            CALL    SHIFT 
+            JR      LOOP26 
+
+;Shift screen one character to the left
+SHIFT:               
+            LD      B,07H 
+            LD      IX,DISPLAY-1 
+LOOP28:              
+            LD      A,(IX+1) 
+            LD      (IX+0),A 
+            INC     IX 
+            DJNZ    LOOP28 
+            RET      
+KRD:
+            ; Test for key pressed with D6 set
+            IN      A,(03)
+            BIT     6,A  ; Bit 6, If not set A=NZ
+            JR      Z,MP2
+            ; Store 0 for last key if no key pressed
+            XOR     A
+            LD      (KEYPRE),A
+            RET
+MP2:
+            ; Key has been pressed
+            LD      A,(KEYPRE)
+            OR      A
+            RET     NZ  ; Just return if same
+            LD      A,0FFH
+            LD      (KEYPRE),A
+            ; Get Key
+            IN      A,(00)
+            AND     01FH ; Mask unwanted bits
+            RET
+
+           ; ORG     0B00H
+TABLE:               
+            DB      0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,0AFH 
+INITMSG:             
+            DB      0C7H,6BH,46H,0C7H,44H,00H,28H,6BH 
+            DB      0ECH,0C7H,26H,00H,6BH,0E4H,00H,0EBH 
+            DB      0EBH,04H,0ADH,0E7H,00H,4FH,44H,0C7H 
+            DB      0A7H,0A7H,00H,0C7H,00H,00H,00H,00H,10H 
+MENU:                
+            DB      00H,0C7H,6BH,46H,0C7H,44H,00H,6BH 
+            DB      6FH,65H,0C7H,00H,0C7H,6BH,46H,0C7H 
+            DB      44H,00H,47H,00H,0C7H,6BH,46H,0C7H 
+            DB      44H,00H,4FH,6EH,0EBH,6BH,0C7H,00H 
+            DB      6BH,0E4H,00H,46H,6EH,0C7H,6BH,00H 
+            DB      0C7H,00H,0A7H,4FH,6FH,0C3H,0C7H,84H
+            DB      47H,00H,0C3H,0C2H,0C7H,6FH,44H,84H
+            DB      0C3H,00H,44H,0C7H,46H,0EAH,44H,6BH
+            DB      84H,6FH,00H,0ECH,28H,6FH,0C2H,84H
+            DB      0ECH,00H,0C7H,6BH,0ECH,84H,0C7H,00H
+            DB      00H,00H,00H,10H 
+

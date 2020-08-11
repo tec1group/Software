@@ -33,11 +33,15 @@ https://github.com/TEC-1-Z80-Computer-Group/wicked-tec1
 Software related to the TEC-1 computer kit designed in 1982 by John Hardy and Ken Stone
 and published in Issue 10 of Talking Electronics in early 1983.
 
-Updated with Jim Robertson's enhanced and comprehensive JMON monitor ROM
-and also the Utilities / Disassembler ROM also written by Jim in collaboration with Mike Donaghy
-
 ![The TEC-1 Prototype](TEC-1-prototype.jpg)
 
 # License
 
 Folders in this repository may contain the author's software license, please read that to follow the correct license for that code. Folders which don't have an explicit license file are by default licensed under the [GNU Public License v3](./misc/LICENSE) which allows commerical reuse.
+
+# Updates
+
+* included contributions from bchiha in /magazine_code and /games 
+* Updated with Jim Robertson's enhanced and comprehensive JMON monitor ROM
+and also the Utilities / Disassembler ROM also written by Jim in collaboration with Mike Donaghy
+

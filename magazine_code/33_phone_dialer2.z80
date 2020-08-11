@@ -1,0 +1,146 @@
+; Phone Dialer Part 2
+
+DISPLAY:    EQU    0D00H
+MEMORY:     EQU    DISPLAY+7
+KEYPRE:     EQU    0CFFH ;Key Pressed Flag, 00-False, FF-True                   (1-byte)
+
+
+            ORG    0900H 
+START:
+            ; Clear the screen & memory
+            LD      B,20H
+            CALL    CLEAR
+            ; Get Key input
+            LD      HL,MEMORY
+KEYREAD:
+            RST     20H
+            CP      0AH
+            JR      NC,NOTANO ;Not a number
+            INC     HL
+            ; Get Key Pressed and convert to LED
+            LD      DE,TABLE
+            ADD     A,E
+            LD      E,A
+            CALL    SHIFT
+            LD      A,(DE)
+            LD      (HL),A
+            LD      (DISPLAY+5),A
+            LD      A,0FFH
+NOTANO:
+            CP      0EH
+            JR      Z,KEYEND
+            CALL    SCAN
+            JR      KEYREAD
+KEYEND:
+            INC     HL
+            LD      (HL),A
+            ;Clear the screen
+            LD      B,06H
+            CALL    CLEAR
+LOOP4:
+            LD      HL,MEMORY
+LOOP7:
+            LD      A,(HL)
+            LD      D,20H
+            INC     HL
+            CP      0EH
+            JR      Z,EOF
+            LD      (DISPLAY+5),A
+LOOP3:
+            CALL    SCAN
+            DEC     D
+            JR      NZ,LOOP3
+            CALL    SHIFT
+            JR      LOOP7
+EOF:
+            LD      E,02H
+LOOP6:
+            LD      D,20H
+LOOP5:
+            CALL    SCAN
+            DEC     D
+            JR      NZ,LOOP5
+            CALL    SHIFT
+            DEC     E
+            JR      NZ,LOOP6
+            JR      LOOP4
+
+            ;Clear the screen
+CLEAR:
+            XOR     A
+            LD      HL,DISPLAY
+LOOP1:
+            LD      (HL),A
+            INC     HL
+            DJNZ    LOOP1
+            RET
+
+            ;Shift screen one character to the left
+SHIFT:
+            LD      B,07H
+            LD      IX,DISPLAY-1
+LOOP2:
+            LD      A,(IX+1)
+            LD      (IX+0),A
+            INC     IX
+            DJNZ    LOOP2
+            RET
+
+            ;Multiplex the screen
+SCAN:
+            PUSH    HL
+            PUSH    DE
+            LD      C,20H
+            LD      HL,DISPLAY
+            LD      D,06H
+LOOP8:
+            LD      B,80H
+            LD      A,(HL)
+            OUT     (02),A
+            LD      A,C
+            OUT     (01),A
+            RRC     C
+LOOP9:
+            DJNZ    LOOP9
+            XOR     A
+            OUT     (01),A
+            INC     HL
+            ;RST     20H
+            CALL    KRD
+            CP      0CH
+            JR      Z,CPRESS
+            DEC     D
+            JR      NZ,LOOP8
+            POP     DE
+            POP     HL
+            RET
+CPRESS:
+            POP     DE
+            POP     HL
+            LD      A,0FFH
+            JP      START
+
+KRD:
+            ; Test for key pressed with D6 set
+            IN      A,(03)
+            BIT     6,A  ; Bit 6, If not set A=NZ
+            JR      Z,MP2
+            ; Store 0 for last key if no key pressed
+            XOR     A
+            LD      (KEYPRE),A
+            RET
+MP2:
+            ; Key has been pressed
+            LD      A,(KEYPRE)
+            OR      A
+            RET     NZ  ; Just return if same
+            LD      A,0FFH
+            LD      (KEYPRE),A
+            ; Get Key
+            IN      A,(00)
+            AND     01FH ; Mask unwanted bits
+            RET
+
+TABLE:
+            DB      0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,0AFH 
+

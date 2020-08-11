@@ -1,0 +1,22 @@
+; Oscillator
+
+            ORG    0900H 
+START:     	
+            LD     A,80H
+            OUT    (01),A
+            CALL   DELAY
+            LD     A,00H
+            OUT    (01),A
+            CALL   DELAY
+            JR     START
+DELAY:               
+            PUSH    BC 
+            LD      B,05H 
+D1:                  
+            LD      C,0FFH 
+D2:                  
+            DEC     C 
+            JR      NZ,D2
+            DJNZ    D1
+            POP     BC 
+            RET      

@@ -1,0 +1,34 @@
+;Boomerang
+
+
+            ORG    0900H 
+START:
+            LD      HL,TABLE
+            LD      B,012H
+LOOP1:
+            LD      A,(HL)
+            OUT     (01),A
+            INC     HL
+            LD      A,(HL)
+            OUT     (02),A
+            INC     HL
+            CALL    DELAY
+            DJNZ    LOOP1
+            JR      START
+TABLE:
+            DB      01H,09H,02H,03H,04H,06H,08H,0CH
+            DB      10H,09H,20H,03H,20H,0C0H,10H,0A0H
+            DB      08H,24H,04H,44H,02H,0C0H,01H,0A0H
+            DB      20H,6FH,10H,0EAH,08H,0A7H,04H,0A7H
+            DB      02H,28H,01H,0C7H
+DELAY:               
+            PUSH    BC 
+            LD      B,55H 
+D1:                  
+            LD      C,0FFH 
+D2:                  
+            DEC     C 
+            JR      NZ,D2
+            DJNZ    D1
+            POP     BC 
+            RET      

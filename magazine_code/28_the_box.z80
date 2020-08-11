@@ -1,0 +1,51 @@
+;Move a Box>>
+
+
+            ORG    0900H 
+START:
+            LD      IX,TABLE
+            LD      B,00H
+            LD      D,1CH
+LOOP1:
+            LD      C,40H
+LOOP2:
+            LD      A,(IX+0)
+            OUT     (01),A
+            LD      A,(IX+1)
+            OUT     (02),A
+LOOP3:
+            DJNZ     LOOP3
+
+            XOR     A
+            OUT     (02),A
+            LD      A,(IX+2)
+            OUT     (01),A
+            LD      A,(IX+3)
+            OUT     (02),A
+LOOP4:
+            DJNZ     LOOP4
+            DEC      C
+            JR       NZ,LOOP2
+            INC      IX
+            INC      IX
+            INC      IX
+            INC      IX
+            DEC      D
+            JR       NZ,LOOP1
+
+            JR       START
+TABLE:
+			DB       01H,0E4H,01H,0E4H,01H,0E8H,01H,0E8H
+			DB       01H,0E4H,01H,0E4H,01H,0E2H,01H,0E2H
+			DB       01H,0E4H,01H,0E4H,01H,0E4H,01H,0E4H
+			DB       01H,0E2H,01H,0E2H,01H,0E4H,01H,0E4H
+			DB       01H,0E1H,01H,0E1H,01H,01H,02H,0E0H
+			DB       01H,04H,02H,0E0H,01H,80H,02H,0E0H
+			DB       01H,80H,04H,0A4H,01H,80H,08H,64H
+			DB       01H,80H,10H,0C4H,01H,80H,20H,0E0H
+			DB       02H,80H,20H,0E0H,04H,80H,20H,0E0H
+			DB       08H,80H,20H,0E0H,10H,04H,20H,0E0H
+			DB       20H,0E1H,20H,0E1H,20H,0E4H,20H,0E4H
+			DB       10H,0E4H,10H,0E4H,08H,0E4H,08H,0E4H
+			DB       04H,0E0H,08H,04H,02H,0E0H,08H,04H
+			DB       01H,0E0H,04H,04H,01H,0E0H,02H,04H
