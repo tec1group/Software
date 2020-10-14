@@ -1,0 +1,58 @@
+; LCD test program
+; To be used via the DAT board and its connections
+; Port 4 -> Enable
+; A7 -> Register Select
+; R/W -> Read / Write
+; D0-7 -> D0-7
+
+            ORG    0A00H
+
+;Port 4 on TEC is connected to LCD Enable
+;A7 is connected to  Register select.  A7=0 for Instruction, A7=1 for Data
+LCD_IR:     EQU    00000100B
+LCD_DR:     EQU    10000100B ;A7 is Data Register
+LCDOFF:     EQU    0821H
+LCDRST:     EQU    08FFH
+
+START:
+            ; JMON config
+            LD     A,0FFH
+            LD     (LCDOFF),A       ;Disables LCD update from JMON
+            LD     A,0AAH
+            LD     (LCDRST),A       ;Disables hard reset and sets PC to 0x0A00
+
+            ; LCD set up
+            RST    30H              ;Check for LCD Busy
+            LD     A,01H            ;Display Clear
+            OUT    (LCD_IR),A       ;Send to Instruction Register (IR)
+
+            ; Print 'LCD'
+            RST    30H              ;Check for LCD Busy
+            LD     A,4CH            ;'L'
+            OUT    (LCD_DR),A       ;Send to Data Register (DR)
+            RST    30H              ;Check for LCD Busy
+            LD     A,43H            ;'C'
+            OUT    (LCD_DR),A       ;Send to Data Register (DR)
+            RST    30H              ;Check for LCD Busy
+            LD     A,44H            ;'D'
+            OUT    (LCD_DR),A       ;Send to Data Register (DR)
+
+            ; Set DDRam Address to second line
+            RST    30H              ;Check for LCD Busy
+            LD     A,0C0H           ;Move Cursor to Second Line
+            OUT    (LCD_IR),A       ;Send to Instruction Register (IR)
+
+            ; Send multiple characters using lookup table and OUTI
+            LD     BC,0600H | LCD_DR  ;B=06 (letters), C=84 (port number)
+            LD     HL,TABLE         ;LCD table lookup
+LOOP1:
+            RST    30H              ;Check for LCD Busy
+            OUTI                    ;Send (HL) to port C, Decrement B, Increment HL
+            JR     NZ, LOOP1        ;OUTI sets zero if B=0;
+            HALT
+
+TABLE:
+            DB     4DH,41H,53H,54H,45H,52H      ;MASTER
+
+
+

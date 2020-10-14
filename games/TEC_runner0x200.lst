@@ -1,0 +1,422 @@
+# File /Users/slarti/Documents/TEC1D/TEC-1D-Stuff/code/games/TEC_runner0x200.z80
+0000			; TEC Runner (0.5 Kb version) 
+0000			; ---------- 
+0000			; 
+0000			; Written by Brian Chiha 
+0000			; brian.chiha@gmail.com  -- October 2020 
+0000			; 
+0000			; TEC Runner is an LCD game for the Talking Electronics Z80 Computer.  The game consists of  
+0000			; moving obsticles that the player needs to jump over.  To Jump, press the '4' key.  The player 
+0000			; jumps off the obsticles automatially and lands on the ground.  The obsticles moves faster every 
+0000			; time the player jumps.  See how long you can last. 
+0000			; 
+0000			; Setup 
+0000			; -----  
+0000			; 
+0000			; To be run using a TEC-1D with any Monitor and an LCD screen installed.  The LCD is to be  
+0000			; connected to port 04 with control/data pins connected based off the DAT (Data and Tape) Board. 
+0000			; For the keyboard to work it requires EITHER a 4k7 resistor between the NMI (pin 17 on Z-80) 
+0000			; and D6 (pin 10 on the Z-80) OR the DAT (LCD) expanstion board fitted to port 3.  The  
+0000			; current TEC-1D boards have the JMON MOD resitor connection already there. 
+0000			; 
+0000			; To Use 
+0000			; ------ 
+0000			; 
+0000			; Press '4' to make the player jump before hitting a moving obsticle.  Too slow and you lose! 
+0000			; 
+0000			 
+0000			;Port 4 on TEC is connected to LCD Enable 
+0000			;A7 is connected to  Register select.  A7=0 for Instruction, A7=1 for Data 
+0000			LCD_IR:     EQU    00000100B 		;LCD Instruction Register (Port 4) 
+0000			LCD_DR:     EQU    10000100B 		;A7 is Data Register (Port 4 & A7) 
+0000			LCDRW1:     EQU    8000H		;Row 1 First Character Position 80H 
+0000			LCDRW2:     EQU    0C000H	      ;Row 2 First Character Position C0H 
+0000			LCDDIS:     EQU    8BH              ;LCD Starting position for distance 
+0000			LCDHEA:     EQU    81H              ;LCD position for head in Mid Jump 
+0000			 
+0000			LCDOFF:     EQU    0821H     		;JMON disable LCD output flag 
+0000			LCDRST:     EQU    08FFH     		;JMON maintain output flag for soft Reset 
+0000			 
+0000			SCREEN:     EQU    0D00H 		;Game Screen Data 16 bytes ROW 1, 16 bytes ROW 2 (32-bytes) 
+0000			SCRNR1:     EQU    SCREEN           ;Screen ROW 1 start 
+0000			SCRNR2:     EQU    SCREEN+10H       ;Screen ROW 2 start 
+0000			MANRW1:     EQU    SCREEN+01H       ;Position of man on screen ROW 1 
+0000			MANRW2:     EQU    SCREEN+11H       ;Position of man on screen ROW 2 
+0000			DISSCR:     EQU    SCREEN+0BH       ;Thousands position of Distance on screen 
+0000			 
+0000			TERLEN:     EQU    0D20H            ;Terrain or Space Length                         (1-byte) 
+0000			TERPOS:     EQU    0D21H            ;Terrain Position either 1=Lower Row or 0=Upper Row (1-byte) 
+0000			TERTYP:     EQU    0D22H            ;Terrain Type either 0=Space or 1=Ground         (1-byte) 
+0000			MANSTA:     EQU    0D23H            ;Running man state B2 = Man Pos, B1 = Jumping, B0 = Run/Jump pose (1-byte) 
+0000			DISH2D:     EQU    0D24H            ;Distance travelled in Decimal.                  (2-bytes) 
+0000			DELSPD:     EQU    0D26H            ;Speed for the scrolling Delay                   (1-byte) 
+0000			 
+0000			;LCD CGROM Shortcuts 
+0000			CH_SPAC:    EQU    20H              ;' ' 
+0000			CH_RUN1:    EQU    00H              ;Run Position 1 
+0000			CH_RUN2:    EQU    01H              ;Run Position 2 
+0000			CH_JMP1:    EQU    02H              ;Jump Lower 
+0000			CH_JMP2:    EQU    03H              ;Jump Mid 
+0000			CH_HEAD:    EQU    2EH              ;'.' 
+0000			CH_GRNR:    EQU    04H              ;Ground Right 
+0000			CH_GRND:    EQU    05H              ;Ground 
+0000			CH_GRNL:    EQU    06H              ;Ground Left 
+0000			 
+0000			            ORG    0A00H     		;Start at 0A00 to suit JMON if using it 
+0a00			START: 
+0a00 cd 34 0b		            CALL   LCDSET    		;Set up LCD 
+0a03 cd 81 0b		            CALL   CUSTCH    		;Load the CGRAM custom characters 
+0a06 cd 72 0b		            CALL   RESET            ;Reset Screen 
+0a09			 
+0a09			; Main Game Loop 
+0a09			GAME: 
+0a09			            ; Shift Terrain to the left 
+0a09 cd 17 0b		            CALL   SCRNSH 		;Shift Terrain to the left and add space to end 
+0a0c			            ; Add Next Terrain Type, this could be either space or ground 
+0a0c 3a 22 0d		            LD     A,(TERTYP)       ;Get current terrain type 
+0a0f 47			            LD     B,A              ;Save in B 
+0a10 3a 20 0d		            LD     A,(TERLEN)       ;Get current terrain length 
+0a13 b7			            OR     A                ;Check if its zero 
+0a14 28 16		            JR     Z,NEWTER         ;Change Terrain type, length and position 
+0a16 3d			            DEC    A                ;Reduce Length by one. 
+0a17 32 20 0d		            LD     (TERLEN),A       ;Save new length 
+0a1a 28 08		            JR     Z,ENDTER         ;If 1 left then End Terrain 
+0a1c 78			            LD     A,B              ;Restore terrain type 
+0a1d b7			            OR     A                ;If Zero set it to space 
+0a1e 28 26		            JR     Z,SETSPC         ;Set A to space 
+0a20 06 05		            LD     B,CH_GRND        ;Set A to Ground 
+0a22 18 24		            JR     DRAWTE           ;Draw new terrain 
+0a24			ENDTER: 
+0a24 78			            LD     A,B              ;Restore terrain type 
+0a25 b7			            OR     A                ;If Zero set it to space 
+0a26 28 1e		            JR     Z,SETSPC         ;Set A to space 
+0a28 06 06		            LD     B,CH_GRNL        ;Set A to Ground Left 
+0a2a 18 1c		            JR     DRAWTE 
+0a2c			NEWTER: 
+0a2c			            ; Create New Terrain. Alternate between Space and Ground, Set 
+0a2c			            ; Random Length and position 
+0a2c 21 20 0d		            LD     HL,TERLEN        ;Get Terrain Length 
+0a2f ed 5f		            LD     A,R              ;Get random value 
+0a31 e6 07		            AND    07H              ;Keep only first 3 bits 
+0a33 c6 03		            ADD    A,03H            ;Add 3 to maintain atleast 3 spaces clear 
+0a35 77			            LD     (HL),A           ;Set Terrain Length (RND) 
+0a36 23			            INC    HL               ;Get Terrain Position 
+0a37 e6 01		            AND    01H              ;Keep only first bit (01 or 00) 
+0a39 77			            LD     (HL),A           ;Set Terrain Position (RND) 
+0a3a 23			            INC    HL               ;Get Terrain Type 
+0a3b 7e			            LD     A,(HL)           ;Store Terrain type 
+0a3c ee 01		            XOR    01H              ;Flip it 
+0a3e 77			            LD     (HL),A           ;Set Terrain Type 
+0a3f b7			            OR     A                ;If Terrain is Ground 
+0a40 28 04		            JR     Z,SETSPC         ;Set A to CH_SPAC 
+0a42 06 04		            LD     B,CH_GRNR        ;Set to new Ground Right 
+0a44 18 02		            JR     DRAWTE 
+0a46			SETSPC: 
+0a46 06 20				LD     B,CH_SPAC        ;Set ground to space 
+0a48			DRAWTE: 
+0a48			            ; Draw new Terrain at right hand side of the screen based on  
+0a48			            ; Terrain Position and B (Terrain Character Type) 
+0a48 21 0f 0d		            LD     HL,SCREEN+0FH    ;Get Screen Index last position 
+0a4b 3a 21 0d		            LD     A,(TERPOS)       ;Get Row to insert to 
+0a4e 07			            RLCA 
+0a4f 07			            RLCA 
+0a50 07			            RLCA 
+0a51 07			            RLCA 
+0a52 85			            ADD    A,L              ;Index L wiht Row 
+0a53 6f			            LD     L,A              ;Save new L 
+0a54 78			            LD     A,B              ;Get Character to insert 
+0a55 77			            LD     (HL),A           ;Update screen with new character 
+0a56			 
+0a56			            ;Increase Distance travelled by one 
+0a56 21 25 0d		            LD     HL,DISH2D+1      ;Tens 
+0a59 7e			            LD     A,(HL)           ;Store Tens in A 
+0a5a 3c			            INC    A                ;Increase by 1 
+0a5b 27			            DAA                     ;Convert to Decimal 
+0a5c 77			            LD     (HL),A           ;Store it back 
+0a5d 30 06		            JR     NC,UPDMAN        ;Exit if no overflow 
+0a5f 2b			            DEC    HL               ;Hundreds 
+0a60 3e 00		            LD     A,00H 
+0a62 8e			            ADC    A,(HL)           ;Add Carry to A 
+0a63 27			            DAA                     ;Convert to Decimal 
+0a64 77			            LD     (HL),A           ;Store it back 
+0a65			 
+0a65			UPDMAN: 
+0a65			            ; Display Running Man by Finding which row to display (Bit 2) 
+0a65 21 11 0d		            LD     HL,MANRW2        ;Default to lower 
+0a68 3a 23 0d		            LD     A,(MANSTA)       ;Get Man State 
+0a6b			 
+0a6b			            ; Find Man Position either Lower or Upper. 
+0a6b fe 04		            CP     04H              ;Check if on upper row 
+0a6d 38 03		            JR     C,UP1            ;On Lower so skip 
+0a6f 21 01 0d		            LD     HL,MANRW1        ;Set to upper 
+0a72			UP1: 
+0a72			            ; Check to see if Man collides with Ground, if so Game Over 
+0a72 47			            LD     B,A              ;Save Man State for later 
+0a73 7e			            LD     A,(HL)           ;See where the Man will be placed 
+0a74 fe 20		            CP     CH_SPAC          ;If its a Space Character 
+0a76 20 60		            JR     NZ,GAMEOV        ;Not a Space, then jump to Game Over 
+0a78 78			            LD     A,B              ;Restore Man State 
+0a79			 
+0a79			            ; Save Character to screen and display 
+0a79 47			            LD     B,A              ;Save Man State for later 
+0a7a e6 03		            AND    00000011B        ;Remove Position bit 
+0a7c 77			            LD     (HL),A           ;Save on screen 
+0a7d			 
+0a7d			            ; Display Screen 
+0a7d d9			            EXX                     ;Save HL and Man State for Character Removal 
+0a7e 21 00 0d		            LD     HL,SCREEN        ;Point to Start of Display 
+0a81 cd f8 0a		            CALL   UPDLCD           ;Update LCD 
+0a84			 
+0a84			            ; Display Distance 
+0a84 cd 11 0b		            CALL   CHKBSY           ; 
+0a87 3e 8b		            LD     A,LCDDIS         ;Move Cursor to Distance output 
+0a89 d3 04		            OUT    (LCD_IR),A       ;Update LCD with new DRRAM position 
+0a8b 2a 24 0d		            LD     HL,(DISH2D)      ;Load HL with Score data 
+0a8e cd b0 0b		            CALL   DE2ASCII         ;Convert HL to ASCII and output it to LCD 
+0a91			 
+0a91 d9			            EXX                     ;Restore HL and Man State in B 
+0a92			 
+0a92			            ; Display Head if Man in Mid Jump 
+0a92 78			            LD     A,B              ;Restore Man State 
+0a93 fe 03		            CP     03H              ;Is doing a Mid Jump? 
+0a95 20 0b		            JR     NZ,UP2           ;No then just skip 
+0a97 3e 81		            LD     A,LCDHEA         ;Yes then set 
+0a99 d3 04		            OUT    (LCD_IR),A       ;LCD to Head Position 
+0a9b cd 11 0b		            CALL   CHKBSY           ; 
+0a9e 3e 2e		            LD     A,CH_HEAD        ;Load A with Head (.) 
+0aa0 d3 84		            OUT    (LCD_DR),A       ;Output Head to LCD 
+0aa2			UP2: 
+0aa2 cd a4 0b		            CALL   DELAY            ;Don't update too fast 
+0aa5			 
+0aa5 3e 20		            LD     A,CH_SPAC        ;Replace HL with Space (Blank out Man) 
+0aa7 77			            LD     (HL),A           ;Save it Screen buffer 
+0aa8			 
+0aa8			            ; Update Man to next state. If running, just toggle BIT 0, If jumping increase state by 1 
+0aa8 78			            LD     A,B              ;Restore Man state 
+0aa9 fe 02		            CP     02H              ;See if in lower run state 
+0aab 30 10		            JR     NC,UP3           ;Ignore Key press as already jumping or on upper row 
+0aad			 
+0aad			            ; See if Key '4' is pressed 
+0aad cd 96 0b		            CALL   KEYHIT           ;Look for key 
+0ab0 fe 04		            CP     04H              ;Check if '4' pressed 
+0ab2 78			            LD     A,B              ;Restore Man state 
+0ab3 20 08		            JR     NZ,UP3           ;Not Pressed so don't jump 
+0ab5			 
+0ab5			            ; Key pressed, decrease delay 
+0ab5 21 26 0d		            LD     HL,DELSPD 
+0ab8 35			            DEC    (HL) 
+0ab9			            ; Put Man in Jump state 
+0ab9 3e 02		            LD     A,02H            ;Set Jump State (Set Bit 1) 
+0abb 18 15		            JR     UP5              ;Save Jumping Man State and Exit 
+0abd			UP3: 
+0abd fe 03		            CP     03H              ;On Mid Jump 
+0abf 20 01		            JR     NZ,UP4           ;Just Toggle bit 
+0ac1 3c			            INC    A 
+0ac2			UP4: 
+0ac2 ee 01		            XOR    01H              ;Toggle Last Bit 
+0ac4			            ; If Man is on upper and no ground under him, drop him 
+0ac4 fe 04		            CP     04H              ;Is man on upper and has taken one step...? 
+0ac6 20 0a		            JR     NZ,UP5           ;On Lower so skip 
+0ac8 47			            LD     B,A              ;Save Man State 
+0ac9 3a 11 0d		            LD     A,(MANRW2)       ;Get Position Under Man 
+0acc fe 20		            CP     CH_SPAC          ;Space Character 
+0ace 78			            LD     A,B              ;Restore Man 
+0acf 20 01		            JR     NZ,UP5           ;Still on Ground 
+0ad1 af			            XOR    A                ;Drop Man 
+0ad2			UP5: 
+0ad2 32 23 0d		            LD     (MANSTA),A       ;Save Jumping Man State		 
+0ad5 c3 09 0a				JP     GAME             ;Loop Back to Game 
+0ad8			 
+0ad8			GAMEOV:     ; Ground has been hit, Flash Screen and wait for any key to restart 
+0ad8 3e 50		            LD     A,50H            ;Initial Game Speed 
+0ada 32 26 0d		            LD     (DELSPD),A 
+0add 06 0c		            LD     B,0CH            ;Screen on LCD instruction 
+0adf			GA1:             
+0adf cd 11 0b		            CALL   CHKBSY           ;Check for LCD Busy 
+0ae2 78			            LD     A,B              ;Display Instruction 
+0ae3 ee 04		            XOR    04H              ;Flip Display ON/OFF bit 
+0ae5 d3 04		            OUT    (LCD_IR),A       ;Send to Instruction Register (IR) 
+0ae7 47			            LD     B,A 
+0ae8 cd a4 0b		            CALL   DELAY            ;Wait A bit 
+0aeb			            ; See if Any Key is pressed 
+0aeb cd 96 0b		            CALL   KEYHIT           ;Look for key 
+0aee fe ff		            CP     0FFH             ;Check if any key pressed 
+0af0 28 ed		            JR     Z,GA1            ;Not Pressed so loop 
+0af2			            ; Restart Game 
+0af2 cd 34 0b		            CALL   LCDSET           ;Set up LCD 
+0af5 c3 00 0a		            JP     START            ;Restart 
+0af8			 
+0af8			; FUNCTIONS 
+0af8			; --------- 
+0af8			 
+0af8			; Update DDRAM of the LCD.  This is the Display portion of the  LCD 
+0af8			; First row starts at address 80H and can contain up to 40 bytes to A7H.  The second row 
+0af8			; starts at address C0H and can contain up to 40 bytes to E7H.  Only 16 characters 
+0af8			; are displayed at one time.  I will only use the first 16 bytes for each row 
+0af8			; 
+0af8			; Inputs: HL.  HL is to point to the first location of data to send.   
+0af8			UPDLCD: 
+0af8 01 04 80		            LD     BC,LCDRW1 | LCD_IR ;Move Cursor to First Row 
+0afb cd 01 0b		            CALL   UPDROW			  ;Update First Row 
+0afe 01 04 c0		            LD     BC,LCDRW2 | LCD_IR ;Move Cursor to Second Row 
+0b01			UPDROW: 
+0b01 cd 11 0b		            CALL   CHKBSY       	;Check for LCD Busy 
+0b04 ed 41		            OUT    (C),B 		;Send to Instruction Register (IR) 
+0b06			 
+0b06			            ; Send multiple characters using HL and OUTI 
+0b06 01 84 10		            LD     BC,1000H | LCD_DR  ;B=10 (16 Characters), C=84 (port number) 
+0b09			UD1: 
+0b09 cd 11 0b		            CALL   CHKBSY       	;Check for LCD Busy 
+0b0c ed a3		            OUTI                    ;Send (HL) to port C, Decrement B, Increment HL 
+0b0e 20 f9		            JR     NZ, UD1          ;OUTI sets zero if B=0; 
+0b10 c9			            RET 
+0b11			 
+0b11			; Check if the LCD is in the BUSY mode, and wait until it is not BUSY.  This 
+0b11			; is important to check every time a command is sent to the LCD otherwise if  
+0b11			; the LDC is busy the command sent will not register. 
+0b11			CHKBSY: 
+0b11 db 04				IN     A,(LCD_IR)		;Read Status bit from LCD 
+0b13 07					RLCA                    ;Put Bit 7 (Status) in Carry Flag 
+0b14 38 fb				JR     C,CHKBSY		;Do again if still busy 
+0b16 c9					RET 
+0b17			 
+0b17			; Shift the Screen one position to the left, then add a space on the end. 
+0b17			; Adding a space to both rows will make it easier to add the next upper or 
+0b17			; lower block 
+0b17			SCRNSH: 
+0b17 dd 21 00 0d	            LD     IX,SCRNR1 		;Set IX to First Row 
+0b1b cd 22 0b		            CALL   SHIFTY 
+0b1e dd 21 10 0d	            LD     IX,SCRNR2 		;Set IX to Second Row 
+0b22			SHIFTY: 
+0b22 06 0f				LD     B,0FH            ;Sixteen Characters 
+0b24			SH1: 
+0b24 dd 7e 01				LD     A,(IX+1)   	;Grab Screen+1 
+0b27 dd 77 00		            LD     (IX+0),A         ;Store it in Screen 
+0b2a dd 23		            INC     IX 			;Move to next Screen pos 
+0b2c 10 f6		            DJNZ    SH1             ;Repeat 16 times 
+0b2e 3e 20		            LD      A,CH_SPAC       ;Space Character 
+0b30 dd 77 00				LD     (IX+0),A         ;Store in Last spot 
+0b33 c9			            RET 
+0b34			 
+0b34			; Initialize the LDC and disable JMON LCD if needed 
+0b34			LCDSET: 
+0b34			            ; Check to see if JMON is used, if so, disable LDC updates and keep 
+0b34			            ; Monitor variables on Reset 
+0b34 3a 66 00		            LD     A,(0066H) 		;See what NMI has to check if its JMON 
+0b37 fe ed		            CP     0EDH			;JMOM has a RETN 
+0b39 20 0a		            JR     NZ,SKIPJM     	;Skip JMON updates 
+0b3b			 
+0b3b 3e ff		            LD     A,0FFH 		;JMON fixes 
+0b3d 32 21 08		            LD     (LCDOFF),A       ;Disables LCD update from JMON 
+0b40 3e aa		            LD     A,0AAH 
+0b42 32 ff 08		            LD     (LCDRST),A       ;Disables hard reset and sets PC to 0x0A00 
+0b45			SKIPJM: 
+0b45			            ; General LCD set up 
+0b45 cd 11 0b		            CALL   CHKBSY       	;Check for LCD Busy 
+0b48 3e 01		            LD     A,01H            ;Display Clear 
+0b4a d3 04		            OUT    (LCD_IR),A       ;Send to Instruction Register (IR) 
+0b4c cd 11 0b		            CALL   CHKBSY       	;Check for LCD Busy 
+0b4f 3e 06		            LD     A,06H            ;Increment Cursor from Left to Right 
+0b51 d3 04		            OUT    (LCD_IR),A       ;Send to Instruction Register (IR) 
+0b53 cd 11 0b		            CALL   CHKBSY       	;Check for LCD Busy 
+0b56 3e 0c		            LD     A,0CH            ;Turn Display ON 
+0b58 d3 04		            OUT    (LCD_IR),A       ;Send to Instruction Register (IR) 
+0b5a			            ; Initialise Terrain Length and Pos 
+0b5a 21 21 0d		            LD      HL,TERPOS 
+0b5d 11 22 0d		            LD      DE,TERPOS+1 
+0b60 af			            XOR     A 
+0b61 77			            LD      (HL),A 
+0b62 01 05 00		            LD      BC,05H 
+0b65 ed b0		            LDIR 
+0b67 3e 08		            LD      A,08H           ;Initial Length of 8 spaces to start with 
+0b69 32 20 0d		            LD      (TERLEN),A 
+0b6c 3e 30		            LD      A,30H           ;Initial Delay Speed 
+0b6e 32 26 0d		            LD      (DELSPD),A 
+0b71			 
+0b71 c9			            RET 
+0b72			 
+0b72			; Reset Screen and Variables 
+0b72			RESET: 
+0b72			            ; Fill Screen with blanks (Spaces) 
+0b72 21 00 0d		            LD      HL,SCREEN 	;Screen Address 
+0b75 11 01 0d		            LD      DE,SCREEN+1 
+0b78 3e 20		            LD      A,CH_SPAC       ;Space 
+0b7a 77			            LD      (HL),A          ;Store Space for 
+0b7b 01 1f 00		            LD      BC,001FH        ;32 Bytes 
+0b7e ed b0		            LDIR 
+0b80 c9			            RET 
+0b81			 
+0b81			; Load the Character Generaction RAM with custom characters 
+0b81			CUSTCH: 
+0b81			           	; Tell the LCD that next data will be to CGRAM 
+0b81 cd 11 0b		            CALL   CHKBSY       	;Check for LCD Busy 
+0b84 3e 40		            LD     A,40H            ;CGRAM entry 
+0b86 d3 04		            OUT    (LCD_IR),A       ;Send to Instruction Register (IR) 
+0b88			 
+0b88			            ; Save multiple characters to CGRAM using lookup table and OUTI 
+0b88 01 84 38		            LD     BC,3800H | LCD_DR ;B=38/8 (characters), C=84 (port number) 
+0b8b 21 c8 0b		            LD     HL,CHRTBL        ;LCD table lookup 
+0b8e			CU1: 
+0b8e cd 11 0b		            CALL   CHKBSY       	;Check for LCD Busy 
+0b91 ed a3		            OUTI                    ;Send (HL) to port C, Decrement B, Increment HL 
+0b93 20 f9		            JR     NZ, CU1          ;OUTI sets zero if B=0; 
+0b95 c9			            RET 
+0b96			 
+0b96			; Keyboard Check. If no key pressed, return FFH else A is key pressed 
+0b96			KEYHIT: 
+0b96 db 03		            IN     A,(03)     	;Check if key is pressed 
+0b98 cb 77		            BIT    6,A 
+0b9a 28 03		            JR     Z,KE1         	;Jump if Key pressed 
+0b9c 3e ff		            LD     A,0FFH           ;Set Key to FF 
+0b9e c9			            RET 
+0b9f			KE1: 
+0b9f db 00		            IN     A,(00)     	;Get actual key 
+0ba1 e6 1f		            AND    1FH        	;Mask upper bits 
+0ba3 c9			            RET 
+0ba4			 
+0ba4			; Delay routine to slow down LDC updates.  Uses DELSPD for its speed. 
+0ba4			; DELSPD will get smaller as game gets longer 
+0ba4			DELAY: 
+0ba4			            ; Small Delay to handle GO press resetting 
+0ba4 3a 26 0d		            LD     A,(DELSPD) 
+0ba7 57			            LD     D,A 
+0ba8 1e 00		            LD     E,00H  
+0baa			DE1:                
+0baa 1b			            DEC    DE  
+0bab 7a			            LD     A,D  
+0bac b3			            OR     E  
+0bad 20 fb		            JR     NZ,DE1 
+0baf c9			            RET 
+0bb0			 
+0bb0			; Convert HL to ASCII Character.  This smart routine converts each nibble of HL to  
+0bb0			; its ASCII hex value and outputs it directly to the LCD.  LCD must be ready to 
+0bb0			; receive DRRAM data 
+0bb0			DE2ASCII: 
+0bb0 7d			            LD     A,L              ;Convert L 
+0bb1 cd b5 0b		            CALL   HL1 
+0bb4 7c			            LD     A,H              ;Convert H 
+0bb5			HL1: 
+0bb5 f5			            PUSH   AF               ;Save A for lower nibble 
+0bb6 0f			            RRCA                    ;Shift high nibble across 
+0bb7 0f			            RRCA 
+0bb8 0f			            RRCA 
+0bb9 0f			            RRCA 
+0bba cd be 0b		            CALL   HL2              ;Nibble Converter 
+0bbd f1			            POP    AF               ;Lower Nibble 
+0bbe			HL2: 
+0bbe e6 0f		            AND    0FH              ;Mask out high nibble 
+0bc0 c6 30		            ADD    A,30H            ;30H is 0 ASCII, A is between 0-9 
+0bc2 d3 84		            OUT    (LCD_DR),A       ;Push it straight to LCD 
+0bc4 cd 11 0b		            CALL   CHKBSY           ; 
+0bc7 c9			            RET                     ;Return for D or Exit 
+0bc8			 
+0bc8			CHRTBL:     ; CGRAM Characters 
+0bc8 0c 0c 00 0e 1c 0c 1a 13	            DB     0CH,0CH,00H,0EH,1CH,0CH,1AH,13H    ;Run Position 1 
+0bd0 0c 0c 00 0c 0c 0c 0c 0e	            DB     0CH,0CH,00H,0CH,0CH,0CH,0CH,0EH    ;Run Position 2 
+0bd8 0c 0c 00 1e 0d 1f 10 00	            DB     0CH,0CH,00H,1EH,0DH,1FH,10H,00H    ;Jump Lower 
+0be0 1e 0d 1f 10 00 00 00 00	            DB     1EH,0DH,1FH,10H,00H,00H,00H,00H    ;Jump Mid 
+0be8 03 03 03 03 03 03 03 03	            DB     03H,03H,03H,03H,03H,03H,03H,03H    ;Ground Right 
+0bf0 1f 1f 1f 1f 1f 1f 1f 1f	            DB     1FH,1FH,1FH,1FH,1FH,1FH,1FH,1FH    ;Ground 
+0bf8 18 18 18 18 18 18 18 18	            DB     18H,18H,18H,18H,18H,18H,18H,18H    ;Ground Left 
+# End of file /Users/slarti/Documents/TEC1D/TEC-1D-Stuff/code/games/TEC_runner0x200.z80
+0c00

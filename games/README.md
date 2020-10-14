@@ -6,6 +6,8 @@ To be run on the TEC-1D with any Monitor.  For the keyboard to work it requires 
 
 The 8x8 LED board is fitted to ports 5 and 6 with the port select strobe of the left hand latch going to port 6.
 
+If using an LCD, it is to be connected as per the DAT board schematics.
+ 
 All ROM files are to be loaded at address **0x0900**.  If this doesn't suit then just complie the **.Z80** file and change the starting **.ORG** address.  They can be manually typed using the **.lst** file but I recommend using a serial loader.  See my  [SIO Transfer](https://github.com/bchiha/TEC-1D-Stuff/tree/master/sio_transfer) project.
 
 ## TEC Invaders (The Return)
@@ -95,3 +97,19 @@ In the initial stages of the game, you must acquaint yourself with the connectio
 I had problems actually running this on my TEC as I had to change the clock from my Crystal 3.86Mhz to the original CD4049 **≈** 500kHz while the game was loaded in RAM.  This involved pulling out IC's while holding Reset down at the same time.  I also had to move it to RAM as the code is self modifying.  I can probably re-write this game to play on ROM and reduce the line count.  If you hit an Alien, it does have a cool success animation.
 
 The easiest way to play this game is to create a HEX file (use https://www.asm80.com/) and play in the TEC Emulator (https://jhlagado.github.io/wicked-tec1/).
+
+
+## TEC Runner
+A game using a 2x16 Liquid Crystal Display (LCD) by Brian Chiha.  This is not an original game but is based off an Arduino game.
+
+From what I know, this is the First LCD game published for the TEC.  
+
+### Setup
+This game uses an LCD works on JMON.  If using another Monitor, the JMON keyboard mod is required.  It is to be set up similar to the LCD that is on the DAT board.  In summary the connections from the TEC to the LCD are: D0-D7 -> D0-D2, A7 -> RS, Port 4 -> E (inverted), R/W -> R/W with RC circuit.  Please see TE Issue 15 for more details.  Code for the LCD is to be loaded at address **0xA00**.  This is due to how JMON uses the Soft Reset feature.  See Issue 15.
+
+### To Play
+Try to avoid obstacles by jumping over them as they get near.  Press the '**4**' button to jump.  You need to time the jump to make it over the obstacle.  The player automatically jumps off the obstacle.  Every time you jump, the speed of the game gets faster.  The counter records the distance travelled.
+
+How far can you make it!.
+
+**Note**: I've included a 512 byte version if you just want the game minus start screen.  *PS: The code includes a secret flag that does something special....*

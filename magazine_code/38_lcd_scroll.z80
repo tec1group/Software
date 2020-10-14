@@ -1,0 +1,99 @@
+; LCD scroll test
+; To be used via the DAT board and its connections
+; Port 4 -> Enable
+; A7 -> Register Select
+; R/W -> Read / Write
+; D0-7 -> D0-7
+
+            ORG    0A00H
+
+;Port 4 on TEC is connected to LCD Enable
+;A7 is connected to  Register select.  A7=0 for Instruction, A7=1 for Data
+LCD_IR:     EQU    00000100B
+LCD_DR:     EQU    10000100B ;A7 is Data Register
+LCDOFF:     EQU    0821H
+LCDRST:     EQU    08FFH
+
+START:
+            ; JMON config
+            LD     A,0FFH
+            LD     (LCDOFF),A       ;Disables LCD update from JMON
+            LD     A,0AAH
+            LD     (LCDRST),A       ;Disables hard reset and sets PC to 0x0A00
+
+            ; LCD set up
+            RST    30H              ;Check for LCD Busy
+            LD     A,01H            ;Display Clear
+            OUT    (LCD_IR),A       ;Send to Instruction Register (IR)
+            RST    30H              ;Check for LCD Busy
+            LD     A,06H            ;Increment Cursor from Left to Right
+            OUT    (LCD_IR),A       ;Send to Instruction Register (IR)
+            RST    30H              ;Check for LCD Busy
+            LD     A,0CH            ;Turn Display ON
+            OUT    (LCD_IR),A       ;Send to Instruction Register (IR)
+            RST    30H              ;Check for LCD Busy
+            LD     A,90H            ;Set Cursor to First line just off the screen to the right
+            OUT    (LCD_IR),A       ;Send to Instruction Register (IR)
+
+            ; Send multiple characters using lookup table and OUTI
+            LD     BC,1000H | LCD_DR  ;B=10 (letters), C=84 (port number)
+            LD     HL,TABLE         ;LCD table lookup
+LOOP1:
+            RST    30H              ;Check for LCD Busy
+            OUTI                    ;Send (HL) to port C, Decrement B, Increment HL
+            JR     NZ, LOOP1        ;OUTI sets zero if B=0;
+
+            RST    30H              ;Check for LCD Busy
+            LD     A,0D0H           ;Set Cursor to Second line just off the screen to the right
+            OUT    (LCD_IR),A       ;Send to Instruction Register (IR)
+
+            ; Send multiple characters using lookup table and OUTI
+            LD     B,10H            ;B=10 (letters)
+            LD     HL,TABLE+30H     ;LCD table lookup
+LOOP2:
+            RST    30H              ;Check for LCD Busy
+            OUTI                    ;Send (HL) to port C, Decrement B, Increment HL
+            JR     NZ, LOOP2        ;OUTI sets zero if B=0;
+
+            ; Scroll enough for text to pass, then reset cursor to home
+SCROLL: 
+            LD     D,1BH            ;Scroll length
+LOOP3:
+            LD     A,18H            ;Shift LCD screen to the LEFT
+            OUT    (LCD_IR),A       ;Send to Instruction Register (IR)
+            ; Delay
+            LD     BC,6000H         ;No need to check Busy Flag on LCD as 6000 delay is longer
+LOOP4:                              ;than 40ms
+            DEC    BC
+            LD     A,B
+            OR     C
+            JR     NZ,LOOP4
+
+            DEC    D                ;Next Scroll
+            JR     NZ,LOOP3         ;If D isn't 0
+
+            ; Return Cursor to Home, (Reset Screen but keep DDRAM)
+            RST    30H              ;Check for LCD Busy
+            LD     A,02H            ;Cursor Home
+            OUT    (LCD_IR),A       ;Send to Instruction Register (IR)
+
+            JR     SCROLL           ;Do scroll again 
+
+TABLE:
+            DB     54H,41H,4CH,4BH,49H,4EH,47H,20H    ;Talking
+            DB     20H,20H,20H,20H,20H,20H,20H,20H
+            DB     20H,20H,20H,20H,20H,20H,20H,20H
+            DB     20H,20H,20H,20H,20H,20H,20H,20H
+            DB     20H,20H,20H,20H,20H,20H,20H,20H
+            DB     20H,20H,20H,20H,20H,20H,20H,20H
+
+            DB     45H,4CH,45H,43H,54H,52H,4FH,4EH    ;Electron
+            DB     49H,43H,53H,20H,20H,20H,20H,20H    ;ics
+            DB     20H,20H,20H,20H,20H,20H,20H,20H
+            DB     20H,20H,20H,20H,20H,20H,20H,20H
+            DB     20H,20H,20H,20H,20H,20H,20H,20H
+            DB     20H,20H,20H,20H,20H,20H,20H,20H
+
+
+
+
