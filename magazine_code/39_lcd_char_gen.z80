@@ -1,0 +1,90 @@
+; LCD Character Generator Test
+; To be used via the DAT board and its connections
+; Port 4 -> Enable
+; A7 -> Register Select
+; R/W -> Read / Write
+; D0-7 -> D0-7
+
+;CGRAM - Character Generator RAM is the area where upto 8 new characters can be set
+;These are retrived at positions 0x0 to 0x8 in the DD RAM. 
+            ORG    0A00H
+
+;Port 4 on TEC is connected to LCD Enable
+;A7 is connected to  Register select.  A7=0 for Instruction, A7=1 for Data
+LCD_IR:     EQU    00000100B
+LCD_DR:     EQU    10000100B ;A7 is Data Register
+LCDOFF:     EQU    0821H
+LCDRST:     EQU    08FFH
+
+START:
+            ; JMON config
+            LD     A,0FFH
+            LD     (LCDOFF),A       ;Disables LCD update from JMON
+            LD     A,0AAH
+            LD     (LCDRST),A       ;Disables hard reset and sets PC to 0x0A00
+
+            ; LCD set up
+            RST    30H              ;Check for LCD Busy
+            LD     A,01H            ;Display Clear
+            OUT    (LCD_IR),A       ;Send to Instruction Register (IR)
+
+            ; Tell the LCD that next data will be to CGRAM
+            RST    30H              ;Check for LCD Busy
+            LD     A,40H            ;CGRAM entry
+            OUT    (LCD_IR),A       ;Send to Instruction Register (IR)
+
+            ; Save multiple characters to CGRAM using lookup table and OUTI
+            LD     BC,4000H | LCD_DR  ;B=40/8 (letters), C=84 (port number)
+            LD     HL,TABLE         ;LCD table lookup
+LOOP1:
+            RST    30H              ;Check for LCD Busy
+            OUTI                    ;Send (HL) to port C, Decrement B, Increment HL
+            JR     NZ, LOOP1        ;OUTI sets zero if B=0;
+
+            ; Display first line text
+            RST    30H              ;Check for LCD Busy
+            LD     A,80H           ;Move Cursor to First Line
+            OUT    (LCD_IR),A       ;Send to Instruction Register (IR)
+
+            ; Send multiple characters using lookup table and OUTI
+            LD     BC,1000H | LCD_DR  ;B=10 (letters), C=84 (port number)
+            LD     HL,TEXT          ;LCD table lookup
+LOOP2:
+            RST    30H              ;Check for LCD Busy
+            OUTI                    ;Send (HL) to port C, Decrement B, Increment HL
+            JR     NZ, LOOP2        ;OUTI sets zero if B=0;
+
+            ; Display new characters
+            RST    30H              ;Check for LCD Busy
+            LD     A,0C0H           ;Move Cursor to Second Line
+            OUT    (LCD_IR),A       ;Send to Instruction Register (IR)
+
+            ; Send multiple characters using lookup table and OUTI
+            LD     BC,0800H         ;B=08 (letters), C=0 (CGRAM ref)
+LOOP3:
+            RST    30H
+            LD     A,C              ;Send Custom Character
+            OUT    (LCD_DR),A
+            INC    C
+            RST    30H              ;Check for LCD Busy
+            LD     A,20H            ;Send Space
+            OUT    (LCD_DR),A
+            DJNZ   LOOP3
+
+            HALT
+
+TEXT:
+            DB     43H,75H,73H,74H,6FH,6DH,20H,43H    ;Custom C
+            DB     68H,61H,72H,61H,63H,74H,65H,72H    ;haracter
+TABLE:
+            DB     00H,0AH,1FH,1FH,0EH,04H,00H,00H    ;Heart
+            DB     04H,0EH,0EH,0EH,1FH,00H,04H,00H    ;Bell
+            DB     1FH,15H,1FH,1FH,0EH,0AH,1BH,00H    ;Alien
+            DB     00H,01H,03H,16H,1CH,08H,00H,00H    ;Tick
+            DB     01H,03H,0FH,0FH,0FH,03H,01H,00H    ;Speaker
+            DB     01H,03H,05H,09H,09H,0BH,1BH,18H    ;Sound
+            DB     00H,0EH,15H,1BH,0EH,0EH,00H,00H    ;Skull
+            DB     0EH,11H,11H,1FH,1BH,1BH,1FH,00H    ;Lock
+
+
+
