@@ -1,0 +1,902 @@
+0001   0000 C3 00 02                  jp 0x0200
+0002   0003 FF                        rst 0x38
+0003   0004 FF                        rst 0x38
+0004   0005 FF                        rst 0x38
+0005   0006 FF                        rst 0x38
+0006   0007 FF                        rst 0x38
+0007   0008 2A C0 9F                  ld hl,(0x9Fc0)
+0008   000B E9                        jp (hl)
+0009   000C FF                        rst 0x38
+0010   000D FF                        rst 0x38
+0011   000E FF                        rst 0x38
+0012   000F FF                        rst 0x38
+0013   0010 2A C2 9F                  ld hl,(0x9Fc2)
+0014   0013 E9                        jp (hl)
+0015   0014 FF                        rst 0x38
+0016   0015 FF                        rst 0x38
+0017   0016 FF                        rst 0x38
+0018   0017 FF                        rst 0x38
+0019   0018 2A C4 9F                  ld hl,(0x9Fc4)
+0020   001B E9                        jp (hl)
+0021   001C FF                        rst 0x38
+0022   001D FF                        rst 0x38
+0023   001E FF                        rst 0x38
+0024   001F FF                        rst 0x38
+0025   0020 2A C6 9F                  ld hl,(0x9Fc6)
+0026   0023 E9                        jp (hl)
+0027   0024 FF                        rst 0x38
+0028   0025 FF                        rst 0x38
+0029   0026 FF                        rst 0x38
+0030   0027 FF                        rst 0x38
+0031   0028 2A C8 9F                  ld hl,(0x9Fc8)
+0032   002B E9                        jp (hl)
+0033   002C FF                        rst 0x38
+0034   002D FF                        rst 0x38
+0035   002E FF                        rst 0x38
+0036   002F FF                        rst 0x38
+0037   0030 2A CA 9F                  ld hl,(0x9Fca)
+0038   0033 E9                        jp (hl)
+0039   0034 FF                        rst 0x38
+0040   0035 FF                        rst 0x38
+0041   0036 FF                        rst 0x38
+0042   0037 FF                        rst 0x38
+0043   0038 2A CC 9F                  ld hl,(0x9Fcc)
+0044   003B E9                        jp (hl)
+0045   003C FF                        rst 0x38
+0046   003D FF                        rst 0x38
+0047   003E FF                        rst 0x38
+0048   003F FF                        rst 0x38
+0049   0040 FF                        rst 0x38
+0050   0041 FF                        rst 0x38
+0051   0042 FF                        rst 0x38
+0052   0043 FF                        rst 0x38
+0053   0044 FF                        rst 0x38
+0054   0045 FF                        rst 0x38
+0055   0046 FF                        rst 0x38
+0056   0047 FF                        rst 0x38
+0057   0048 FF                        rst 0x38
+0058   0049 FF                        rst 0x38
+0059   004A FF                        rst 0x38
+0060   004B FF                        rst 0x38
+0061   004C FF                        rst 0x38
+0062   004D FF                        rst 0x38
+0063   004E FF                        rst 0x38
+0064   004F FF                        rst 0x38
+0065   0050 FF                        rst 0x38
+0066   0051 FF                        rst 0x38
+0067   0052 FF                        rst 0x38
+0068   0053 FF                        rst 0x38
+0069   0054 FF                        rst 0x38
+0070   0055 FF                        rst 0x38
+0071   0056 FF                        rst 0x38
+0072   0057 FF                        rst 0x38
+0073   0058 FF                        rst 0x38
+0074   0059 FF                        rst 0x38
+0075   005A FF                        rst 0x38
+0076   005B FF                        rst 0x38
+0077   005C FF                        rst 0x38
+0078   005D FF                        rst 0x38
+0079   005E FF                        rst 0x38
+0080   005F FF                        rst 0x38
+0081   0060 FF                        rst 0x38
+0082   0061 FF                        rst 0x38
+0083   0062 FF                        rst 0x38
+0084   0063 FF                        rst 0x38
+0085   0064 FF                        rst 0x38
+0086   0065 FF                        rst 0x38
+0087   0066 F5                        push af
+0088   0067 DB 00                     in a,(0x00)
+0089   0069 32 E0 9F                  ld (0x9Fe0),a
+0090   006C F1                        pop af
+0091   006D ED 45                     retn
+0092   006F FF                        rst 0x38
+0093   0070 FF                        rst 0x38
+0094   0071 FF                        rst 0x38
+0095   0072 FF                        rst 0x38
+0096   0073 FF                        rst 0x38
+0097   0074 FF                        rst 0x38
+0098   0075 FF                        rst 0x38
+0099   0076 FF                        rst 0x38
+0100   0077 FF                        rst 0x38
+0101   0078 FF                        rst 0x38
+0102   0079 FF                        rst 0x38
+0103   007A FF                        rst 0x38
+0104   007B FF                        rst 0x38
+0105   007C FF                        rst 0x38
+0106   007D FF                        rst 0x38
+0107   007E FF                        rst 0x38
+0108   007F FF                        rst 0x38
+0109   0080 EB                        ex de,hl
+0110   0081 28 CD                     jr z,0x0050
+0111   0083 AD                        xor l
+0112   0084 2E A7                     ld l,0xa7
+0113   0086 E7                        rst 0x20
+0114   0087 29                        add hl,hl
+0115   0088 EF                        rst 0x28
+0116   0089 2F                        cpl
+0117   008A 6F                        ld l,a
+0118   008B E6 C3                     and 0xc3
+0119   008D EC C7 47                  call pe,0x47c7
+0120   0090 E3                        ex (sp),hl
+0121   0091 66                        ld h,(hl)
+0122   0092 28 E8                     jr z,0x007c
+0123   0094 4E                        ld c,(hl)
+0124   0095 C2 2D 6B                  jp nz,0x6b2d
+0125   0098 EB                        ex de,hl
+0126   0099 4F                        ld c,a
+0127   009A 2F                        cpl
+0128   009B 4B                        ld c,e
+0129   009C A7                        and a
+0130   009D 46                        ld b,(hl)
+0131   009E EA E0 AC                  jp pe,0xace0
+0132   00A1 A4                        and h
+0133   00A2 AE                        xor (hl)
+0134   00A3 C9                        ret
+0135   00A4 10 08                     djnz 0x00ae
+0136   00A6 18 04                     jr 0x00ac
+0137   00A8 2C                        inc l
+0138   00A9 00                        nop
+0139   00AA FF                        rst 0x38
+0140   00AB FF                        rst 0x38
+0141   00AC FF                        rst 0x38
+0142   00AD FF                        rst 0x38
+0143   00AE FF                        rst 0x38
+0144   00AF FF                        rst 0x38
+0145   00B0             
+0146   00B0 0A          INITADDR:     db $0A                  ;A       inital address (start of RAM)
+0147   00B1 00                        db $00                  ;0
+0148   00B2 00                        db $00                  ;0
+0149   00B3 00                        db $00                  ;0
+0150   00B4 FF                        rst 0x38
+0151   00B5 FF                        rst 0x38
+0152   00B6 FF                        rst 0x38
+0153   00B7 FF                        rst 0x38
+0154   00B8 FF                        rst 0x38
+0155   00B9 FF                        rst 0x38
+0156   00BA FF                        rst 0x38
+0157   00BB FF                        rst 0x38
+0158   00BC FF                        rst 0x38
+0159   00BD FF                        rst 0x38
+0160   00BE FF                        rst 0x38
+0161   00BF FF                        rst 0x38
+0162   00C0             
+0163   00C0                           .ORG $00C0              ; Data table for text message demo.
+0164   00C0 1B          DEMOTEXT:     db $1b                  ; R
+0165   00C1 18                        db $18                  ; O
+0166   00C2 1E                        db $1e                  ; U  
+0167   00C3 1D                        db $1d                  ; T
+0168   00C4 12                        db $12                  ; I
+0169   00C5 17                        db $17                  ; N
+0170   00C6 0E                        db $0e                  ; E
+0171   00C7 29                        db $29                  ; [space]
+0172   00C8 0B                        db $0b                  ; B
+0173   00C9 22                        db $22                  ; Y
+0174   00CA 29                        db $29                  ; [space]
+0175   00CB 17                        db $17                  ; N   (Nic. Enots - Ken Stone's old programming pseudonym))
+0176   00CC 12                        db $12                  ; I
+0177   00CD 0C                        db $0C                  ; C
+0178   00CE 24                        db $24                  ; .
+0179   00CF 29                        db $29                  ; [space]
+0180   00D0 29                        db $29                  ; [space]
+0181   00D1 29                        db $29                  ; [space]
+0182   00D2 29                        db $29                  ; [space]
+0183   00D3 29                        db $29                  ; [space]
+0184   00D4 FE                        db $fe                  ; (repeat text)
+0185   00D5 1C                        db $1c                  ; STONE  (Text for real surname hidden in code)
+0186   00D6 1D                        db $1d
+0187   00D7 18                        db $18
+0188   00D8 17                        db $17
+0189   00D9 0A                        db $0a
+0190   00DA FF                        db $ff                  ; (end text)
+0191   00DB FF                        db $FF
+0192   00DC FF                        db $FF
+0193   00DD FF                        db $FF
+0194   00DE FF                        db $FF
+0195   00DF FF                        db $FF
+0196   00E0             
+0197   00E0 CD 89 02                  call 0x0289
+0198   00E3 03                        inc bc
+0199   00E4 18 04                     jr 0x00ea
+0200   00E6 CD 89 02                  call 0x0289
+0201   00E9 0B                        dec bc
+0202   00EA CD 90 04                  call 0x0490
+0203   00ED CD 70 02                  call 0x0270
+0204   00F0 21 DF 9F                  ld hl,0x9Fdf
+0205   00F3 CB C6                     set 0,(hl)
+0206   00F5 CB 8E                     res 1,(hl)
+0207   00F7 C3 78 03                  jp 0x0378
+0208   00FA FF                        rst 0x38
+0209   00FB FF                        rst 0x38
+0210   00FC FF                        rst 0x38
+0211   00FD FF                        rst 0x38
+0212   00FE FF                        rst 0x38
+0213   00FF FF                        rst 0x38
+0214   0100 FD                        defb 0xfd
+0215   0101 10 10                     djnz 0x0113
+0216   0103 FD                        defb 0xfd
+0217   0104 11 EF 12                  ld de,0x12ef
+0218   0107 E1                        pop hl
+0219   0108 13                        inc de
+0220   0109 D5                        push de
+0221   010A 14                        inc d
+0222   010B C9                        ret
+0223   010C 15                        dec d
+0224   010D BE                        cp (hl)
+0225   010E 16 B3                     ld d,0xb3
+0226   0110 18 A9                     jr 0x00bb
+0227   0112 19                        add hl,de
+0228   0113 9F                        sbc a,a
+0229   0114 1A                        ld a,(de)
+0230   0115 96                        sub (hl)
+0231   0116 1C                        inc e
+0232   0117 8E                        adc a,(hl)
+0233   0118 1E 86                     ld e,0x86
+0234   011A 20 7F                     jr nz,0x019b
+0235   011C 22 77 24                  ld (0x2477),hl
+0236   011F 71                        ld (hl),c
+0237   0120 26 6A                     ld h,0x6a
+0238   0122 28 64                     jr z,0x0188
+0239   0124 2A 5F 2D                  ld hl,(0x2d5f)
+0240   0127 59                        ld e,c
+0241   0128 2F                        cpl
+0242   0129 54                        ld d,h
+0243   012A 32 50 35                  ld (0x3550),a
+0244   012D 4B                        ld c,e
+0245   012E 38 47                     jr c,0x0177
+0246   0130 3C                        inc a
+0247   0131 43                        ld b,e
+0248   0132 3F                        ccf
+0249   0133 3F                        ccf
+0250   0134 43                        ld b,e
+0251   0135 3C                        inc a
+0252   0136 47                        ld b,a
+0253   0137 38 4B                     jr c,0x0184
+0254   0139 35                        dec (hl)
+0255   013A 50                        ld d,b
+0256   013B 32 54 2F                  ld (0x2f54),a
+0257   013E 59                        ld e,c
+0258   013F 2D                        dec l
+0259   0140 5F                        ld e,a
+0260   0141 2A 64 28                  ld hl,(0x2864)
+0261   0144 6A                        ld l,d
+0262   0145 26 71                     ld h,0x71
+0263   0147 24                        inc h
+0264   0148 77                        ld (hl),a
+0265   0149 22 7F 20                  ld (0x207f),hl
+0266   014C 86                        add a,(hl)
+0267   014D 1E 8E                     ld e,0x8e
+0268   014F 1C                        inc e
+0269   0150 96                        sub (hl)
+0270   0151 1A                        ld a,(de)
+0271   0152 94                        sub h
+0272   0153 19                        add hl,de
+0273   0154 A9                        xor c
+0274   0155 18 B3                     jr 0x010a
+0275   0157 16 BE                     ld d,0xbe
+0276   0159 15                        dec d
+0277   015A C9                        ret
+0278   015B 14                        inc d
+0279   015C D5                        push de
+0280   015D 13                        inc de
+0281   015E E1                        pop hl
+0282   015F 12                        ld (de),a
+0283   0160 EF                        rst 0x28
+0284   0161 11 FD 10                  ld de,0x10fd
+0285   0164 FF                        rst 0x38
+0286   0165 FF                        rst 0x38
+0287   0166 FF                        rst 0x38
+0288   0167 FF                        rst 0x38
+0289   0168 FF                        rst 0x38
+0290   0169 FF                        rst 0x38
+0291   016A FF                        rst 0x38
+0292   016B FF                        rst 0x38
+0293   016C FF                        rst 0x38
+0294   016D FF                        rst 0x38
+0295   016E FF                        rst 0x38
+0296   016F FF                        rst 0x38
+0297   0170 C5                        push bc
+0298   0171 D5                        push de
+0299   0172 E5                        push hl
+0300   0173 F5                        push af
+0301   0174 A7                        and a
+0302   0175 20 03                     jr nz,0x017a
+0303   0177 5F                        ld e,a
+0304   0178 18 02                     jr 0x017c
+0305   017A 1E 80                     ld e,0x80
+0306   017C 21 00 01                  ld hl,0x0100
+0307   017F 87                        add a,a
+0308   0180 85                        add a,l
+0309   0181 6F                        ld l,a
+0310   0182 4E                        ld c,(hl)
+0311   0183 23                        inc hl
+0312   0184 46                        ld b,(hl)
+0313   0185 7B                        ld a,e
+0314   0186 D3 01                     out (0x01),a
+0315   0188 10 FE                     djnz 0x0188
+0316   018A 46                        ld b,(hl)
+0317   018B AF                        xor a
+0318   018C D3 01                     out (0x01),a
+0319   018E 10 FE                     djnz 0x018e
+0320   0190 0D                        dec c
+0321   0191 20 F1                     jr nz,0x0184
+0322   0193 F1                        pop af
+0323   0194 E1                        pop hl
+0324   0195 D1                        pop de
+0325   0196 C1                        pop bc
+0326   0197 C9                        ret
+0327   0198 FF                        rst 0x38
+0328   0199 FF                        rst 0x38
+0329   019A FF                        rst 0x38
+0330   019B FF                        rst 0x38
+0331   019C FF                        rst 0x38
+0332   019D FF                        rst 0x38
+0333   019E FF                        rst 0x38
+0334   019F FF                        rst 0x38
+0335   01A0 F5                        push af
+0336   01A1 E5                        push hl
+0337   01A2 2A D6 9F                  ld hl,(0x9Fd6)
+0338   01A5 7E                        ld a,(hl)
+0339   01A6 FE FF                     cp 0xff
+0340   01A8 20 03                     jr nz,0x01ad
+0341   01AA E1                        pop hl
+0342   01AB F1                        pop af
+0343   01AC C9                        ret
+0344   01AD FE FE                     cp 0xfe
+0345   01AF 28 F1                     jr z,0x01a2
+0346   01B1 23                        inc hl
+0347   01B2 CD 70 01                  call 0x0170
+0348   01B5 18 EE                     jr 0x01a5
+0349   01B7 FF                        rst 0x38
+0350   01B8 FF                        rst 0x38
+0351   01B9 FF                        rst 0x38
+0352   01BA FF                        rst 0x38
+0353   01BB FF                        rst 0x38
+0354   01BC FF                        rst 0x38
+0355   01BD FF                        rst 0x38
+0356   01BE FF                        rst 0x38
+0357   01BF FF                        rst 0x38
+0358   01C0 21 DF 9F                  ld hl,0x9Fdf
+0359   01C3 CB 46                     bit 0,(hl)
+0360   01C5 20 07                     jr nz,0x01ce
+0361   01C7 CB C6                     set 0,(hl)
+0362   01C9 CB 8E                     res 1,(hl)
+0363   01CB C3 78 03                  jp 0x0378
+0364   01CE CB 86                     res 0,(hl)
+0365   01D0 CB CE                     set 1,(hl)
+0366   01D2 C3 78 03                  jp 0x0378
+0367   01D5 FF                        rst 0x38
+0368   01D6 FF                        rst 0x38
+0369   01D7 FF                        rst 0x38
+0370   01D8 C5                        push bc
+0371   01D9 06 80                     ld b,0x80
+0372   01DB CD A0 02                  call 0x02a0
+0373   01DE 10 FB                     djnz 0x01db
+0374   01E0 C1                        pop bc
+0375   01E1 C9                        ret
+0376   01E2 FF                        rst 0x38
+0377   01E3 FF                        rst 0x38
+0378   01E4 ED 4B D2 9F               ld bc,(0x9Fd2)
+0379   01E8 CD 90 04                  call 0x0490
+0380   01EB CD 70 02                  call 0x0270
+0381   01EE C3 78 03                  jp 0x0378
+0382   01F1 FF                        rst 0x38
+0383   01F2 ED 4B D4 9F               ld bc,(0x9Fd4)
+0384   01F6 CD 90 04                  call 0x0490
+0385   01F9 CD 70 02                  call 0x0270
+0386   01FC C3 78 03                  jp 0x0378
+0387   01FF FF                        rst 0x38
+0388   0200 ED 73 E8 9F               ld (0x9Fe8),sp
+0389   0204 31 00 A0                  ld sp,0xA000
+0390   0207 F5                        push af
+0391   0208 C5                        push bc
+0392   0209 D5                        push de
+0393   020A E5                        push hl
+0394   020B DD E5                     push ix
+0395   020D FD E5                     push iy
+0396   020F 08                        ex af,af'
+0397   0210 D9                        exx
+0398   0211 F5                        push af
+0399   0212 C5                        push bc
+0400   0213 D5                        push de
+0401   0214 E5                        push hl
+0402   0215 ED 57                     ld a,i
+0403   0217 F5                        push af
+0404   0218 AF                        xor a
+0405   0219 32 CC 9F                  ld (0x9Fcc),a
+0406   021C 32 CD 9F                  ld (0x9Fcd),a
+0407   021F 3E FF                     ld a,0xff
+0408   0221 32 E0 9F                  ld (0x9Fe0),a
+0409   0224 C3 40 02                  jp 0x0240
+0410   0227 FF                        rst 0x38
+0411   0228 FF                        rst 0x38
+0412   0229 FF                        rst 0x38
+0413   022A FF                        rst 0x38
+0414   022B FF                        rst 0x38
+0415   022C FF                        rst 0x38
+0416   022D FF                        rst 0x38
+0417   022E FF                        rst 0x38
+0418   022F FF                        rst 0x38
+0419   0230 FF                        rst 0x38
+0420   0231 FF                        rst 0x38
+0421   0232 FF                        rst 0x38
+0422   0233 FF                        rst 0x38
+0423   0234 FF                        rst 0x38
+0424   0235 FF                        rst 0x38
+0425   0236 FF                        rst 0x38
+0426   0237 FF                        rst 0x38
+0427   0238 FF                        rst 0x38
+0428   0239 FF                        rst 0x38
+0429   023A FF                        rst 0x38
+0430   023B FF                        rst 0x38
+0431   023C FF                        rst 0x38
+0432   023D FF                        rst 0x38
+0433   023E FF                        rst 0x38
+0434   023F FF                        rst 0x38
+0435   0240 31 C0 9F                  ld sp,0x9Fc0
+0436   0243 AF                        xor a
+0437   0244 D3 01                     out (0x01),a
+0438   0246 D3 02                     out (0x02),a
+0439   0248 21 B0 00                  ld hl,0x00b0
+0440   024B 11 D8 9F                  ld de,0x9Fd8
+0441   024E 01 05 00                  ld bc,0x0005
+0442   0251 ED B0                     ldir
+0443   0253 CD 70 02                  call 0x0270
+0444   0256 3E 08                     ld a,0x08
+0445   0258 CD 70 01                  call 0x0170
+0446   025B 3E 0F                     ld a,0x0f
+0447   025D CD 70 01                  call 0x0170
+0448   0260 3E 01                     ld a,0x01
+0449   0262 32 DF 9F                  ld (0x9Fdf),a
+0450   0265 CD A0 02                  call 0x02a0
+0451   0268 CD 60 03                  call 0x0360
+0452   026B 18 F8                     jr 0x0265
+0453   026D FF                        rst 0x38
+0454   026E FF                        rst 0x38
+0455   026F FF                        rst 0x38
+0456   0270 F5                        push af
+0457   0271 E5                        push hl
+0458   0272 C5                        push bc
+0459   0273 CD 89 02                  call 0x0289
+0460   0276 E6 F0                     and 0xf0
+0461   0278 0F                        rrca
+0462   0279 0F                        rrca
+0463   027A 0F                        rrca
+0464   027B 0F                        rrca
+0465   027C 32 DC 9F                  ld (0x9Fdc),a
+0466   027F 0A                        ld a,(bc)
+0467   0280 E6 0F                     and 0x0f
+0468   0282 32 DD 9F                  ld (0x9Fdd),a
+0469   0285 C1                        pop bc
+0470   0286 E1                        pop hl
+0471   0287 F1                        pop af
+0472   0288 C9                        ret
+0473   0289 21 D8 9F                  ld hl,0x9Fd8
+0474   028C 7E                        ld a,(hl)
+0475   028D 07                        rlca
+0476   028E 07                        rlca
+0477   028F 07                        rlca
+0478   0290 07                        rlca
+0479   0291 23                        inc hl
+0480   0292 86                        add a,(hl)
+0481   0293 47                        ld b,a
+0482   0294 23                        inc hl
+0483   0295 7E                        ld a,(hl)
+0484   0296 07                        rlca
+0485   0297 07                        rlca
+0486   0298 07                        rlca
+0487   0299 07                        rlca
+0488   029A 23                        inc hl
+0489   029B 86                        add a,(hl)
+0490   029C 4F                        ld c,a
+0491   029D 0A                        ld a,(bc)
+0492   029E C9                        ret
+0493   029F FF                        rst 0x38
+0494   02A0 F5                        push af
+0495   02A1 E5                        push hl
+0496   02A2 D5                        push de
+0497   02A3 C5                        push bc
+0498   02A4 11 D8 9F                  ld de,0x9Fd8
+0499   02A7 AF                        xor a
+0500   02A8 D3 01                     out (0x01),a
+0501   02AA CD 50 03                  call 0x0350
+0502   02AD CB 4E                     bit 1,(hl)
+0503   02AF 28 02                     jr z,0x02b3
+0504   02B1 CB E7                     set 4,a
+0505   02B3 D3 02                     out (0x02),a
+0506   02B5 3E 20                     ld a,0x20
+0507   02B7 D3 01                     out (0x01),a
+0508   02B9 06 20                     ld b,0x20
+0509   02BB 10 FE                     djnz 0x02bb
+0510   02BD AF                        xor a
+0511   02BE D3 01                     out (0x01),a
+0512   02C0 CD 50 03                  call 0x0350
+0513   02C3 CB 4E                     bit 1,(hl)
+0514   02C5 28 02                     jr z,0x02c9
+0515   02C7 CB E7                     set 4,a
+0516   02C9 D3 02                     out (0x02),a
+0517   02CB 3E 10                     ld a,0x10
+0518   02CD D3 01                     out (0x01),a
+0519   02CF 06 20                     ld b,0x20
+0520   02D1 10 FE                     djnz 0x02d1
+0521   02D3 AF                        xor a
+0522   02D4 D3 01                     out (0x01),a
+0523   02D6 CD 50 03                  call 0x0350
+0524   02D9 CB 4E                     bit 1,(hl)
+0525   02DB 28 02                     jr z,0x02df
+0526   02DD CB E7                     set 4,a
+0527   02DF D3 02                     out (0x02),a
+0528   02E1 3E 08                     ld a,0x08
+0529   02E3 D3 01                     out (0x01),a
+0530   02E5 06 20                     ld b,0x20
+0531   02E7 10 FE                     djnz 0x02e7
+0532   02E9 AF                        xor a
+0533   02EA D3 01                     out (0x01),a
+0534   02EC CD 50 03                  call 0x0350
+0535   02EF CB 4E                     bit 1,(hl)
+0536   02F1 28 02                     jr z,0x02f5
+0537   02F3 CB E7                     set 4,a
+0538   02F5 D3 02                     out (0x02),a
+0539   02F7 3E 04                     ld a,0x04
+0540   02F9 D3 01                     out (0x01),a
+0541   02FB 06 20                     ld b,0x20
+0542   02FD 10 FE                     djnz 0x02fd
+0543   02FF AF                        xor a
+0544   0300 D3 01                     out (0x01),a
+0545   0302 00                        nop
+0546   0303 C3 18 03                  jp 0x0318
+0547   0306 FF                        rst 0x38
+0548   0307 FF                        rst 0x38
+0549   0308 FF                        rst 0x38
+0550   0309 FF                        rst 0x38
+0551   030A FF                        rst 0x38
+0552   030B FF                        rst 0x38
+0553   030C CD 89 02                  call 0x0289
+0554   030F C5                        push bc
+0555   0310 E1                        pop hl
+0556   0311 31 C0 9F                  ld sp,0x9Fc0
+0557   0314 E9                        jp (hl)
+0558   0315 FF                        rst 0x38
+0559   0316 FF                        rst 0x38
+0560   0317 FF                        rst 0x38
+0561   0318 CD 50 03                  call 0x0350
+0562   031B CB 46                     bit 0,(hl)
+0563   031D 28 02                     jr z,0x0321
+0564   031F CB E7                     set 4,a
+0565   0321 D3 02                     out (0x02),a
+0566   0323 3E 02                     ld a,0x02
+0567   0325 D3 01                     out (0x01),a
+0568   0327 06 20                     ld b,0x20
+0569   0329 10 FE                     djnz 0x0329
+0570   032B AF                        xor a
+0571   032C D3 01                     out (0x01),a
+0572   032E CD 50 03                  call 0x0350
+0573   0331 CB 46                     bit 0,(hl)
+0574   0333 28 02                     jr z,0x0337
+0575   0335 CB E7                     set 4,a
+0576   0337 D3 02                     out (0x02),a
+0577   0339 3E 01                     ld a,0x01
+0578   033B D3 01                     out (0x01),a
+0579   033D 06 20                     ld b,0x20
+0580   033F 10 FE                     djnz 0x033f
+0581   0341 AF                        xor a
+0582   0342 D3 01                     out (0x01),a
+0583   0344 C1                        pop bc
+0584   0345 D1                        pop de
+0585   0346 E1                        pop hl
+0586   0347 F1                        pop af
+0587   0348 C9                        ret
+0588   0349 FF                        rst 0x38
+0589   034A FF                        rst 0x38
+0590   034B FF                        rst 0x38
+0591   034C FF                        rst 0x38
+0592   034D FF                        rst 0x38
+0593   034E FF                        rst 0x38
+0594   034F FF                        rst 0x38
+0595   0350 21 80 00                  ld hl,0x0080
+0596   0353 1A                        ld a,(de)
+0597   0354 85                        add a,l
+0598   0355 6F                        ld l,a
+0599   0356 7E                        ld a,(hl)
+0600   0357 13                        inc de
+0601   0358 21 DF 9F                  ld hl,0x9Fdf
+0602   035B C9                        ret
+0603   035C FF                        rst 0x38
+0604   035D FF                        rst 0x38
+0605   035E FF                        rst 0x38
+0606   035F FF                        rst 0x38
+0607   0360 F5                        push af
+0608   0361 E5                        push hl
+0609   0362 21 E0 9F                  ld hl,0x9Fe0
+0610   0365 3E FF                     ld a,0xff
+0611   0367 BE                        cp (hl)
+0612   0368 28 0E                     jr z,0x0378
+0613   036A 7E                        ld a,(hl)
+0614   036B E6 1F                     and 0x1f
+0615   036D CB 6E                     bit 5,(hl)
+0616   036F 20 02                     jr nz,0x0373
+0617   0371 C6 14                     add a,0x14
+0618   0373 C3 A8 03                  jp 0x03a8
+0619   0376 FF                        rst 0x38
+0620   0377 FF                        rst 0x38
+0621   0378 E1                        pop hl
+0622   0379 F1                        pop af
+0623   037A C9                        ret
+0624   037B FF                        rst 0x38
+0625   037C FF                        rst 0x38
+0626   037D E1                        pop hl
+0627   037E F1                        pop af
+0628   037F C9                        ret
+0629   0380 FF                        rst 0x38
+0630   0381 FF                        rst 0x38
+0631   0382 FF                        rst 0x38
+0632   0383 FF                        rst 0x38
+0633   0384 CD 89 02                  call 0x0289
+0634   0387 C5                        push bc
+0635   0388 DD E1                     pop ix
+0636   038A DD 23                     inc ix
+0637   038C DD E5                     push ix
+0638   038E E1                        pop hl
+0639   038F 7C                        ld a,h
+0640   0390 FE 40                     cp 0x40
+0641   0392 28 08                     jr z,0x039c
+0642   0394 DD 7E 00                  ld a,(ix+0)
+0643   0397 DD 77 FF                  ld (ix-1),a
+0644   039A 18 EE                     jr 0x038a
+0645   039C 3E 00                     ld a,0x00
+0646   039E 32 FF 3F                  ld (0x3fff),a
+0647   03A1 CD 70 02                  call 0x0270
+0648   03A4 C3 78 03                  jp 0x0378
+0649   03A7 FF                        rst 0x38
+0650   03A8 C6 01                     add a,0x01
+0651   03AA CD 70 01                  call 0x0170
+0652   03AD C3 21 04                  jp 0x0421
+0653   03B0 CD 89 02                  call 0x0289
+0654   03B3 0B                        dec bc
+0655   03B4 DD 21 FE 3F               ld ix,0x3ffe
+0656   03B8 DD 7E 00                  ld a,(ix+0)
+0657   03BB DD 77 01                  ld (ix+1),a
+0658   03BE DD 2B                     dec ix
+0659   03C0 DD E5                     push ix
+0660   03C2 E1                        pop hl
+0661   03C3 79                        ld a,c
+0662   03C4 BD                        cp l
+0663   03C5 20 F1                     jr nz,0x03b8
+0664   03C7 78                        ld a,b
+0665   03C8 BC                        cp h
+0666   03C9 20 ED                     jr nz,0x03b8
+0667   03CB DD 36 01 00               ld (ix+1),0x00
+0668   03CF CD 70 02                  call 0x0270
+0669   03D2 C3 78 03                  jp 0x0378
+0670   03D5 FF                        rst 0x38
+0671   03D6 FF                        rst 0x38
+0672   03D7 FF                        rst 0x38
+0673   03D8 E5                        push hl
+0674   03D9 F5                        push af
+0675   03DA DD E5                     push ix
+0676   03DC C5                        push bc
+0677   03DD AF                        xor a
+0678   03DE 32 DF 9F                  ld (0x9Fdf),a
+0679   03E1 06 06                     ld b,0x06
+0680   03E3 21 D8 9F                  ld hl,0x9Fd8
+0681   03E6 3E 29                     ld a,0x29
+0682   03E8 77                        ld (hl),a
+0683   03E9 23                        inc hl
+0684   03EA 10 FC                     djnz 0x03e8
+0685   03EC 2A D0 9F                  ld hl,(0x9Fd0)
+0686   03EF 7E                        ld a,(hl)
+0687   03F0 FE FF                     cp 0xff
+0688   03F2 20 06                     jr nz,0x03fa
+0689   03F4 C1                        pop bc
+0690   03F5 DD E1                     pop ix
+0691   03F7 F1                        pop af
+0692   03F8 E1                        pop hl
+0693   03F9 C9                        ret
+0694   03FA FE FE                     cp 0xfe
+0695   03FC 28 EE                     jr z,0x03ec
+0696   03FE DD 21 D8 9F               ld ix,0x9Fd8
+0697   0402 06 05                     ld b,0x05
+0698   0404 DD 7E 01                  ld a,(ix+1)
+0699   0407 DD 77 00                  ld (ix+0),a
+0700   040A DD 23                     inc ix
+0701   040C 10 F6                     djnz 0x0404
+0702   040E 7E                        ld a,(hl)
+0703   040F 32 DD 9F                  ld (0x9Fdd),a
+0704   0412 23                        inc hl
+0705   0413 06 40                     ld b,0x40
+0706   0415 CD A0 02                  call 0x02a0
+0707   0418 10 FB                     djnz 0x0415
+0708   041A 18 D3                     jr 0x03ef
+0709   041C FF                        rst 0x38
+0710   041D FF                        rst 0x38
+0711   041E FF                        rst 0x38
+0712   041F FF                        rst 0x38
+0713   0420 FF                        rst 0x38
+0714   0421 D6 01                     sub 0x01
+0715   0423 36 FF                     ld (hl),0xff
+0716   0425 CB 67                     bit 4,a
+0717   0427 C2 C0 04                  jp nz,0x04c0
+0718   042A CB 6F                     bit 5,a
+0719   042C C2 C0 04                  jp nz,0x04c0
+0720   042F 21 DF 9F                  ld hl,0x9Fdf
+0721   0432 CB 46                     bit 0,(hl)
+0722   0434 CA 55 04                  jp z,0x0455
+0723   0437 57                        ld d,a
+0724   0438 CD 89 02                  call 0x0289
+0725   043B 21 DF 9F                  ld hl,0x9Fdf
+0726   043E CB 5E                     bit 3,(hl)
+0727   0440 20 03                     jr nz,0x0445
+0728   0442 AF                        xor a
+0729   0443 CB DE                     set 3,(hl)
+0730   0445 07                        rlca
+0731   0446 07                        rlca
+0732   0447 07                        rlca
+0733   0448 07                        rlca
+0734   0449 E6 F0                     and 0xf0
+0735   044B 82                        add a,d
+0736   044C 02                        ld (bc),a
+0737   044D CD 70 02                  call 0x0270
+0738   0450 C3 7D 03                  jp 0x037d
+0739   0453 FF                        rst 0x38
+0740   0454 FF                        rst 0x38
+0741   0455 57                        ld d,a
+0742   0456 21 DF 9F                  ld hl,0x9Fdf
+0743   0459 CB 9E                     res 3,(hl)
+0744   045B CB 66                     bit 4,(hl)
+0745   045D 20 08                     jr nz,0x0467
+0746   045F 01 00 00                  ld bc,0x0000
+0747   0462 CD 90 04                  call 0x0490
+0748   0465 CB E6                     set 4,(hl)
+0749   0467 CD 89 02                  call 0x0289
+0750   046A 78                        ld a,b
+0751   046B 07                        rlca
+0752   046C 07                        rlca
+0753   046D 07                        rlca
+0754   046E 07                        rlca
+0755   046F E6 F0                     and 0xf0
+0756   0471 5F                        ld e,a
+0757   0472 79                        ld a,c
+0758   0473 07                        rlca
+0759   0474 07                        rlca
+0760   0475 07                        rlca
+0761   0476 07                        rlca
+0762   0477 E6 0F                     and 0x0f
+0763   0479 83                        add a,e
+0764   047A 47                        ld b,a
+0765   047B 79                        ld a,c
+0766   047C 07                        rlca
+0767   047D 07                        rlca
+0768   047E 07                        rlca
+0769   047F 07                        rlca
+0770   0480 E6 F0                     and 0xf0
+0771   0482 82                        add a,d
+0772   0483 4F                        ld c,a
+0773   0484 CD 90 04                  call 0x0490
+0774   0487 CD 70 02                  call 0x0270
+0775   048A C3 7D 03                  jp 0x037d
+0776   048D FF                        rst 0x38
+0777   048E FF                        rst 0x38
+0778   048F FF                        rst 0x38
+0779   0490 F5                        push af
+0780   0491 E5                        push hl
+0781   0492 21 D8 9F                  ld hl,0x9Fd8
+0782   0495 78                        ld a,b
+0783   0496 E6 F0                     and 0xf0
+0784   0498 07                        rlca
+0785   0499 07                        rlca
+0786   049A 07                        rlca
+0787   049B 07                        rlca
+0788   049C 77                        ld (hl),a
+0789   049D 23                        inc hl
+0790   049E 78                        ld a,b
+0791   049F E6 0F                     and 0x0f
+0792   04A1 77                        ld (hl),a
+0793   04A2 23                        inc hl
+0794   04A3 79                        ld a,c
+0795   04A4 E6 F0                     and 0xf0
+0796   04A6 07                        rlca
+0797   04A7 07                        rlca
+0798   04A8 07                        rlca
+0799   04A9 07                        rlca
+0800   04AA 77                        ld (hl),a
+0801   04AB 23                        inc hl
+0802   04AC 79                        ld a,c
+0803   04AD E6 0F                     and 0x0f
+0804   04AF 77                        ld (hl),a
+0805   04B0 E1                        pop hl
+0806   04B1 F1                        pop af
+0807   04B2 C9                        ret
+0808   04B3 FF                        rst 0x38
+0809   04B4 FF                        rst 0x38
+0810   04B5 FF                        rst 0x38
+0811   04B6 FF                        rst 0x38
+0812   04B7 FF                        rst 0x38
+0813   04B8 FF                        rst 0x38
+0814   04B9 FF                        rst 0x38
+0815   04BA FF                        rst 0x38
+0816   04BB FF                        rst 0x38
+0817   04BC FF                        rst 0x38
+0818   04BD FF                        rst 0x38
+0819   04BE FF                        rst 0x38
+0820   04BF FF                        rst 0x38
+0821   04C0 21 DF 9F                  ld hl,0x9Fdf
+0822   04C3 CB 9E                     res 3,(hl)
+0823   04C5 CB A6                     res 4,(hl)
+0824   04C7 FE 10                     cp 0x10
+0825   04C9 CA E0 00                  jp z,0x00e0
+0826   04CC FE 11                     cp 0x11
+0827   04CE CA E6 00                  jp z,0x00e6
+0828   04D1 FE 12                     cp 0x12
+0829   04D3 CA 0C 03                  jp z,0x030c
+0830   04D6 FE 13                     cp 0x13
+0831   04D8 CA C0 01                  jp z,0x01c0
+0832   04DB FE 14                     cp 0x14
+0833   04DD CA 50 05                  jp z,0x0550
+0834   04E0 FE 15                     cp 0x15
+0835   04E2 CA FF FF                  jp z,0xffff
+0836   04E5 FE 16                     cp 0x16
+0837   04E7 CA FF FF                  jp z,0xffff
+0838   04EA FE 17                     cp 0x17
+0839   04EC CA F2 01                  jp z,0x01f2
+0840   04EF FE 18                     cp 0x18
+0841   04F1 CA 70 05                  jp z,0x0570
+0842   04F4 FE 19                     cp 0x19
+0843   04F6 CA FF FF                  jp z,0xffff
+0844   04F9 FE 1A                     cp 0x1a
+0845   04FB CA FF FF                  jp z,0xffff
+0846   04FE FE 1B                     cp 0x1b
+0847   0500 CA FF FF                  jp z,0xffff
+0848   0503 FE 1C                     cp 0x1c
+0849   0505 CA 60 06                  jp z,0x0660
+0850   0508 FE 1D                     cp 0x1d
+0851   050A CA FF FF                  jp z,0xffff
+0852   050D FE 1E                     cp 0x1e
+0853   050F CA FF FF                  jp z,0xffff
+0854   0512 FE 1F                     cp 0x1f
+0855   0514 CA FF FF                  jp z,0xffff
+0856   0517 FE 20                     cp 0x20
+0857   0519 CA FF FF                  jp z,0xffff
+0858   051C FE 21                     cp 0x21
+0859   051E CA FF FF                  jp z,0xffff
+0860   0521 FE 22                     cp 0x22
+0861   0523 CA FF FF                  jp z,0xffff
+0862   0526 FE 23                     cp 0x23
+0863   0528 CA FF FF                  jp z,0xffff
+0864   052B FE 24                     cp 0x24
+0865   052D CA B0 03                  jp z,0x03b0
+0866   0530 FE 25                     cp 0x25
+0867   0532 CA 84 03                  jp z,0x0384
+0868   0535 FE 26                     cp 0x26
+0869   0537 CA FF FF                  jp z,0xffff
+0870   053A FE 27                     cp 0x27
+0871   053C CA E4 01                  jp z,0x01e4
+0872   053F C3 78 03                  jp 0x0378
+0873   0542 FF                        rst 0x38
+0874   0543 FF                        rst 0x38
+0875   0544 FF                        rst 0x38
+0876   0545 FF                        rst 0x38
+0877   0546 FF                        rst 0x38
+0878   0547 FF                        rst 0x38
+0879   0548 FF                        rst 0x38
+0880   0549 FF                        rst 0x38
+0881   054A FF                        rst 0x38
+0882   054B FF                        rst 0x38
+0883   054C FF                        rst 0x38
+0884   054D FF                        rst 0x38
+0885   054E FF                        rst 0x38
+0886   054F FF                        rst 0x38
+0887   0550 CD 89 02                  call 0x0289
+0888   0553 60                        ld h,b
+0889   0554 69                        ld l,c
+0890   0555 3A E1 9F                  ld a,(0x9Fe1)
+0891   0558 23                        inc hl
+0892   0559 BE                        cp (hl)
+0893   055A 20 FC                     jr nz,0x0558
+0894   055C 44                        ld b,h
+0895   055D 4D                        ld c,l
+0896   055E CD 90 04                  call 0x0490
+0897   0561 C3 53 02                  jp 0x0253
+0898   0564             
+0899   0564                         .org $7F8
+0900   07F8 56 65 72 3A VERSION:    db $56, $65, $72, $3A           ; VER:
+0901   07FC 31 2E 30 4D             db $31, $2E, $30, $4D           ; 1.0M
+Number of errors = 0
