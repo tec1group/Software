@@ -57,7 +57,7 @@ Included:
 - Listing in Z80 ASM format
 - Fully commented source listing by Jim Roberton (PDF)
 
-## Utilities / Disassembler ROM
+## JMON Utilities ROM
 by Jim Robertson and Mike Donaghy
 
 Included:
