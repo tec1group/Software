@@ -1,0 +1,82 @@
+; Computer Graphics (fixed version)
+; TEC Printer Routine to Repeating Shapes to form a pattern
+; See TE Issue 12,  Page 37 for more details
+
+            ORG     0800H 
+DIRTAB:     EQU     0860H 
+DRAWTAB:    EQU     0880H 
+
+START:               
+            LD      B,06H
+            LD      A,0AH
+LOOP1:
+            OUT     (06),A
+            DJNZ    LOOP1
+            LD      A,12H
+            OUT     (06),A
+            LD      DE,DIRTAB
+JUMP1:
+            LD      B,08H
+LOOP2:
+            PUSH    BC
+            LD      B,04H
+LOOP3:
+            LD      HL,DRAWTAB
+LOOP4:
+            LD      A,(HL)
+            CP      0FFH
+            JP      Z,JUMP2
+            OUT     (06),A
+            INC     HL
+            JP      LOOP4
+JUMP2:
+            DJNZ    LOOP3
+            LD      A,11H
+            OUT     (06),A
+            LD      A,1DH
+            OUT     (06),A
+            XOR     A
+            OUT     (06),A
+            LD      A,12H
+            OUT     (06),A
+            POP     BC
+            DJNZ    LOOP2
+            LD      A,(DE)
+            CP      0FFH
+            JP      NZ,JUMP3
+            LD      A,11H
+            OUT     (06),A
+            RST     00H
+JUMP3:
+            LD      (089AH),A    ;X MOVE LOCATION
+            INC     DE
+            LD      A,(DE)
+            LD      (089BH),A
+            INC     DE
+            LD      A,(DE)
+            LD      (089DH),A    ;Y MOVE LOCATION
+            INC     DE
+            LD      A,(DE)
+            LD      (089EH),A
+            INC     DE
+            JP      JUMP1
+
+            DS      8,0FFH
+
+            ORG     DIRTAB
+            DB      30H,34H,2DH,34H,2DH,34H,2DH,34H
+            DB      2DH,34H,30H,34H,0FFH
+
+            DS      19,0FFH
+
+            ORG     DRAWTAB
+            DB      49H,2CH,44H,38H,30H,2CH,30H,2CH
+            DB      38H,30H,2CH,2DH,38H,30H,2CH,30H
+            DB      2CH,2DH,38H,30H,2CH,30H,2CH,30H
+            DB      0DH,4DH,30H,34H,2CH,30H,34H,0DH
+            DB      0FFH
+
+
+
+
+            

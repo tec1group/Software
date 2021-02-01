@@ -1,0 +1,504 @@
+1800                          .ORG   1800H   
+1800   3E 0D                  LD   A,0X0D   
+1802   D3 06                  OUT   (0X06),A   
+1804   3E 0A                  LD   A,0X0A   
+1806   D3 06                  OUT   (0X06),A   
+1808   76                     HALT      
+1809   ED 57                  LD   A,I   
+180B   17                     RLA      
+180C   17                     RLA      
+180D   17                     RLA      
+180E   17                     RLA      
+180F   57                     LD   D,A   
+1810   CD 5D 18               CALL   0X185D   
+1813   76                     HALT      
+1814   ED 57                  LD   A,I   
+1816   82                     ADD   A,D   
+1817   57                     LD   D,A   
+1818   CD 61 18               CALL   0X1861   
+181B   76                     HALT      
+181C   ED 57                  LD   A,I   
+181E   17                     RLA      
+181F   17                     RLA      
+1820   17                     RLA      
+1821   17                     RLA      
+1822   5F                     LD   E,A   
+1823   CD 5D 18               CALL   0X185D   
+1826   76                     HALT      
+1827   ED 57                  LD   A,I   
+1829   83                     ADD   A,E   
+182A   5F                     LD   E,A   
+182B   CD 61 18               CALL   0X1861   
+182E   C3 49 18               JP   0X1849   
+1831   3E 0D                  LD   A,0X0D   
+1833   D3 06                  OUT   (0X06),A   
+1835   3E 0A                  LD   A,0X0A   
+1837   D3 06                  OUT   (0X06),A   
+1839   7A                     LD   A,D   
+183A   CD 5D 18               CALL   0X185D   
+183D   7A                     LD   A,D   
+183E   CD 61 18               CALL   0X1861   
+1841   7B                     LD   A,E   
+1842   CD 5D 18               CALL   0X185D   
+1845   7B                     LD   A,E   
+1846   CD 61 18               CALL   0X1861   
+1849   06 08                  LD   B,0X08   
+184B   3E 20                  LD   A,0X20   
+184D   D3 06                  OUT   (0X06),A   
+184F   1A                     LD   A,(DE)   
+1850   CD 5D 18               CALL   0X185D   
+1853   1A                     LD   A,(DE)   
+1854   CD 61 18               CALL   0X1861   
+1857   13                     INC   DE   
+1858   10 F1                  DJNZ   0X184B   
+185A   C3 31 18               JP   0X1831   
+185D   1F                     RRA      
+185E   1F                     RRA      
+185F   1F                     RRA      
+1860   1F                     RRA      
+1861   21 6C 18               LD   HL,0X186C   
+1864   E6 0F                  AND   0X0F   
+1866   85                     ADD   A,L   
+1867   6F                     LD   L,A   
+1868   7E                     LD   A,(HL)   
+1869   D3 06                  OUT   (0X06),A   
+186B   C9                     RET      
+186C   30 31                  JR   NC,0X189F   
+186E   32 33 34               LD   (0X3433),A   
+1871   35                     DEC   (HL)   
+1872   36 37                  LD   (HL),0X37   
+1874   38 39                  JR   C,0X18AF   
+1876   41                     LD   B,C   
+1877   42                     LD   B,D   
+1878   43                     LD   B,E   
+1879   44                     LD   B,H   
+187A   45                     LD   B,L   
+187B   46                     LD   B,(HL)   
+187C   FF                     RST   0X38   
+187D   FF                     RST   0X38   
+187E   FF                     RST   0X38   
+187F   FF                     RST   0X38   
+1880   21 00 08               LD   HL,0X0800   
+1883   7E                     LD   A,(HL)   
+1884   FE FF                  CP   0XFF   
+1886   20 05                  JR   NZ,0X188D   
+1888   3E 11                  LD   A,0X11   
+188A   D3 06                  OUT   (0X06),A   
+188C   C7                     RST   0X00   
+188D   D3 06                  OUT   (0X06),A   
+188F   23                     INC   HL   
+1890   18 F1                  JR   0X1883   
+1892   FF                     RST   0X38   
+1893   FF                     RST   0X38   
+1894   FF                     RST   0X38   
+1895   FF                     RST   0X38   
+1896   FF                     RST   0X38   
+1897   FF                     RST   0X38   
+1898   FF                     RST   0X38   
+1899   FF                     RST   0X38   
+189A   FF                     RST   0X38   
+189B   FF                     RST   0X38   
+189C   FF                     RST   0X38   
+189D   FF                     RST   0X38   
+189E   FF                     RST   0X38   
+189F   FF                     RST   0X38   
+18A0   21 C3 18               LD   HL,0X18C3   
+18A3   7E                     LD   A,(HL)   
+18A4   FE FF                  CP   0XFF   
+18A6   28 05                  JR   Z,0X18AD   
+18A8   D3 06                  OUT   (0X06),A   
+18AA   23                     INC   HL   
+18AB   18 F6                  JR   0X18A3   
+18AD   06 0A                  LD   B,0X0A   
+18AF   21 CF 18               LD   HL,0X18CF   
+18B2   7E                     LD   A,(HL)   
+18B3   FE FF                  CP   0XFF   
+18B5   28 05                  JR   Z,0X18BC   
+18B7   D3 06                  OUT   (0X06),A   
+18B9   23                     INC   HL   
+18BA   18 F6                  JR   0X18B2   
+18BC   10 F1                  DJNZ   0X18AF   
+18BE   3E 11                  LD   A,0X11   
+18C0   D3 06                  OUT   (0X06),A   
+18C2   C7                     RST   0X00   
+18C3   0D                     DEC   C   
+18C4   0A                     LD   A,(BC)   
+18C5   0A                     LD   A,(BC)   
+18C6   0A                     LD   A,(BC)   
+18C7   0A                     LD   A,(BC)   
+18C8   0A                     LD   A,(BC)   
+18C9   0A                     LD   A,(BC)   
+18CA   12                     LD   (DE),A   
+18CB   43                     LD   B,E   
+18CC   30 0D                  JR   NC,0X18DB   
+18CE   FF                     RST   0X38   
+18CF   49                     LD   C,C   
+18D0   2C                     INC   L   
+18D1   44                     LD   B,H   
+18D2   33                     INC   SP   
+18D3   32 30 2C               LD   (0X2C30),A   
+18D6   30 0D                  JR   NC,0X18E5   
+18D8   4D                     LD   C,L   
+18D9   31 32 30               LD   SP,0X3032   
+18DC   2C                     INC   L   
+18DD   30 0D                  JR   NC,0X18EC   
+18DF   44                     LD   B,H   
+18E0   38 30                  JR   C,0X1912   
+18E2   2C                     INC   L   
+18E3   2D                     DEC   L   
+18E4   31 36 30               LD   SP,0X3036   
+18E7   0D                     DEC   C   
+18E8   4D                     LD   C,L   
+18E9   32 32 30               LD   (0X3032),A   
+18EC   2C                     INC   L   
+18ED   2D                     DEC   L   
+18EE   38 30                  JR   C,0X1920   
+18F0   0D                     DEC   C   
+18F1   44                     LD   B,H   
+18F2   31 36 30               LD   SP,0X3036   
+18F5   2C                     INC   L   
+18F6   2D                     DEC   L   
+18F7   38 30                  JR   C,0X1929   
+18F9   2C                     INC   L   
+18FA   31 34 30               LD   SP,0X3034   
+18FD   2C                     INC   L   
+18FE   2D                     DEC   L   
+18FF   31 36 30               LD   SP,0X3036   
+1902   2C                     INC   L   
+1903   32 30 30               LD   (0X3030),A   
+1906   2C                     INC   L   
+1907   2D                     DEC   L   
+1908   31 36 30               LD   SP,0X3036   
+190B   0D                     DEC   C   
+190C   4D                     LD   C,L   
+190D   31 35 30               LD   SP,0X3035   
+1910   2C                     INC   L   
+1911   2D                     DEC   L   
+1912   31 32 30               LD   SP,0X3032   
+1915   0D                     DEC   C   
+1916   44                     LD   B,H   
+1917   32 30 30               LD   (0X3030),A   
+191A   2C                     INC   L   
+191B   2D                     DEC   L   
+191C   31 32 30               LD   SP,0X3032   
+191F   0D                     DEC   C   
+1920   4D                     LD   C,L   
+1921   33                     INC   SP   
+1922   32 30 2C               LD   (0X2C30),A   
+1925   2D                     DEC   L   
+1926   38 30                  JR   C,0X1958   
+1928   0D                     DEC   C   
+1929   44                     LD   B,H   
+192A   32 36 30               LD   (0X3036),A   
+192D   2C                     INC   L   
+192E   2D                     DEC   L   
+192F   38 30                  JR   C,0X1961   
+1931   2C                     INC   L   
+1932   32 34 30               LD   (0X3034),A   
+1935   2C                     INC   L   
+1936   2D                     DEC   L   
+1937   31 36 30               LD   SP,0X3036   
+193A   2C                     INC   L   
+193B   33                     INC   SP   
+193C   30 30                  JR   NC,0X196E   
+193E   2C                     INC   L   
+193F   2D                     DEC   L   
+1940   31 36 30               LD   SP,0X3036   
+1943   0D                     DEC   C   
+1944   4D                     LD   C,L   
+1945   33                     INC   SP   
+1946   36 30                  LD   (HL),0X30   
+1948   2C                     INC   L   
+1949   2D                     DEC   L   
+194A   31 32 30               LD   SP,0X3032   
+194D   0D                     DEC   C   
+194E   44                     LD   B,H   
+194F   34                     INC   (HL)   
+1950   30 30                  JR   NC,0X1982   
+1952   2C                     INC   L   
+1953   2D                     DEC   L   
+1954   31 32 30               LD   SP,0X3032   
+1957   0D                     DEC   C   
+1958   4D                     LD   C,L   
+1959   34                     INC   (HL)   
+195A   36 30                  LD   (HL),0X30   
+195C   2C                     INC   L   
+195D   2D                     DEC   L   
+195E   38 30                  JR   C,0X1990   
+1960   0D                     DEC   C   
+1961   44                     LD   B,H   
+1962   34                     INC   (HL)   
+1963   34                     INC   (HL)   
+1964   30 2C                  JR   NC,0X1992   
+1966   2D                     DEC   L   
+1967   31 36 30               LD   SP,0X3036   
+196A   0D                     DEC   C   
+196B   4D                     LD   C,L   
+196C   32 2C 2D               LD   (0X2D2C),A   
+196F   32 0D 43               LD   (0X430D),A   
+1972   33                     INC   SP   
+1973   0D                     DEC   C   
+1974   FF                     RST   0X38   
+1975   FF                     RST   0X38   
+1976   FF                     RST   0X38   
+1977   FF                     RST   0X38   
+1978   FF                     RST   0X38   
+1979   FF                     RST   0X38   
+197A   FF                     RST   0X38   
+197B   FF                     RST   0X38   
+197C   FF                     RST   0X38   
+197D   FF                     RST   0X38   
+197E   FF                     RST   0X38   
+197F   FF                     RST   0X38   
+1980   76                     HALT      
+1981   ED 57                  LD   A,I   
+1983   E6 0F                  AND   0X0F   
+1985   17                     RLA      
+1986   17                     RLA      
+1987   17                     RLA      
+1988   17                     RLA      
+1989   57                     LD   D,A   
+198A   76                     HALT      
+198B   ED 57                  LD   A,I   
+198D   E6 0F                  AND   0X0F   
+198F   82                     ADD   A,D   
+1990   D3 06                  OUT   (0X06),A   
+1992   18 EC                  JR   0X1980   
+1994   FF                     RST   0X38   
+1995   FF                     RST   0X38   
+1996   FF                     RST   0X38   
+1997   FF                     RST   0X38   
+1998   FF                     RST   0X38   
+1999   FF                     RST   0X38   
+199A   FF                     RST   0X38   
+199B   FF                     RST   0X38   
+199C   FF                     RST   0X38   
+199D   FF                     RST   0X38   
+199E   FF                     RST   0X38   
+199F   FF                     RST   0X38   
+19A0   76                     HALT      
+19A1   3A E0 08               LD   A,(0X08E0)   
+19A4   E6 0F                  AND   0X0F   
+19A6   17                     RLA      
+19A7   17                     RLA      
+19A8   17                     RLA      
+19A9   17                     RLA      
+19AA   57                     LD   D,A   
+19AB   76                     HALT      
+19AC   3A E0 08               LD   A,(0X08E0)   
+19AF   E6 0F                  AND   0X0F   
+19B1   82                     ADD   A,D   
+19B2   D3 06                  OUT   (0X06),A   
+19B4   18 EA                  JR   0X19A0   
+19B6   FF                     RST   0X38   
+19B7   FF                     RST   0X38   
+19B8   FF                     RST   0X38   
+19B9   FF                     RST   0X38   
+19BA   FF                     RST   0X38   
+19BB   FF                     RST   0X38   
+19BC   FF                     RST   0X38   
+19BD   FF                     RST   0X38   
+19BE   FF                     RST   0X38   
+19BF   FF                     RST   0X38   
+19C0   3E 0D                  LD   A,0X0D   
+19C2   D3 06                  OUT   (0X06),A   
+19C4   3E 0A                  LD   A,0X0A   
+19C6   D3 06                  OUT   (0X06),A   
+19C8   3E 29                  LD   A,0X29   
+19CA   21 D8 08               LD   HL,0X08D8   
+19CD   06 06                  LD   B,0X06   
+19CF   77                     LD   (HL),A   
+19D0   23                     INC   HL   
+19D1   10 FC                  DJNZ   0X19CF   
+19D3   CD 00 1A               CALL   0X1A00   
+19D6   32 D8 08               LD   (0X08D8),A   
+19D9   CD 00 1A               CALL   0X1A00   
+19DC   32 D9 08               LD   (0X08D9),A   
+19DF   CD 00 1A               CALL   0X1A00   
+19E2   32 DA 08               LD   (0X08DA),A   
+19E5   CD 00 1A               CALL   0X1A00   
+19E8   32 DB 08               LD   (0X08DB),A   
+19EB   CD D8 01               CALL   0X01D8   
+19EE   CD 89 02               CALL   0X0289   
+19F1   50                     LD   D,B   
+19F2   59                     LD   E,C   
+19F3   C3 31 18               JP   0X1831   
+19F6   FF                     RST   0X38   
+19F7   FF                     RST   0X38   
+19F8   FF                     RST   0X38   
+19F9   FF                     RST   0X38   
+19FA   FF                     RST   0X38   
+19FB   FF                     RST   0X38   
+19FC   FF                     RST   0X38   
+19FD   FF                     RST   0X38   
+19FE   FF                     RST   0X38   
+19FF   FF                     RST   0X38   
+1A00   3E FF                  LD   A,0XFF   
+1A02   32 E0 08               LD   (0X08E0),A   
+1A05   CD A0 02               CALL   0X02A0   
+1A08   3A E0 08               LD   A,(0X08E0)   
+1A0B   FE FF                  CP   0XFF   
+1A0D   28 F6                  JR   Z,0X1A05   
+1A0F   E6 0F                  AND   0X0F   
+1A11   C6 01                  ADD   A,0X01   
+1A13   CD 70 01               CALL   0X0170   
+1A16   D6 01                  SUB   0X01   
+1A18   C9                     RET      
+1A19   FF                     RST   0X38   
+1A1A   FF                     RST   0X38   
+1A1B   FF                     RST   0X38   
+1A1C   FF                     RST   0X38   
+1A1D   FF                     RST   0X38   
+1A1E   FF                     RST   0X38   
+1A1F   FF                     RST   0X38   
+1A20   21 34 1A               LD   HL,0X1A34   
+1A23   11 80 08               LD   DE,0X0880   
+1A26   01 0A 00               LD   BC,0X000A   
+1A29   ED B0                  LDIR      
+1A2B   21 00 00               LD   HL,0X0000   
+1A2E   22 9C 08               LD   (0X089C),HL   
+1A31   C3 44 00               JP   0X0044   
+1A34   00                     NOP      
+1A35   00                     NOP      
+1A36   3E 1A                  LD   A,0X1A   
+1A38   99                     SBC   A,C   
+1A39   08                     EX   AF,AF'   
+1A3A   00                     NOP      
+1A3B   01 50 1A               LD   BC,0X1A50   
+1A3E   04                     INC   B   
+1A3F   A7                     AND   A   
+1A40   04                     INC   B   
+1A41   C7                     RST   0X00   
+1A42   04                     INC   B   
+1A43   EB                     EX   DE,HL   
+1A44   FF                     RST   0X38   
+1A45   FF                     RST   0X38   
+1A46   FF                     RST   0X38   
+1A47   FF                     RST   0X38   
+1A48   FF                     RST   0X38   
+1A49   FF                     RST   0X38   
+1A4A   FF                     RST   0X38   
+1A4B   FF                     RST   0X38   
+1A4C   FF                     RST   0X38   
+1A4D   FF                     RST   0X38   
+1A4E   FF                     RST   0X38   
+1A4F   FF                     RST   0X38   
+1A50   3E 0D                  LD   A,0X0D   
+1A52   D3 06                  OUT   (0X06),A   
+1A54   2A 98 08               LD   HL,(0X0898)   
+1A57   7C                     LD   A,H   
+1A58   CD 82 1A               CALL   0X1A82   
+1A5B   7D                     LD   A,L   
+1A5C   CD 82 1A               CALL   0X1A82   
+1A5F   06 08                  LD   B,0X08   
+1A61   C5                     PUSH   BC   
+1A62   3E 20                  LD   A,0X20   
+1A64   D3 06                  OUT   (0X06),A   
+1A66   7E                     LD   A,(HL)   
+1A67   CD 82 1A               CALL   0X1A82   
+1A6A   23                     INC   HL   
+1A6B   C1                     POP   BC   
+1A6C   10 F3                  DJNZ   0X1A61   
+1A6E   3E 0D                  LD   A,0X0D   
+1A70   D3 06                  OUT   (0X06),A   
+1A72   3E 0A                  LD   A,0X0A   
+1A74   D3 06                  OUT   (0X06),A   
+1A76   ED 5B 9A 08            LD   DE,(0X089A)   
+1A7A   E5                     PUSH   HL   
+1A7B   B7                     OR   A   
+1A7C   ED 52                  SBC   HL,DE   
+1A7E   E1                     POP   HL   
+1A7F   38 D6                  JR   C,0X1A57   
+1A81   C9                     RET      
+1A82   F5                     PUSH   AF   
+1A83   0F                     RRCA      
+1A84   0F                     RRCA      
+1A85   0F                     RRCA      
+1A86   0F                     RRCA      
+1A87   CD 8B 1A               CALL   0X1A8B   
+1A8A   F1                     POP   AF   
+1A8B   E6 0F                  AND   0X0F   
+1A8D   C6 90                  ADD   A,0X90   
+1A8F   27                     DAA      
+1A90   CE 40                  ADC   A,0X40   
+1A92   27                     DAA      
+1A93   D3 06                  OUT   (0X06),A   
+1A95   C9                     RET      
+1A96   FF                     RST   0X38   
+1A97   FF                     RST   0X38   
+1A98   FF                     RST   0X38   
+1A99   FF                     RST   0X38   
+1A9A   FF                     RST   0X38   
+1A9B   FF                     RST   0X38   
+1A9C   FF                     RST   0X38   
+1A9D   FF                     RST   0X38   
+1A9E   FF                     RST   0X38   
+1A9F   FF                     RST   0X38   
+1AA0   CF                     RST   0X08   
+1AA1   E6 0F                  AND   0X0F   
+1AA3   07                     RLCA      
+1AA4   07                     RLCA      
+1AA5   07                     RLCA      
+1AA6   07                     RLCA      
+1AA7   57                     LD   D,A   
+1AA8   CF                     RST   0X08   
+1AA9   E6 0F                  AND   0X0F   
+1AAB   82                     ADD   A,D   
+1AAC   D3 06                  OUT   (0X06),A   
+1AAE   18 F0                  JR   0X1AA0   
+1AB0   D3 06                  OUT   (0X06),A   
+1AB2   18 EC                  JR   0X1AA0   
+1AB4   FF                     RST   0X38   
+1AB5   FF                     RST   0X38   
+1AB6   FF                     RST   0X38   
+1AB7   FF                     RST   0X38   
+1AB8   FF                     RST   0X38   
+1AB9   FF                     RST   0X38   
+1ABA   FF                     RST   0X38   
+1ABB   FF                     RST   0X38   
+1ABC   FF                     RST   0X38   
+1ABD   FF                     RST   0X38   
+1ABE   FF                     RST   0X38   
+1ABF   FF                     RST   0X38   
+1AC0   21 00 09               LD   HL,0X0900   
+1AC3   7E                     LD   A,(HL)   
+1AC4   FE FF                  CP   0XFF   
+1AC6   20 05                  JR   NZ,0X1ACD   
+1AC8   3E 11                  LD   A,0X11   
+1ACA   D3 06                  OUT   (0X06),A   
+1ACC   C7                     RST   0X00   
+1ACD   D3 06                  OUT   (0X06),A   
+1ACF   23                     INC   HL   
+1AD0   18 F1                  JR   0X1AC3   
+1AD2   FF                     RST   0X38   
+1AD3   FF                     RST   0X38   
+1AD4   FF                     RST   0X38   
+1AD5   FF                     RST   0X38   
+1AD6   FF                     RST   0X38   
+1AD7   FF                     RST   0X38   
+1AD8   FF                     RST   0X38   
+1AD9   FF                     RST   0X38   
+1ADA   FF                     RST   0X38   
+1ADB   FF                     RST   0X38   
+1ADC   FF                     RST   0X38   
+1ADD   FF                     RST   0X38   
+1ADE   FF                     RST   0X38   
+1ADF   FF                     RST   0X38   
+1AE0   FF                     RST   0X38   
+1AE1   FF                     RST   0X38   
+1AE2   FF                     RST   0X38   
+1AE3   FF                     RST   0X38   
+1AE4   FF                     RST   0X38   
+1AE5   FF                     RST   0X38   
+1AE6   FF                     RST   0X38   
+1AE7   FF                     RST   0X38   
+1AE8   FF                     RST   0X38   
+1AE9   FF                     RST   0X38   
+1AEA   FF                     RST   0X38   
+1AEB   FF                     RST   0X38   
+1AEC   FF                     RST   0X38   
+1AED   FF                     RST   0X38   
+1AEE   FF                     RST   0X38   
+1AEF   FF                     RST   0X38   
+
+
