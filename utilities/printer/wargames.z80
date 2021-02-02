@@ -1,0 +1,46 @@
+; War Gamer's Delight
+; TEC Printer Routine to print Tiled Hexagonal Shapes
+; See TE Issue 12,  Page 36 for more details
+
+            ORG     0800H 
+HEXDATA:    EQU     0820H 
+MOVDATA:    EQU     0860H 
+
+START:               
+            LD      B,04H
+LOOP1:
+            LD      HL,HEXDATA
+LOOP2:
+            LD      A,(HL)
+            CP      0FFH
+            JR      Z,JUMP1
+            OUT     (06),A
+            INC     HL
+            JR      LOOP2
+JUMP1:
+            DJNZ    LOOP1
+            LD      HL,MOVDATA
+LOOP3:
+            LD      A,(HL)
+            CP      0FFH
+            JR      Z,START
+            OUT     (06),A
+            INC     HL
+            JR      LOOP3
+
+            DS      2,0FFH
+
+            ORG     HEXDATA
+            DB      12H,49H,0DH,44H,32H,35H,2CH,34H
+            DB      33H,2CH,37H,35H,2CH,34H,33H,2CH
+            DB      31H,30H,30H,2CH,30H,2CH,37H,35H
+            DB      2CH,2DH,34H,33H,2CH,32H,35H,2CH
+            DB      2DH,34H,33H,2CH,30H,2CH,30H,0DH
+            DB      4DH,31H,30H,30H,2CH,30H,0DH,44H
+            DB      31H,35H,30H,2CH,30H,0DH,0FFH
+
+            DS      9,0FFH
+
+            ORG     MOVDATA
+            DB      4DH,2DH,34H,35H,30H,2CH,2DH,38H
+            DB      36H,0DH,0FFH
