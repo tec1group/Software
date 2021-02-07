@@ -1,0 +1,1231 @@
+; Base Address: 0000h Range: 0000h - 0800h Loaded length: 0800h
+
+; Processor       : z80 []
+; Target assembler: Zilog Macro Assembler
+
+; ===========================================================================
+
+; Segment type: Pure code
+                segment ROM
+
+; =============== S U B R O U T I N E =======================================
+
+; Attributes: thunk
+
+j_COLDSTART:                            ; CODE XREF: sub_38↓p
+                jp      COLDSTART
+; End of function j_COLDSTART
+
+; ---------------------------------------------------------------------------
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+; ---------------------------------------------------------------------------
+                jp      Invaders_Game
+; ---------------------------------------------------------------------------
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+; ---------------------------------------------------------------------------
+                jp      NIM_Game
+; ---------------------------------------------------------------------------
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+; ---------------------------------------------------------------------------
+                jp      Luna_Lander_Game
+; ---------------------------------------------------------------------------
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+; ---------------------------------------------------------------------------
+                rst     38h
+                rst     38h
+                rst     38h
+                rst     38h
+                rst     38h
+                rst     38h
+                rst     38h
+                rst     38h
+
+; =============== S U B R O U T I N E =======================================
+
+
+Music_Demo_1:
+                ld      hl, 230h
+                jp      Music_DemoPlayer
+; End of function Music_Demo_1
+
+; ---------------------------------------------------------------------------
+                db 0FFh
+                db 0FFh
+
+; =============== S U B R O U T I N E =======================================
+
+
+Musc_Demo_2:
+                ld      hl, 530h
+                jp      Music_DemoPlayer
+; End of function Musc_Demo_2
+
+; ---------------------------------------------------------------------------
+                db 0FFh
+                db 0FFh
+
+; =============== S U B R O U T I N E =======================================
+
+
+sub_38:                                 ; CODE XREF: ROM:0020↑p
+                                        ; ROM:0021↑p ...
+                rst     0
+                rst     38h
+                rst     38h
+                rst     38h
+                rst     38h
+                rst     38h
+                rst     38h
+                rst     38h
+; ---------------------------------------------------------------------------
+                db 0FFh
+; ---------------------------------------------------------------------------
+
+Music_DemoPlayer:                       ; CODE XREF: Music_Demo_1+3↑j
+                                        ; Musc_Demo_2+3↑j
+                ld      (byte_800), hl
+                jp      Music_Routine   ; start address of music in notes RAM
+; End of function sub_38
+
+; ---------------------------------------------------------------------------
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+
+; =============== S U B R O U T I N E =======================================
+
+; read keyboard and store in A
+
+NMI_Keyboard:
+                in      a, (0)
+                and     1Fh
+                ld      i, a
+                ret
+; End of function NMI_Keyboard
+
+; ---------------------------------------------------------------------------
+; START OF FUNCTION CHUNK FOR COLDSTART
+
+MainLoopStart:                          ; CODE XREF: COLDSTART-4F1↓j
+                ld      sp, 0FD0h
+                call    Scan_displays_untilkeypress
+                call    Keybeep
+                ld      a, (unk_FF9)
+                cp      0
+                jp      nz, Edit_Data
+                ld      a, i            ; we are in editing Address mode
+                cp      10h
+                jp      c, StoreAddress_Entered ; check for press of any special function key
+                jp      Update_Data_Buffer ; Cancel if invalid key, go back to data entry mode
+; ---------------------------------------------------------------------------
+
+StoreAddress_Entered:                   ; CODE XREF: COLDSTART-56E↑j
+                ld      hl, 0FF7h       ; pointer to curr_addr
+                call    NibbleAddrFix   ;  hL points to addres buffer, A = key pressed (0-F)
+                rld                     ;  insert data
+                inc     hl
+                rld                     ;  insert data
+                jp      Enter_Address_Edit_Mode
+; ---------------------------------------------------------------------------
+
+Edit_Data:                              ; CODE XREF: COLDSTART-575↑j
+                ld      a, i
+                cp      10h             ; check for special function key in address edit mode
+                jp      c, StoreData_Entered
+                xor     a
+                ld      (unk_FFA), a    ; clear the nibble data entry flag
+                ld      a, i
+                cp      13h
+                jp      z, Enter_Address_Edit_Mode
+                cp      12h
+                jp      z, Press_Go
+                cp      11h
+                jp      z, Press_Minus
+                cp      10h
+                jp      z, Press_Plus
+
+StoreData_Entered:                      ; CODE XREF: COLDSTART-556↑j
+                ld      hl, (unk_FF7)
+                call    Check_Nibble
+                rld                     ; Rotate (hl) 4 bits left.  place bottom nibble of A into (hl). old top nibble (HL) put into bottom nibble of A Inset new DATA!!!
+                jp      Update_Data_Buffer
+; ---------------------------------------------------------------------------
+
+Press_Go:                               ; CODE XREF: COLDSTART-546↑j
+                ld      hl, (unk_FF7)
+                jp      (hl)
+; ---------------------------------------------------------------------------
+
+Press_Minus:                            ; CODE XREF: COLDSTART-541↑j
+                ld      hl, (unk_FF7)
+                dec     hl
+                ld      (unk_FF7), hl
+                jp      Update_Data_Buffer
+; ---------------------------------------------------------------------------
+
+Press_Plus:                             ; CODE XREF: COLDSTART-53C↑j
+                ld      hl, (unk_FF7)
+                inc     hl
+                ld      (unk_FF7), hl
+                jp      Update_Data_Buffer
+; ---------------------------------------------------------------------------
+
+Enter_Address_Edit_Mode:                ; CODE XREF: COLDSTART-55D↑j
+                                        ; COLDSTART-54B↑j
+                ld      a, 0
+                ld      b, 4
+                ld      hl, 0FF3h
+                jr      Update_Buffers
+; ---------------------------------------------------------------------------
+
+Update_Data_Buffer:                     ; CODE XREF: COLDSTART-56B↑j
+                                        ; COLDSTART-531↑j ...
+                ld      a, 67h ; 'g'
+                ld      b, 2
+                ld      hl, 0FF1h
+
+Update_Buffers:                         ; CODE XREF: COLDSTART-50F↑j
+                ld      (unk_FF9), a
+                exx
+                ld      de, (unk_FF7)
+                call    DE_to_displayADDR_ff3 ; convert DE to display bytes & store to 0ff3
+                ld      a, (de)
+                call    A_to_displayDATA_ff1
+                exx
+
+Set_dots:                               ; CODE XREF: COLDSTART-4F3↓j
+                set     4, (hl)         ; set bit 4 in selected buffer B times - turns on decimal points
+                inc     hl
+                djnz    Set_dots        ; loop until B = 0
+                jp      MainLoopStart
+; END OF FUNCTION CHUNK FOR COLDSTART
+
+; =============== S U B R O U T I N E =======================================
+
+; convert DE to display bytes & store to 0ff3
+
+DE_to_displayADDR_ff3:                  ; CODE XREF: COLDSTART-4FE↑p
+                ld      hl, 0FF3h
+                ld      a, e
+                call    Convert_byte_to_sevenseg_value
+                ld      a, d
+                call    Convert_byte_to_sevenseg_value
+                ret
+; End of function DE_to_displayADDR_ff3
+
+
+; =============== S U B R O U T I N E =======================================
+
+
+A_to_displayDATA_ff1:                   ; CODE XREF: COLDSTART-4FA↑p
+                ld      hl, 0FF1h
+                call    Convert_byte_to_sevenseg_value
+                ret
+; End of function A_to_displayDATA_ff1
+
+
+; =============== S U B R O U T I N E =======================================
+
+
+Convert_byte_to_sevenseg_value:         ; CODE XREF: DE_to_displayADDR_ff3+4↑p
+                                        ; DE_to_displayADDR_ff3+8↑p ...
+                push    af
+                call    Lookup_7SegValue
+                ld      (hl), a         ; store 7-seg value in memory pointed to by HL; lower nibble
+                inc     hl
+                pop     af
+                rrca
+                rrca
+                rrca
+                rrca
+                call    Lookup_7SegValue ; store 7-seg value in memory pointed to (originally) by HL+1; upper nibble
+                ld      (hl), a
+                inc     hl
+                ret
+; End of function Convert_byte_to_sevenseg_value
+
+
+; =============== S U B R O U T I N E =======================================
+
+
+Lookup_7SegValue:                       ; CODE XREF: Convert_byte_to_sevenseg_value+1↑p
+                                        ; Convert_byte_to_sevenseg_value+B↑p ...
+                push    hl
+                ld      hl, 15Fh        ; ; start of table
+                and     0Fh             ; Lower Nibble of A
+                add     a, l            ; find offset in table
+                ld      l, a            ; store into L - HL now points to required value
+                ld      a, (hl)         ; grab value from table and return it in A
+                pop     hl
+                ret
+; End of function Lookup_7SegValue
+
+
+; =============== S U B R O U T I N E =======================================
+
+
+Scan_displays_untilkeypress:            ; CODE XREF: COLDSTART-580↑p
+                                        ; Scan_displays_untilkeypress+C↓j ...
+                ld      a, 0FFh
+                ld      i, a            ; set I and A to ff; - no key pressed. scan_displays_IX must not mess with I register
+                call    scan_displays_ix
+                ld      a, i
+                cp      0FFh            ;  if A has changed (via I), key is pressed
+                ret     nz              ;  retun with key value in A
+                jp      Scan_displays_untilkeypress
+; End of function Scan_displays_untilkeypress
+
+
+; =============== S U B R O U T I N E =======================================
+
+
+scan_displays_ix:                       ; CODE XREF: Scan_displays_untilkeypress+4↑p
+                                        ; Display_Routine+3A↓p ...
+                push    ix
+                ld      bc, 601h
+
+scan_loop:                              ; CODE XREF: scan_displays_ix+1A↓j
+                ld      a, (ix+0)       ; fetch segments from buffer
+                out     (2), a          ;  set segments on
+                inc     ix
+                ld      a, c
+                out     (1), a          ; display on
+                sla     a
+                ld      c, a
+                ld      a, 0Ah
+
+Smalldelay:                             ; CODE XREF: scan_displays_ix+15↓j
+                dec     a
+                jp      nz, Smalldelay
+                out     (1), a          ; display off
+                djnz    scan_loop       ; fetch segments from buffer
+                pop     ix
+                ret
+; End of function scan_displays_ix
+
+; ---------------------------------------------------------------------------
+Seven_Seg_Table:db 0EBh, 28h, 0CDh, 0ADh, 2Eh, 0A7h, 0E7h, 29h, 0EFh, 2Fh
+                db 6Fh, 0E6h, 0C3h, 0ECh, 0C7h, 47h
+
+; =============== S U B R O U T I N E =======================================
+
+;  hL points to addres buffer, A = key pressed (0-F)
+
+NibbleAddrFix:                          ; CODE XREF: COLDSTART-565↑p
+                call    Check_Nibble
+                ret     nz
+                inc     hl              ; Clear high nibble
+                ld      a, 0
+                ld      (hl), a
+                dec     hl
+                ld      a, i
+                ret
+; End of function NibbleAddrFix
+
+
+; =============== S U B R O U T I N E =======================================
+
+
+Check_Nibble:                           ; CODE XREF: COLDSTART-536↑p
+                                        ; NibbleAddrFix↑p
+                ld      a, i
+                ld      b, a
+                ld      a, (unk_FFA)    ; is this the first data entry to this location, or the second?
+                cp      0               ; 0 = first nibble entry
+                ld      a, b
+                ret     nz              ; second, so do nothing special
+                xor     a
+                ld      (hl), a         ; clear nibble to 0
+                dec     a
+                ld      (unk_FFA), a    ; set second nibble status = FFh
+                ld      a, b
+                ret
+; End of function Check_Nibble
+
+; ---------------------------------------------------------------------------
+                db    0
+
+; =============== S U B R O U T I N E =======================================
+
+
+Keybeep:                                ; CODE XREF: COLDSTART-57D↑p
+                                        ; Invaders_Game:loc_373↓p
+                ld      c, 0Ah
+                ld      hl, 50h ; 'P'
+; End of function Keybeep
+
+
+; =============== S U B R O U T I N E =======================================
+
+; HL = length, C = Note Pitch
+
+PlayNote:                               ; CODE XREF: Music_Routine+2C↓p
+                                        ; COLDSTART-57↓p ...
+                add     hl, hl
+                ld      de, 1
+                xor     a
+                out     (2), a          ; clear display segments
+                dec     a
+
+loc_19B:                                ; CODE XREF: PlayNote+11↓j
+                out     (1), a
+                ld      b, c
+
+loc_19E:                                ; CODE XREF: PlayNote:loc_19E↓j
+                djnz    $
+                xor     80h
+                sbc     hl, de
+                jr      nz, loc_19B
+                ret
+; End of function PlayNote
+
+; ---------------------------------------------------------------------------
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+
+; =============== S U B R O U T I N E =======================================
+
+; start address of music in notes RAM
+
+Music_Routine:                          ; CODE XREF: sub_38+C↑j
+                                        ; Music_Routine+E↓j ...
+
+; FUNCTION CHUNK AT 01E9 SIZE 0000000F BYTES
+
+                ld      de, (byte_800)
+
+GetNote:                                ; CODE XREF: Music_Routine+30↓j
+                                        ; Music_Routine+45↓j
+                ld      a, (de)         ;  load a note from the user's table
+                and     1Fh
+                cp      1Fh             ; 1F = Terminator and return to caller
+                ret     z
+                nop
+                nop
+                cp      1Eh             ; 1E = Terminator and loop (play it again)
+                jp      z, Music_Routine ; Back to start
+                cp      0
+                jp      z, Pause        ;  0 = silence
+                ld      b, a
+                inc     de
+                push    de
+                ld      hl, 1F8h
+                call    Fetch_TableValue
+                push    af
+                ld      a, b
+                ld      hl, 210h
+                call    Fetch_TableValue
+                ld      l, a
+                ld      h, 0
+                pop     af
+                ld      c, a
+                call    PlayNote        ; HL = length, C = Note Pitch
+                pop     de
+                jp      GetNote         ;  load a note from the user's table
+; End of function Music_Routine
+
+
+; =============== S U B R O U T I N E =======================================
+
+
+Fetch_TableValue:                       ; CODE XREF: Music_Routine+1C↑p
+                                        ; Music_Routine+24↑p ...
+                ld      e, a
+                ld      d, 0
+                add     hl, de
+                ld      a, (hl)
+                ret
+; End of function Fetch_TableValue
+
+; ---------------------------------------------------------------------------
+; START OF FUNCTION CHUNK FOR Music_Routine
+
+Pause:                                  ; CODE XREF: Music_Routine+13↑j
+                push    de
+                ld      de, 1000h
+
+innerloop:                              ; CODE XREF: Music_Routine+40↓j
+                dec     de
+                ld      a, d
+                or      e
+                jp      nz, innerloop
+                pop     de
+                inc     de
+                jp      GetNote         ;  load a note from the user's table
+; END OF FUNCTION CHUNK FOR Music_Routine
+; ---------------------------------------------------------------------------
+Note_Pitch_Table:db 8Ch, 83h, 7Ch, 75h, 70h, 67h, 62h, 5Ch, 57h, 52h, 4Eh
+                db 48h, 45h, 41h, 3Ch, 39h, 36h, 32h, 2Fh, 2Ch, 2Ah, 27h
+                db 25h, 23h
+Note_Length_Table:db 19h, 1Ah, 1Ch, 1Dh, 1Eh, 20h, 23h, 25h, 27h, 29h, 2Ch
+                db 2Eh, 31h, 33h, 37h, 3Ah, 3Dh, 41h, 45h, 49h, 4Dh, 52h
+                db 57h, 5Ch
+                db  10h
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+Music_Demo_1_NoteTable:db 6, 6, 0Ah, 0Dh, 6, 0Dh, 0Ah, 0Dh, 12h, 16h, 14h, 12h
+                db 0Fh, 11h, 12h, 0Fh, 0Dh, 0Dh, 0Dh, 0Ah, 12h, 0Fh, 0Dh
+                db 0Ah, 8, 6, 8, 0Ah, 0Fh, 0Ah, 0Dh, 0Fh, 6, 6, 0Ah, 0Dh
+                db 6, 0Dh, 0Ah, 0Dh, 12h, 16h, 14h, 12h, 0Fh, 11h, 12h
+                db 0Fh, 0Dh, 0Dh, 0Dh, 0Ah, 12h, 0Fh, 0Dh, 0Ah, 8, 6, 8
+                db 0Ah, 6, 12h, 0, 1Eh
+
+; =============== S U B R O U T I N E =======================================
+
+
+Display_Routine:                        ; CODE XREF: Display_Routine+2C↓j
+                                        ; NIM_Game+7D↓p
+                ld      iy, (byte_800)
+                ld      ix, 0FF1h
+                ld      b, 6
+                ld      hl, 0FF1h
+
+Clear_dispbuff:                         ; CODE XREF: Display_Routine+10↓j
+                ld      (hl), 0
+                inc     hl
+                djnz    Clear_dispbuff
+
+Outerloop:                              ; CODE XREF: Display_Routine+41↓j
+                ld      b, 6
+                ld      de, 0FF7h
+                ld      hl, 0FF6h
+
+Innerloop:                              ; CODE XREF: Display_Routine+1E↓j
+                ld      a, (hl)
+                ld      (de), a
+                dec     hl
+                dec     de
+                djnz    Innerloop
+                ld      a, (iy+0)
+                inc     iy
+                and     1Fh
+                cp      1Fh
+                ret     z
+                cp      1Eh
+                jr      z, Display_Routine
+                ld      hl, 2B3h
+                call    Fetch_TableValue
+                ld      (unk_FF1), a
+                ld      a, 80h
+
+Scan_repeat:                            ; CODE XREF: Display_Routine+3F↓j
+                push    af
+                call    scan_displays_ix
+                pop     af
+                dec     a
+                jr      nz, Scan_repeat
+                jr      Outerloop
+; End of function Display_Routine
+
+; ---------------------------------------------------------------------------
+Segments_asciitable:db 0, 6Fh, 0E6h, 0C3h, 0ECh, 0C7h, 47h, 0E3h, 6Eh, 28h
+                db 0E8h, 0CEh, 0C2h, 6Bh, 0EBh, 4Fh, 2Fh, 43h, 0A7h, 46h
+                db 0EAh, 0E0h, 0AEh, 0CDh, 4, 10h, 18h
+                db    0
+                db    0
+                db    0
+                db    8
+                db    5
+                db  0Ch
+                db  0Ch
+                db  0Eh
+                db    0
+                db  13h
+                db    8
+                db    5
+                db  11h
+                db    5
+                db    0
+                db  13h
+                db    8
+                db    9
+                db  12h
+                db    0
+                db    9
+                db  12h
+                db    0
+                db  13h
+                db    8
+                db    5
+                db    0
+                db  13h
+                db    5
+                db    3
+                db  18h
+                db    9
+                db  19h
+                db  19h
+                db  19h
+                db  19h
+                db    4
+                db    5
+                db  12h
+                db    9
+                db    7
+                db  0Dh
+                db    5
+                db    4
+                db    0
+                db    2
+                db  16h
+                db    0
+                db  0Ah
+                db  0Eh
+                db    8
+                db  0Dh
+                db    0
+                db    8
+                db    1
+                db  11h
+                db    4
+                db  16h
+                db    0
+                db    6
+                db  0Eh
+                db  11h
+                db    0
+                db  13h
+                db    5
+                db  1Ah
+                db    0
+                db    0
+                db    0
+                db    0
+                db    0
+                db    0
+                db  1Eh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+
+; =============== S U B R O U T I N E =======================================
+
+
+Invaders_Game:                          ; CODE XREF: ROM:0008↑j
+                                        ; Invaders_Game+6C↓j
+                ld      ix, 0FF1h
+                xor     a
+                ld      (unk_FFA), a
+                ld      (unk_FFB), a
+                ld      b, 6
+                ld      hl, 0FF1h
+
+loc_330:                                ; CODE XREF: Invaders_Game+13↓j
+                ld      (hl), 0
+                inc     hl
+                djnz    loc_330
+
+loc_335:                                ; CODE XREF: Invaders_Game+51↓j
+                ld      a, (unk_FF5)
+                cp      0
+                jr      nz, loc_373
+                ld      de, 0FF5h
+                ld      hl, 0FF4h
+                ld      b, 4
+
+loc_344:                                ; CODE XREF: Invaders_Game+28↓j
+                ld      a, (hl)
+                ld      (de), a
+                dec     hl
+                dec     de
+                djnz    loc_344
+                ld      a, r
+                call    sub_3B5
+                ld      (unk_FF1), a
+                ld      a, 0
+                nop
+
+loc_355:                                ; CODE XREF: Invaders_Game+4F↓j
+                push    af
+                ld      a, 0FFh
+                ld      i, a
+                ld      a, (unk_FFB)
+                call    sub_3B5
+                ld      (unk_FF6), a
+                call    scan_displays_ix
+                ld      a, i
+                cp      0FFh
+                call    nz, sub_38E
+                pop     af
+                dec     a
+                jr      nz, loc_355
+                jr      loc_335
+; ---------------------------------------------------------------------------
+
+loc_373:                                ; CODE XREF: Invaders_Game+1A↑j
+                call    Keybeep
+                ld      b, 6
+                ld      hl, 0FF1h
+
+loc_37B:                                ; CODE XREF: Invaders_Game+5E↓j
+                ld      (hl), 0
+                inc     hl
+                djnz    loc_37B
+                ld      a, (unk_FFA)
+                ld      hl, 0FF3h
+                call    Convert_byte_to_sevenseg_value
+                call    Scan_displays_untilkeypress
+                jr      Invaders_Game
+; End of function Invaders_Game
+
+
+; =============== S U B R O U T I N E =======================================
+
+
+sub_38E:                                ; CODE XREF: Invaders_Game+4A↑p
+                cp      10h
+                jr      nz, loc_39A
+                ld      a, (unk_FFB)
+                inc     a
+                ld      (unk_FFB), a
+                ret
+; ---------------------------------------------------------------------------
+
+loc_39A:                                ; CODE XREF: sub_38E+2↑j
+                ld      a, (unk_FF6)
+                ld      c, a
+                ld      hl, 0FF5h
+                ld      b, 5
+
+loop:                                   ; CODE XREF: sub_38E+24↓j
+                ld      a, (hl)
+                cp      c
+                jr      nz, loc_3B1
+                ld      (hl), 0
+                ld      a, (unk_FFA)
+                inc     a
+                daa
+                ld      (unk_FFA), a
+
+loc_3B1:                                ; CODE XREF: sub_38E+17↑j
+                dec     hl
+                djnz    loop
+                ret
+; End of function sub_38E
+
+
+; =============== S U B R O U T I N E =======================================
+
+
+sub_3B5:                                ; CODE XREF: Invaders_Game+2C↑p
+                                        ; Invaders_Game+3D↑p
+                and     7
+                call    Lookup_7SegValue
+                ret
+; End of function sub_3B5
+
+; ---------------------------------------------------------------------------
+                db 16h, 0Eh, 14h, 0, 0Ch, 0Eh, 12h, 5, 0, 12h, 13h, 14h
+                db 0Fh, 9, 4, 1Ah, 1Fh
+                db 0Eh, 8, 0, 0Dh, 0Eh, 19h, 19h, 19h, 9, 0, 0Ch, 0Eh
+                db 12h, 13h, 1Ah, 1Fh, 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+
+; =============== S U B R O U T I N E =======================================
+
+
+NIM_Game:                               ; CODE XREF: ROM:0010↑j
+                                        ; NIM_Game+83↓j
+
+; FUNCTION CHUNK AT 0476 SIZE 00000004 BYTES
+
+                ld      ix, 0FF1h
+                ld      a, 23h ; '#'
+                ld      (unk_FFA), a
+                ld      hl, 0FF1h
+                ld      b, 6
+
+loc_3EE:                                ; CODE XREF: NIM_Game+11↓j
+                ld      (hl), 0
+                inc     hl
+                djnz    loc_3EE
+                ld      e, 0
+
+loc_3F5:                                ; CODE XREF: NIM_Game+1F↓j
+                                        ; NIM_Game+23↓j ...
+                call    sub_466
+                call    Scan_displays_untilkeypress
+                ld      a, i
+                cp      4
+                jr      nc, loc_3F5
+                cp      0
+                jr      z, loc_3F5
+                ld      e, a
+                ld      a, (unk_FFA)
+                cp      e
+                jr      z, loc_450
+                jr      c, loc_450
+                sub     e
+                daa
+                ld      (unk_FFA), a
+                call    sub_466
+                ld      hl, 0FF6h
+                ld      (hl), 0AEh
+                ld      d, 0
+
+loc_41D:                                ; CODE XREF: NIM_Game+41↓j
+                call    scan_displays_ix
+                dec     d
+                jr      nz, loc_41D
+                ld      a, (unk_FFA)
+                cp      1
+                jr      z, loc_456
+                dec     a
+                daa
+
+loc_42C:                                ; CODE XREF: NIM_Game+4F↓j
+                sub     4
+                daa
+                jr      nc, loc_42C
+                add     a, 4
+                daa
+                cp      0
+                jr      z, loc_448
+
+loc_438:                                ; CODE XREF: NIM_Game+6E↓j
+                                        ; NIM_Game+97↓j
+                ld      e, a
+                ld      a, (unk_FFA)
+                sub     e
+                daa
+                ld      (unk_FFA), a
+                ld      hl, 0FF6h
+                ld      (hl), 28h ; '('
+                jr      loc_3F5
+; ---------------------------------------------------------------------------
+
+loc_448:                                ; CODE XREF: NIM_Game+56↑j
+                ld      a, r
+                and     3
+                jr      z, loc_476
+                jr      loc_438
+; ---------------------------------------------------------------------------
+
+loc_450:                                ; CODE XREF: NIM_Game+2A↑j
+                                        ; NIM_Game+2C↑j
+                ld      de, 3BBh
+                jp      loc_459
+; ---------------------------------------------------------------------------
+
+loc_456:                                ; CODE XREF: NIM_Game+48↑j
+                ld      de, 3CCh
+
+loc_459:                                ; CODE XREF: NIM_Game+73↑j
+                ld      (byte_800), de
+                call    Display_Routine
+                call    Scan_displays_untilkeypress
+                jp      NIM_Game
+; End of function NIM_Game
+
+
+; =============== S U B R O U T I N E =======================================
+
+
+sub_466:                                ; CODE XREF: NIM_Game:loc_3F5↑p
+                                        ; NIM_Game+33↑p
+                ld      hl, 0FF1h
+                ld      a, (unk_FFA)
+                call    Convert_byte_to_sevenseg_value
+                inc     hl
+                ld      a, e
+                call    Lookup_7SegValue
+                ld      (hl), a
+                ret
+; End of function sub_466
+
+; ---------------------------------------------------------------------------
+; START OF FUNCTION CHUNK FOR NIM_Game
+
+loc_476:                                ; CODE XREF: NIM_Game+6C↑j
+                inc     a
+                jp      loc_438
+; END OF FUNCTION CHUNK FOR NIM_Game
+; ---------------------------------------------------------------------------
+                db 0FFh
+                db  14h
+                db  12h
+                db  14h
+                db  17h
+                db  17h
+                db  12h
+                db  14h
+                db  10h
+                db  1Fh
+                db    1
+                db  11h
+                db    1
+                db  11h
+                db    1
+                db  11h
+                db  1Fh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+
+; =============== S U B R O U T I N E =======================================
+
+
+Luna_Lander_Game:                       ; CODE XREF: ROM:0018↑j
+                                        ; Luna_Lander_Game+8E↓j
+
+; FUNCTION CHUNK AT 0508 SIZE 00000019 BYTES
+
+                ld      ix, 0FF1h
+                ld      iy, 800h
+                ld      a, 50h ; 'P'
+                ld      (iy+0), a
+                ld      a, 20h ; ' '
+                ld      (iy+1), a
+                xor     a
+                ld      (iy+2), a
+                ld      hl, 0FF1h
+                ld      b, 6
+
+loc_4AB:                                ; CODE XREF: Luna_Lander_Game+1E↓j
+                ld      (hl), 0
+                inc     hl
+                djnz    loc_4AB
+
+loc_4B0:                                ; CODE XREF: Luna_Lander_Game+60↓j
+                ld      d, 80h
+
+loc_4B2:                                ; CODE XREF: Luna_Lander_Game+42↓j
+                ld      a, (iy+1)
+                ld      hl, 0FF1h
+                call    Convert_byte_to_sevenseg_value
+                inc     hl
+                inc     hl
+                ld      a, (iy+0)
+                call    Convert_byte_to_sevenseg_value
+                ld      a, 0FFh
+                ld      i, a
+                call    scan_displays_ix
+                ld      a, i
+                cp      0FFh
+                call    nz, sub_4F3
+                dec     d
+                jp      nz, loc_4B2
+                ld      a, (iy+2)
+                sub     1
+                daa
+                ld      (iy+2), a
+                ld      b, a
+                ld      a, (iy+0)
+                add     a, b
+                daa
+                cp      0
+                jp      z, loc_511
+                cp      60h ; '`'
+                jr      nc, loc_508
+                ld      (iy+0), a
+                jp      loc_4B0
+; End of function Luna_Lander_Game
+
+
+; =============== S U B R O U T I N E =======================================
+
+
+sub_4F3:                                ; CODE XREF: Luna_Lander_Game+3E↑p
+                ld      a, (iy+1)
+                cp      0
+                ret     z
+                dec     a
+                daa
+                ld      (iy+1), a
+                ld      a, (iy+2)
+                add     a, 2
+                daa
+                ld      (iy+2), a
+                ret
+; End of function sub_4F3
+
+; ---------------------------------------------------------------------------
+; START OF FUNCTION CHUNK FOR Luna_Lander_Game
+
+loc_508:                                ; CODE XREF: Luna_Lander_Game+5B↑j
+                ld      de, 484h
+                ld      ix, 0
+                jr      loc_514
+; ---------------------------------------------------------------------------
+
+loc_511:                                ; CODE XREF: Luna_Lander_Game+56↑j
+                ld      de, 47Bh
+
+loc_514:                                ; CODE XREF: Luna_Lander_Game+7F↑j
+                ld      (byte_800), de
+                call    Music_Routine   ; start address of music in notes RAM
+                call    Scan_displays_untilkeypress
+                jp      Luna_Lander_Game
+; END OF FUNCTION CHUNK FOR Luna_Lander_Game
+; ---------------------------------------------------------------------------
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+Music_Demo_2_NoteTable:db 0Bh, 0Ah, 8, 0Ah, 0Ah, 0Ah, 6, 6, 6, 0Bh, 0Ah, 8, 0Ah
+                db 0Ah, 0Ah, 0Ah, 0Ah, 0Ah, 0Bh, 0Ah, 8, 0Ah, 0Ah, 0Ah
+                db 6, 6, 6, 0Ah, 8, 0Ah, 0Dh, 0Dh, 0Dh, 0Dh, 0Dh, 0, 0Dh
+                db 5, 8, 0Bh, 0Bh, 0Bh, 6, 6, 6, 0Bh, 0Ah, 8, 0Ah, 0Ah
+                db 0Ah, 6, 6, 6, 0Bh, 0Ah, 6, 8, 8, 8, 8, 8, 0Ah, 0Bh
+                db 0Ah, 8, 6, 6, 6, 6, 6, 6, 0, 0, 0, 1Eh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+; ---------------------------------------------------------------------------
+; START OF FUNCTION CHUNK FOR COLDSTART
+
+INIT:                                   ; CODE XREF: COLDSTART+18↓j
+                ld      hl, 800h        ; current address for monitor
+                ld      sp, 0FD0h       ; stack location
+                ld      ix, 0FF1h       ; IX = display buffer
+                ld      (unk_FF7), hl
+                xor     a
+                ld      (unk_FF9), a    ; place data entry variable to data mode
+                ld      (unk_FFA), a
+                ld      c, 0Ah
+                ld      hl, 50h ; 'P'
+                call    PlayNote        ; HL = length, C = Note Pitch
+                ld      c, 20h ; ' '
+                ld      hl, 30h ; '0'
+                call    PlayNote        ; HL = length, C = Note Pitch
+                jp      Update_Data_Buffer
+; END OF FUNCTION CHUNK FOR COLDSTART
+; ---------------------------------------------------------------------------
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db  21h ; !
+                db    0
+                db    8
+                db  11h
+                db    0
+                db  0Bh
+                db  7Eh ; ~
+                db 0FEh
+                db 0FFh
+                db 0C2h
+                db 0C2h
+                db    5
+                db  21h ; !
+                db    0
+                db    8
+                db 0C3h
+                db 0B6h
+                db    5
+                db 0D3h
+                db    3
+                db  1Ah
+                db 0FEh
+                db 0FFh
+                db 0C2h
+                db 0D0h
+                db    5
+                db  11h
+                db    0
+                db  0Bh
+                db 0C3h
+                db 0C4h
+                db    5
+                db 0D3h
+                db    4
+                db 0CDh
+                db 0E1h
+                db    5
+                db  13h
+                db  1Ah
+                db 0D3h
+                db    4
+                db 0CDh
+                db 0E1h
+                db    5
+                db  13h
+                db  23h ; #
+                db 0C3h
+                db 0B6h
+                db    5
+                db    1
+                db 0FFh
+                db    3
+                db  0Bh
+                db  78h ; x
+                db 0B1h
+                db 0C2h
+                db 0E4h
+                db    5
+                db 0C9h
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+                db 0FFh
+
+; =============== S U B R O U T I N E =======================================
+
+
+COLDSTART:                              ; CODE XREF: j_COLDSTART↑j
+
+; FUNCTION CHUNK AT 006D SIZE 00000095 BYTES
+; FUNCTION CHUNK AT 0580 SIZE 00000027 BYTES
+
+                ld      (unk_FD8), sp
+                ld      sp, 0FF0h
+                push    af
+                push    bc
+                push    de
+                push    hl
+                push    ix
+                push    iy
+                ex      af, af'
+                exx
+                push    af
+                push    bc
+                push    de
+                push    hl
+                ld      a, i
+                push    af
+                jp      INIT            ; current address for monitor
+; End of function COLDSTART
+
+; ---------------------------------------------------------------------------
+EmptySpace:     db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+                db 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh
+; end of 'ROM'
+
