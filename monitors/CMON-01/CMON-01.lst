@@ -1435,127 +1435,137 @@
                     1414  ; REGISTERS MODIFIED A AND F
                     1415  ;
 072B: C5            1416  RXDATA	PUSH	BC
-072C: E5            1417  	PUSH	HL
+072C: E5            1417  	    PUSH    HL
                     1418  ;
                     1419  ; WAIT FOR START BIT OR EXIT IF KEY PRESS.
                     1420  ;
 072D: DB 00         1421  RXDAT1	IN	A,(KEYBUF)
-072F: CB 6F         1422  	BIT	5,A
-0731: 37            1423  	SCF
-0732: 20 26         1424  	JR	NZ,RXDAT3	;KEY PRESS SO EXIT
-0734: CB 7F         1425  	BIT	7,A
-0736: 20 F5         1426  	JR	NZ,RXDAT1	;NO START BIT
-                    1427  ;
-                    1428  ; DETECTED START BIT
-                    1429  ;
-0738: 2A C0 0F      1430  	LD	HL,(BAUD)
-073B: CB 3C         1431  	SRL	H
-073D: CB 1D         1432  	RR	L 	;DELAY FOR HALF BIT TIME
-073F: CD 5D 07      1433  	CALL 	BITIME
-0742: DB 00         1434  	IN	A,(KEYBUF)
-0744: CB 7F         1435  	BIT	7,A
-0746: 20 E5         1436  	JR	NZ,RXDAT1	;START BIT NOT VALID
+                    1422  
+                    1423  #IFDEF  TEC-1
+072F: CB 77         1424              BIT 6,A
+                    1425  #ELSE
+                    1426              BIT 5,A
+                    1427  #ENDIF         
+0731: 37            1428  	    SCF
+                    1429  #IFDEF DA_ACTIVE_LOW
+0732: 28 26         1430              JR Z,RXDAT3        ;KEY PRESS SO EXIT 
+                    1431  #ELSE
+                    1432              JR NZ,RXDAT3        ;KEY PRESS SO EXIT 
+                    1433  #ENDIF    
+                    1434    
+0734: CB 7F         1435  	BIT	7,A
+0736: 20 F5         1436  	JR	NZ,RXDAT1	;NO START BIT
                     1437  ;
-                    1438  ; DETECTED VALID START BIT,READ IN DATA
+                    1438  ; DETECTED START BIT
                     1439  ;
-0748: 06 08         1440  	LD	B,08H
-074A: 2A C0 0F      1441  RXDAT2	LD	HL,(BAUD)
-074D: CD 5D 07      1442  	CALL	BITIME	;DELAY ONE BIT TIME
-0750: DB 00         1443  	IN	A,(KEYBUF)
-0752: CB 17         1444  	RL	A
-0754: CB 19         1445  	RR	C	;SHIFT BIT INTO DATA REG
-0756: 10 F2         1446  	DJNZ	RXDAT2
-0758: 79            1447  	LD	A,C
-0759: B7            1448  	OR	A	;CLEAR CARRY FLAG
-075A: E1            1449  RXDAT3	POP	HL
-075B: C1            1450  	POP	BC
-075C: C9            1451  	RET
-                    1452  ;---------------
-                    1453  ; BIT TIME DELAY
-                    1454  ;---------------
-                    1455  ;DELAY FOR ONE SERIAL BIT TIME
-                    1456  ;ENTRY : HL = DELAY TIME
-                    1457  ; NO REGISTERS MODIFIED
-                    1458  ;
-075D: E5            1459  BITIME      PUSH HL
-075E: D5            1460              PUSH DE
-075F: 11 01 00      1461              LD DE,0001H
-0762: ED 52         1462  BITIM1      SBC HL,DE
-0764: D2 62 07      1463              JP NC,BITIM1
-0767: D1            1464              POP DE
-0768: E1            1465              POP HL
-0769: C9            1466              RET
-                    1467  ;-------------------------------
-                    1468  ; SCAN DISPLAY UNTIL KEY RELEASE
-                    1469  ;-------------------------------
-076A: 22 D0 0F      1470  SDELAY      LD (DISBUF),HL      ;SHOW HL
-076D: 06 FF         1471              LD B,255            ;IN DATA DISPLAYS
-076F: CD D0 03      1472  SDELY1      CALL SCAND          ;UNTIL KEY
-0772: 10 FB         1473              DJNZ SDELY1         ;IS RELEASED
-0774: CD 16 04      1474              CALL SKEYRL
-0777: C9            1475              RET
-                    1476  ;-----------------------------------------
-                    1477  ; FUNCTION 7 - TOGGLE HARDWARE SINGLE STEP
-                    1478  ;-----------------------------------------
-0778: CD 97 04      1479  TRACE       CALL BEEP
-077B: D3 07         1480              OUT (IO7),A         ;TOGGLE HARDWARE SINGLE STEP LATCH
-                    1481  #IFDEF TEC-1       
-077D: 21 46 00      1482              LD HL,0046H         ;SHOW T
-                    1483  #ELSE
-                    1484              LD	HL,0070H	    ;SHOW T
-                    1485  #ENDIF
-0780: CD 6A 07      1486              CALL SDELAY
-0783: C3 0C 06      1487              JP CANCL1
-                    1488  ;-----------------------------
-                    1489  ; FUNCTION B - TOGGLE KEY BEEP
-                    1490  ;-----------------------------
-0786: CD 97 04      1491  SWBEEP      CALL BEEP
-0789: 3A D8 0F      1492              LD A,(MODE)
-078C: EE 40         1493              XOR 40H
-078E: 32 D8 0F      1494              LD (MODE),A
-0791: C3 0C 06      1495              JP CANCL1
-                    1496  ;-------------------------------
-                    1497  ; SEPARATE BYTE INTO TWO NYBBLES
-                    1498  ;-------------------------------
-                    1499  ;SEPARATES A BYTE INTO TWO
-                    1500  ;RIGHT JUSTIFIED NYBBLES
-                    1501  ; ENTRY : A = BYTE TO BE SEPARATED
-                    1502  ; EXIT  : H = MSN
-                    1503  ;         L = LSN
-                    1504  ;
-0794: F5            1505  SPLIT       PUSH AF
-0795: C5            1506              PUSH BC
-0796: 47            1507              LD B,A              ;SAVE BYTE
-0797: E6 0F         1508              AND 0FH             ;STRIP BITS LSN
-0799: 6F            1509              LD L,A              ;RETURN LSN IN L
-079A: 78            1510              LD A,B
-079B: CB 3F         1511              SRL A
-079D: CB 3F         1512              SRL A
-079F: CB 3F         1513              SRL A               ;MOVE MSN
-07A1: CB 3F         1514              SRL A               ;INTO LSN
-07A3: 67            1515              LD H,A              ;RETURN MSN IN H
-07A4: C1            1516              POP BC
-07A5: F1            1517              POP AF
-07A6: C9            1518              RET
-                    1519  ;-----------------
-                    1520  ; ONE SECOND DELAY
-                    1521  ;-----------------
-                    1522  ; MUST BE AT 4MHZ I GUESS
-                    1523  ; ENTRY : NONE
-                    1524  ; EXIT : FLAG REGISTER MODIFIED
-                    1525  ;
-07A7: C5            1526  DELONE      PUSH BC
-07A8: D5            1527              PUSH DE
-07A9: E5            1528              PUSH HL
-07AA: 11 01 00      1529              LD DE,0001H
-07AD: 21 70 08      1530              LD HL,0870H
-07B0: 06 92         1531  DELON1      LD B,92H
-07B2: 10 FE         1532  DELON2      DJNZ DELON2         ;INNER LOOP
-07B4: ED 52         1533              SBC HL,DE
-07B6: D2 B0 07      1534              JP NC,DELON1        ;OUTER LOOP
-07B9: E1            1535              POP HL
-07BA: D1            1536              POP DE
-07BB: C1            1537              POP BC
-07BC: C9            1538              RET
-                    1539              END
+0738: 2A C0 0F      1440  	LD	HL,(BAUD)
+073B: CB 3C         1441  	SRL	H
+073D: CB 1D         1442  	RR	L 	;DELAY FOR HALF BIT TIME
+073F: CD 5D 07      1443  	CALL 	BITIME
+0742: DB 00         1444  	IN	A,(KEYBUF)
+0744: CB 7F         1445  	BIT	7,A
+0746: 20 E5         1446  	JR	NZ,RXDAT1	;START BIT NOT VALID
+                    1447  ;
+                    1448  ; DETECTED VALID START BIT,READ IN DATA
+                    1449  ;
+0748: 06 08         1450  	LD	B,08H
+074A: 2A C0 0F      1451  RXDAT2	LD	HL,(BAUD)
+074D: CD 5D 07      1452  	CALL	BITIME	;DELAY ONE BIT TIME
+0750: DB 00         1453  	IN	A,(KEYBUF)
+0752: CB 17         1454  	RL	A
+0754: CB 19         1455  	RR	C	;SHIFT BIT INTO DATA REG
+0756: 10 F2         1456  	DJNZ	RXDAT2
+0758: 79            1457  	LD	A,C
+0759: B7            1458  	OR	A	;CLEAR CARRY FLAG
+075A: E1            1459  RXDAT3	POP	HL
+075B: C1            1460  	POP	BC
+075C: C9            1461  	RET
+                    1462  ;---------------
+                    1463  ; BIT TIME DELAY
+                    1464  ;---------------
+                    1465  ;DELAY FOR ONE SERIAL BIT TIME
+                    1466  ;ENTRY : HL = DELAY TIME
+                    1467  ; NO REGISTERS MODIFIED
+                    1468  ;
+075D: E5            1469  BITIME      PUSH HL
+075E: D5            1470              PUSH DE
+075F: 11 01 00      1471              LD DE,0001H
+0762: ED 52         1472  BITIM1      SBC HL,DE
+0764: D2 62 07      1473              JP NC,BITIM1
+0767: D1            1474              POP DE
+0768: E1            1475              POP HL
+0769: C9            1476              RET
+                    1477  ;-------------------------------
+                    1478  ; SCAN DISPLAY UNTIL KEY RELEASE
+                    1479  ;-------------------------------
+076A: 22 D0 0F      1480  SDELAY      LD (DISBUF),HL      ;SHOW HL
+076D: 06 FF         1481              LD B,255            ;IN DATA DISPLAYS
+076F: CD D0 03      1482  SDELY1      CALL SCAND          ;UNTIL KEY
+0772: 10 FB         1483              DJNZ SDELY1         ;IS RELEASED
+0774: CD 16 04      1484              CALL SKEYRL
+0777: C9            1485              RET
+                    1486  ;-----------------------------------------
+                    1487  ; FUNCTION 7 - TOGGLE HARDWARE SINGLE STEP
+                    1488  ;-----------------------------------------
+0778: CD 97 04      1489  TRACE       CALL BEEP
+077B: D3 07         1490              OUT (IO7),A         ;TOGGLE HARDWARE SINGLE STEP LATCH
+                    1491  #IFDEF TEC-1       
+077D: 21 46 00      1492              LD HL,0046H         ;SHOW T
+                    1493  #ELSE
+                    1494              LD	HL,0070H	    ;SHOW T
+                    1495  #ENDIF
+0780: CD 6A 07      1496              CALL SDELAY
+0783: C3 0C 06      1497              JP CANCL1
+                    1498  ;-----------------------------
+                    1499  ; FUNCTION B - TOGGLE KEY BEEP
+                    1500  ;-----------------------------
+0786: CD 97 04      1501  SWBEEP      CALL BEEP
+0789: 3A D8 0F      1502              LD A,(MODE)
+078C: EE 40         1503              XOR 40H
+078E: 32 D8 0F      1504              LD (MODE),A
+0791: C3 0C 06      1505              JP CANCL1
+                    1506  ;-------------------------------
+                    1507  ; SEPARATE BYTE INTO TWO NYBBLES
+                    1508  ;-------------------------------
+                    1509  ;SEPARATES A BYTE INTO TWO
+                    1510  ;RIGHT JUSTIFIED NYBBLES
+                    1511  ; ENTRY : A = BYTE TO BE SEPARATED
+                    1512  ; EXIT  : H = MSN
+                    1513  ;         L = LSN
+                    1514  ;
+0794: F5            1515  SPLIT       PUSH AF
+0795: C5            1516              PUSH BC
+0796: 47            1517              LD B,A              ;SAVE BYTE
+0797: E6 0F         1518              AND 0FH             ;STRIP BITS LSN
+0799: 6F            1519              LD L,A              ;RETURN LSN IN L
+079A: 78            1520              LD A,B
+079B: CB 3F         1521              SRL A
+079D: CB 3F         1522              SRL A
+079F: CB 3F         1523              SRL A               ;MOVE MSN
+07A1: CB 3F         1524              SRL A               ;INTO LSN
+07A3: 67            1525              LD H,A              ;RETURN MSN IN H
+07A4: C1            1526              POP BC
+07A5: F1            1527              POP AF
+07A6: C9            1528              RET
+                    1529  ;-----------------
+                    1530  ; ONE SECOND DELAY
+                    1531  ;-----------------
+                    1532  ; MUST BE AT 4MHZ I GUESS
+                    1533  ; ENTRY : NONE
+                    1534  ; EXIT : FLAG REGISTER MODIFIED
+                    1535  ;
+07A7: C5            1536  DELONE      PUSH BC
+07A8: D5            1537              PUSH DE
+07A9: E5            1538              PUSH HL
+07AA: 11 01 00      1539              LD DE,0001H
+07AD: 21 70 08      1540              LD HL,0870H
+07B0: 06 92         1541  DELON1      LD B,92H
+07B2: 10 FE         1542  DELON2      DJNZ DELON2         ;INNER LOOP
+07B4: ED 52         1543              SBC HL,DE
+07B6: D2 B0 07      1544              JP NC,DELON1        ;OUTER LOOP
+07B9: E1            1545              POP HL
+07BA: D1            1546              POP DE
+07BB: C1            1547              POP BC
+07BC: C9            1548              RET
+                    1549              END
  
