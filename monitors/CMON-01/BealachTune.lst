@@ -1,0 +1,161 @@
+                    0001  ;
+                    0002  ;    Bealach An Doirín
+                    0003  ;
+                    0004  ; programmed by John Hardy and Ken Stone for the TEC-1 Computer 
+                    0005  ; 
+                    0006  ;
+0002:               0007  PORTSEGS        EQU    0x02
+0001:               0008  PORTDIGIT       EQU    0x01
+                    0009  
+0000:               0010  MAIN            EQU    0x00
+                    0011  
+                    0012                  ORG     0x0800
+                    0013  
+0000:               0014  PLAYTUNE:       
+0800: 11 8F 08      0015                  LD      de,TUNE       ;de = address of tune
+                    0016  
+0803: 1A            0017  PTLOOP1:        LD      a,(de)          ;a = (de); a = note
+0804: E6 1F         0018                  AND     0x1f            ;mask lower 5 bits
+0806: FE 1F         0019                  CP      0x1f            ;if (a == ENDOFTUNE)
+0808: C2 0E 08      0020                  JP      nz,CPTLOOP
+080B: 0E 00         0021                  ld      c,MAIN          ;use the system call back to main
+080D: F7            0022                  RST     30h             ;    return  
+                    0023                                          
+080E: FE 1E         0024  CPTLOOP:        CP      0x1e            ;if (a == REPEATTUNE)
+0810: CA 00 08      0025                  JP      z,PLAYTUNE      ;  goto PLAYTUNE
+0813: FE 00         0026                  CP      0x00            ;if (a == SILENCE)
+0815: CA 3B 08      0027                  JP      z,PTSILENCE     ;  goto PTSILENCE
+0818: 47            0028                  LD      b,a             ;b = note
+0819: 13            0029                  INC     de              ;de++
+081A: D5            0030                  PUSH    de              ;save de
+081B: 21 5E 08      0031                  LD      hl,FREQWL       ;hl = frequency wave length
+081E: CD 35 08      0032                  CALL    TBLOOKUP        ;a = lookup note
+0821: F5            0033                  PUSH    af              ;save a
+0822: 78            0034                  LD      a,b             ;a = note
+0823: 21 76 08      0035                  LD      hl,FREQNC       ;h1 = frequency num cycles
+0826: CD 35 08      0036                  CALL    TBLOOKUP        ;a = lookup note
+0829: 6F            0037                  LD      l,a
+082A: 26 00         0038                  LD      h,0x00          ;hl = num cycles
+082C: F1            0039                  POP     af              ;restore a
+082D: 4F            0040                  LD      c,a             ;c = wave length
+082E: CD 4A 08      0041                  CALL    PLAYTONE        ;c and hl
+0831: D1            0042                  POP     de              ;save de
+0832: C3 03 08      0043                  JP      PTLOOP1         ;play next note
+                    0044  ;subroutine: lookup offset in table
+                    0045  ;a = offset
+                    0046  ;hl = table
+                    0047  ;result in a
+                    0048  ;destroys e, d
+0835: 5F            0049  TBLOOKUP:       LD      e,a             ;e = offset
+0836: 16 00         0050                  LD      d,0x00          ;d = 0
+0838: 19            0051                  ADD     hl,de           ;hl = hl + de
+0839: 7E            0052                  LD      a,(hl)          ;a = table + offset
+083A: C9            0053                  RET                     ;return
+083B: D5            0054  PTSILENCE:      PUSH    de              ;save de
+083C: 11 00 10      0055                  LD      de,0x1000       ;delay count = 1000
+083F: 1B            0056  PTLOOP2:        DEC     de              ;de--
+0840: 7A            0057                  LD      a,d
+0841: B3            0058                  OR      e               ;if (de != 0)
+0842: C2 3F 08      0059                  JP      nz,PTLOOP2      ;  goto PTLOOP2
+0845: D1            0060                  POP     de              ;restore de
+0846: 13            0061                  INC     de              ;de++
+0847: C3 03 08      0062                  JP      PTLOOP1         ;play next note     
+                    0063  ;subroutine: play tone, freq c, duration h1
+                    0064  ;destroys: hl, de, a, b
+084A: 29            0065  PLAYTONE:       ADD     hl,hl           ;hl = hl + h1
+084B: 11 01 00      0066                  LD      de,0x0001       ;de = 1
+084E: AF            0067                  XOR     a               ;a = 0
+084F: D3 02         0068                  OUT     (PORTSEGS),a    ;clear segments
+0851: 3D            0069                  DEC     a               ;a = FF
+0852: D3 01         0070  MTLOOP:         OUT     (PORTDIGIT),a   ;all digitis on?
+0854: 41            0071                  LD      b,c             ;b = c
+0855: 10 FE         0072  MTDELAY:        DJNZ    MTDELAY         ;delay?
+0857: EE 80         0073                  XOR     0x80            ;invert bit 7 of a (clear carry?)
+0859: ED 52         0074                  SBC     hl,de           ;hl = hl - 1
+085B: 20 F5         0075                  JR      nz,MTLOOP
+085D: C9            0076                  RET
+                    0077  
+085E: 8C 83 7C 75   0078  FREQWL	DB	8CH,83H,7CH,75H,70H,67H,62H,5CH
+0862: 70 67 62 5C   0078  
+0866: 57 52 4E 48   0079  	    DB	57H,52H,4EH,48H,45H,41H,3CH,39H
+086A: 45 41 3C 39   0079  
+086E: 36 32 2F 2C   0080  	    DB	36H,32H,2FH,2CH,2AH,27H,25H,23H
+0872: 2A 27 25 23   0080  
+                    0081  
+0876: 19 1A 1C 1D   0082  FREQNC	DB	19H,1AH,1CH,1DH,1EH,20H,23H,25H
+087A: 1E 20 23 25   0082  
+087E: 27 29 2C 2E   0083  	    DB	27H,29H,2CH,2EH,31H,33H,37H,3AH
+0882: 31 33 37 3A   0083  
+0886: 3D 41 45 49   0084  	    DB	3DH,41H,45H,49H,4DH,52H,57H,5CH
+088A: 4D 52 57 5C   0084  
+088E: 10            0085  	    DB	10H
+                    0086  
+088F: 0B            0087  TUNE    DB      0x0B            ;Bealach An Doirín
+0890: 0A            0088          DB      0x0A
+0891: 08            0089          DB      0x08
+0892: 0A            0090          DB      0x0A
+0893: 0A            0091          DB      0x0A
+0894: 0A            0092          DB      0x0A
+0895: 06            0093          DB      0x06
+0896: 06            0094          DB      0x06
+0897: 06            0095          DB      0x06
+0898: 0B            0096          DB      0x0B
+0899: 0A            0097          DB      0x0A
+089A: 08            0098          DB      0x08
+089B: 0A            0099          DB      0x0A
+089C: 0A            0100          DB      0x0A
+089D: 0A            0101          DB      0x0A
+089E: 0A            0102          DB      0x0A
+089F: 0A            0103          DB      0x0A
+08A0: 0A            0104          DB      0x0A
+08A1: 0B            0105          DB      0x0B
+08A2: 0A            0106          DB      0x0A
+08A3: 08            0107          DB      0x08
+08A4: 0A            0108          DB      0x0A
+08A5: 0A            0109          DB      0x0A
+08A6: 0A            0110          DB      0x0A
+08A7: 06 06         0111          DB      0x06,0x06
+08A9: 06 0A         0112          DB      0x06,0x0A
+08AB: 08            0113          DB      0x08
+08AC: 0A            0114          DB      0x0A
+08AD: 0D            0115          DB      0x0D
+08AE: 0D            0116          DB      0x0D
+08AF: 0D            0117          DB      0x0D
+08B0: 0D            0118          DB      0x0D
+08B1: 0D            0119          DB      0x0D
+08B2: 00            0120          DB      0x00
+08B3: 0D            0121          DB      0x0D
+08B4: 05            0122          DB      0x05
+08B5: 08            0123          DB      0x08
+08B6: 0B            0124          DB      0x0B
+08B7: 0B            0125          DB      0x0B
+08B8: 0B            0126          DB      0x0B
+08B9: 06 06         0127          DB      0x06,0x06
+08BB: 06 0B         0128          DB      0x06,0x0B
+08BD: 0A            0129          DB      0x0A
+08BE: 08            0130          DB      0x08
+08BF: 0A            0131          DB      0x0A
+08C0: 0A            0132          DB      0x0A
+08C1: 0A            0133          DB      0x0A
+08C2: 06 06         0134          DB      0x06,0x06
+08C4: 06 0B         0135          DB      0x06,0x0B
+08C6: 0A            0136          DB      0x0A
+08C7: 06 08         0137          DB      0x06,0x08
+08C9: 08            0138          DB      0x08
+08CA: 08            0139          DB      0x08
+08CB: 08            0140          DB      0x08
+08CC: 08            0141          DB      0x08
+08CD: 0A            0142          DB      0x0A
+08CE: 0B            0143          DB      0x0B
+08CF: 0A            0144          DB      0x0A
+08D0: 08            0145          DB      0x08
+08D1: 06 06         0146          DB      0x06,0x06
+08D3: 06 06         0147          DB      0x06,0x06
+08D5: 06 06         0148          DB      0x06,0x06
+08D7: 00            0149          DB      0x00
+08D8: 00            0150          DB      0x00
+08D9: 00            0151          DB      0x00
+08DA: 1F            0152          DB      0x1F
+                    0153          END
+                    0154        
+ 
