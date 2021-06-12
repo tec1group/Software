@@ -104,114 +104,114 @@
 ;ENTERS A CONTINUOUS LOOP.
 ;
 
-L0792:		EQU		0792h								;BASE OF REGISTER NAME TABLE
-L0800:		EQU		0800h								;Current displayed Address Buffer
-L0804:		EQU		0804H								;Current displayed Data Buffer
-L0805:		EQU		0805H								;Character #2 of the Data Display Buffer
-L0806:		EQU		0806h								;Stepper's 6 Byte Display Buffer
-L0820:		EQU		0820H								;KEY BUFFER
-L0821:		EQU		0821H								;LCD ON/OFF FLAG
-L0822:		EQU		0822H								;SOUND ON/OFF
-L0823:		EQU		0823H								;GO AT ALTERNATE GO ADDRESS IF AA
-L0824:		EQU		0824H								;STEPPER KEY CONTROL/TIMER
-L0825:		EQU		0825H								;KEY PRESS FLAG
-L0826:		EQU		0826H								;UNUSED
-L0827:		EQU		0827H								;AUTO INCREMENT ON/OFF
-L0828:		EQU		0828H								;ALT GO ADDR/SOFT RESET EDIT LOCATION
-L082A:		EQU		082AH								;AUTO KEY STATUS BYTE
-L082B:		EQU		082BH								;MONITOR CONTROL BYTE (MCB)
-L082C:		EQU		082CH								;DISPLAY BUFFER ADDRESS (using 7seg Display codes)
-L082E:		EQU		082EH								;CURRENT EDITING LOCATION (CEL)
+L0792:      EQU     0792h                               ;BASE OF REGISTER NAME TABLE
+L0800:      EQU     0800h                               ;Current displayed Address Buffer
+L0804:      EQU     0804H                               ;Current displayed Data Buffer
+L0805:      EQU     0805H                               ;Character #2 of the Data Display Buffer
+L0806:      EQU     0806h                               ;Stepper's 6 Byte Display Buffer
+L0820:      EQU     0820H                               ;KEY BUFFER
+L0821:      EQU     0821H                               ;LCD ON/OFF FLAG
+L0822:      EQU     0822H                               ;SOUND ON/OFF
+L0823:      EQU     0823H                               ;GO AT ALTERNATE GO ADDRESS IF AA
+L0824:      EQU     0824H                               ;STEPPER KEY CONTROL/TIMER
+L0825:      EQU     0825H                               ;KEY PRESS FLAG
+L0826:      EQU     0826H                               ;UNUSED
+L0827:      EQU     0827H                               ;AUTO INCREMENT ON/OFF
+L0828:      EQU     0828H                               ;ALT GO ADDR/SOFT RESET EDIT LOCATION
+L082A:      EQU     082AH                               ;AUTO KEY STATUS BYTE
+L082B:      EQU     082BH                               ;MONITOR CONTROL BYTE (MCB)
+L082C:      EQU     082CH                               ;DISPLAY BUFFER ADDRESS (using 7seg Display codes)
+L082E:      EQU     082EH                               ;CURRENT EDITING LOCATION (CEL)
 
 ;The following are the JUMP addresses that a CALLED by JMON,
 ;after they are copied from the ROM (starting @ 071Fh) to the RAM @ 0830h, on a Hard Reset.
 ;They point back to routines in the ROM, so not sure why this was done.
-L0830:		EQU		0830H								;CONVERT HL TO DISPLAY CODE @ 01D5h
-L0833:		EQU		0833H								;CONVERT A TO DISPLAY CODE @ 01DAh
-L0836:		EQU		0836H								;LED SCAN ROUTINE @ 01BAh
-L0839:		EQU		0839H								;SET LED DOTS @ 01EEh
-L083C:		EQU		083CH								;RESET TONES @ 0224h
-L083F:		EQU		083FH								;TONE @ 0227h
-L0842:		EQU		0842H								;SCAN/KEY/LCD/PATCH LOOP @ 0181h
-L0845:		EQU		0845h								;SOFT JMON ENTRY L0845 @ 00B2h
-L0848:		EQU		0848H								;LCD ROUTINE @ 023Ch
+L0830:      EQU     0830H                               ;CONVERT HL TO DISPLAY CODE @ 01D5h
+L0833:      EQU     0833H                               ;CONVERT A TO DISPLAY CODE @ 01DAh
+L0836:      EQU     0836H                               ;LED SCAN ROUTINE @ 01BAh
+L0839:      EQU     0839H                               ;SET LED DOTS @ 01EEh
+L083C:      EQU     083CH                               ;RESET TONES @ 0224h
+L083F:      EQU     083FH                               ;TONE @ 0227h
+L0842:      EQU     0842H                               ;SCAN/KEY/LCD/PATCH LOOP @ 0181h
+L0845:      EQU     0845h                               ;SOFT JMON ENTRY L0845 @ 00B2h
+L0848:      EQU     0848H                               ;LCD ROUTINE @ 023Ch
 
-L084B:		EQU		084BH								;PRE-SCAN USER PATCH
-L084E:		EQU		084EH								;USER "DURING LOOP" PATCH
-L0851:		EQU		0851H								;USER "AFTER KEY" PATCH
-L0858:		EQU		0858H								;ADDRESS OF INSTRUCTION JUST STEPPED
-L085A:		EQU		085AH								;CURRENT REG No. BUFFER
-L0860:		EQU		0860H								;RE-ENTRY ADDRESS BUFFER
-L0868:		EQU		0868H								;"NEXT PC" BUFFER
-L086A:		EQU		086Ah								;SHIFT 7 ROUTINE START (REG DISPLAY)
-L086E:		EQU		086EH								;
-L0870:		EQU		0870H								;
-L087E:		EQU		087EH								;Stack Pointer Save Buffer
-L0882:		EQU		0882H								;
-L0884:		EQU		0884H								;
-L0886:		EQU		0886H								;
-L0887:		EQU		0887H								;
-L0888:		EQU		0888H								;
-L088A:		EQU		088AH								;
-L088C:		EQU		088CH								;Active Window +1
-L088F:		EQU		088FH								;
-L0891:		EQU		0891H								;
-L0893:		EQU		0893H								;
-L0895:		EQU		0895H								;
-L0897:		EQU		0897H								;
-L0898:		EQU		0898H								;
-L089A:		EQU		089AH								;
-L089C:		EQU		089CH								;
-L089E:		EQU		089EH								;
-L08A4:		EQU		08A4H								;
-L08A6:		EQU		08A6H								;
-L08A8:		EQU		08A8H								;
-L08AA:		EQU		08AAH								;
-L08B0:		equ		08B0H								;
-L08B1:		EQU		08B1H								;
-L08B3:		EQU		08B3H								;
-L08B5:		EQU		08B5h								;Checksum?
-L08B6:		EQU		08B6H								;
-L08C0:		EQU		08BEh								;User Table -2
-L08FF:		EQU		08FFH								;Reset Flag
-L3800:		EQU		3800H								;LCD ROUTINES
-L381E:		EQU		381Eh								;Start of the Jump Table in the JMON Utilities
+L084B:      EQU     084BH                               ;PRE-SCAN USER PATCH
+L084E:      EQU     084EH                               ;USER "DURING LOOP" PATCH
+L0851:      EQU     0851H                               ;USER "AFTER KEY" PATCH
+L0858:      EQU     0858H                               ;ADDRESS OF INSTRUCTION JUST STEPPED
+L085A:      EQU     085AH                               ;CURRENT REG No. BUFFER
+L0860:      EQU     0860H                               ;RE-ENTRY ADDRESS BUFFER
+L0868:      EQU     0868H                               ;"NEXT PC" BUFFER
+L086A:      EQU     086Ah                               ;SHIFT 7 ROUTINE START (REG DISPLAY)
+L086E:      EQU     086EH                               ;
+L0870:      EQU     0870H                               ;
+L087E:      EQU     087EH                               ;Stack Pointer Save Buffer
+L0882:      EQU     0882H                               ;
+L0884:      EQU     0884H                               ;
+L0886:      EQU     0886H                               ;
+L0887:      EQU     0887H                               ;
+L0888:      EQU     0888H                               ;
+L088A:      EQU     088AH                               ;
+L088C:      EQU     088CH                               ;Active Window +1
+L088F:      EQU     088FH                               ;
+L0891:      EQU     0891H                               ;
+L0893:      EQU     0893H                               ;
+L0895:      EQU     0895H                               ;
+L0897:      EQU     0897H                               ;
+L0898:      EQU     0898H                               ;
+L089A:      EQU     089AH                               ;
+L089C:      EQU     089CH                               ;
+L089E:      EQU     089EH                               ;
+L08A4:      EQU     08A4H                               ;
+L08A6:      EQU     08A6H                               ;
+L08A8:      EQU     08A8H                               ;
+L08AA:      EQU     08AAH                               ;
+L08B0:      equ     08B0H                               ;
+L08B1:      EQU     08B1H                               ;
+L08B3:      EQU     08B3H                               ;
+L08B5:      EQU     08B5h                               ;Checksum?
+L08B6:      EQU     08B6H                               ;
+L08C0:      EQU     08BEh                               ;User Table -2
+L08FF:      EQU     08FFH                               ;Reset Flag
+L3800:      EQU     3800H                               ;LCD ROUTINES
+L381E:      EQU     381Eh                               ;Start of the Jump Table in the JMON Utilities
 
 ;IO Port ASSIGNMENTS
-KEYBOARD:	EQU		0x00								;KEYBOARD ENCODER
-DSCAN:		EQU		0x01								;DISPLAY CATHODE DRIVER LATCH
-DSEGMENT:	EQU		0x02								;DISPLAY SEGMENT DRIVER LATCH
+KEYBOARD:   EQU     0x00                                ;KEYBOARD ENCODER
+DSCAN:      EQU     0x01                                ;DISPLAY CATHODE DRIVER LATCH
+DSEGMENT:   EQU     0x02                                ;DISPLAY SEGMENT DRIVER LATCH
 
 ;DAT BOARD
-DATLATCH:	EQU		0x03								;DAT BOARD LATCH
-LCDDATA:	EQU		0x84								;LCD DATA REGISTER
-LCDINST:	EQU		0X04								;LCD INSTRUCTION REGISTER
+DATLATCH:   EQU     0x03                                ;DAT BOARD LATCH
+LCDDATA:    EQU     0x84                                ;LCD DATA REGISTER
+LCDINST:    EQU     0x04                                ;LCD INSTRUCTION REGISTER
 
 
 ;AT THE START OF JMON, HL IS SAVED IN ITS SINGLE STEPPER BUFFER ADD THE SOFT RESET DISPLAY
 ;VALUE IS PLACED IN THE CURRENT EDIT LOCATION BUFFER. THE ROUTINE THEN IS CONTINUED AT $0068.
-.ORG		$0000
-			LD		(L086E), HL							;SAVE HL PART OF REGISTER SAVE
-			LD		HL, (L0828)							;GET SOFT RESET INITIAL EDIT
-			JR		L006B								;LOCATION AND CONTINUE AT 006B
+ORG     $0000
+            LD      (L086E), HL                         ;SAVE HL PART OF REGISTER SAVE
+            LD      HL, (L0828)                         ;GET SOFT RESET INITIAL EDIT
+            JR      L006B                               ;LOCATION AND CONTINUE AT 006B
 
 ;RST 08 AND RST 10 (CF AND D7)
 ;THESE TWO COMBINE TOGETHER TO SIMULATE A HALT INSTRUCTION. THIS IS DONE BY LOOPING UNTIL
 ;THE CURRENT (IF ANY) KEY PRESS IS RELEASED (RST 08), AND THEN LOOPING UNTIL A NEW KEY
 ;PRESS IS DETECTED (RST 10).
 
-L0008:		RST		20H									;TEST FOR KEY PRESS
-			JR		Z, L0008							;LOOP IF KEY PRESSED
-			NOP											;ELSE
-			NOP											;MOVE
-			NOP											;TO
-			NOP											;NEXT
-			NOP											;RST
-L0010:		RST		20H									;TEST FOR KEY AGAIN
-			JR		NZ, L0010							;LOOP IF KEY NOT PRESSED
-			AND		0x1F								;MASK OFF JUNK BITS
-			LD		I, A								;STORE IN INTERRUPT REGISTER
-			RET											;DONE
+L0008:      RST     20H                                 ;TEST FOR KEY PRESS
+            JR      Z, L0008                            ;LOOP IF KEY PRESSED
+            NOP                                         ;ELSE
+            NOP                                         ;MOVE
+            NOP                                         ;TO
+            NOP                                         ;NEXT
+            NOP                                         ;RST
+L0010:      RST     20H                                 ;TEST FOR KEY AGAIN
+            JR      NZ, L0010                           ;LOOP IF KEY NOT PRESSED
+            AND     0x1F                                ;MASK OFF JUNK BITS
+            LD      I, A                                ;STORE IN INTERRUPT REGISTER
+            RET                                         ;DONE
 
 ;RST 18 (DF)AND RST (20)
 ;RST 18 CALLS THE LED SCAN ROUTINE ONCE THEN MOVES ON INTO RST 20 THAT THEN CALLS A KEYBOARD
@@ -222,241 +222,241 @@ L0010:		RST		20H									;TEST FOR KEY AGAIN
 ;AND PROBABLY) WILL TARE SEVERAL SECONDS TO DETECT THE KEY.
 ;THE NUMBER OF READ CYCLES FOR THE KEYBOARD IS LOADED INTO B.
 
-			PUSH	HL									;SAVE HL
-			PUSH	DE									;AND DE
-			CALL	L0836								;CALL SCAN ROUTINE
-			POP		DE									;RECOVER DE
-			POP		HL									;AND HL
-			NOP											;NEXT RST
-			PUSH	BC									;SAVE BC
-			LD		B, 0x20								;B = NUMBER OF KEYBOARD SCAN LOOPS
-			CALL	L06AD								;CALL KEY READER/VALIDATER
-			POP		BC									;RECOVER BC
-			RET											;DONE
+            PUSH    HL                                  ;SAVE HL
+            PUSH    DE                                  ;AND DE
+            CALL    L0836                               ;CALL SCAN ROUTINE
+            POP     DE                                  ;RECOVER DE
+            POP     HL                                  ;AND HL
+            NOP                                         ;NEXT RST
+            PUSH    BC                                  ;SAVE BC
+            LD      B, 0x20                             ;B = NUMBER OF KEYBOARD SCAN LOOPS
+            CALL    L06AD                               ;CALL KEY READER/VALIDATER
+            POP     BC                                  ;RECOVER BC
+            RET                                         ;DONE
 
 ;RST 28 (EF)
 ;START STEPPING FROM THE INSTRUCTION FOLLOWING THE RST 28
-			EX		(SP), HL							;GET RETURN ADDRESS FROM THE STACK
-			LD		(L0858), HL							;PUT IN "NEXT PC" BUFFER
-			EX		(SP), HL							;FIX UP STACK
-			EI											;ENABLE INTERRUPTS
-			RET											;STEPPING WILL OCCUR AFTER RETURN
-			RST		38H									;SPARE
+            EX      (SP), HL                            ;GET RETURN ADDRESS FROM THE STACK
+            LD      (L0858), HL                         ;PUT IN "NEXT PC" BUFFER
+            EX      (SP), HL                            ;FIX UP STACK
+            EI                                          ;ENABLE INTERRUPTS
+            RET                                         ;STEPPING WILL OCCUR AFTER RETURN
+            RST     38H                                 ;SPARE
 
 ;RST 30 (F7)
 ;TEST THE BUSY STATE OF THE LCD AND LOOP WHILE BUSY
-L0030:		IN		A, (LCDINST)						;READ STATUS BIT FROM LCD
-			RLCA										;PUT IN CARRY
-			JR		C, L0030							;LOOP IF LCD BUSY
-			RET											;DONE
-			RST		38H
-			RST		38H
+L0030:      IN      A, (LCDINST)                        ;READ STATUS BIT FROM LCD
+            RLCA                                        ;PUT IN CARRY
+            JR      C, L0030                            ;LOOP IF LCD BUSY
+            RET                                         ;DONE
+            RST     38H
+            RST     38H
 
 ;RST 38 (FF)
 ;INTERRUPT HANDLER FOR STEPPER AND BREAK-POINTS
-			JP		L0312								;JUMP TO STEPPER ROUTINE
-			RST		38H									;"FF"
-			RST		38H									;"FF"
-			RST		38H									;"FF"
-			RST		38H									;"FF"
-			RST		38H									;"FF"
-			RST		38H									;"FF"
+            JP      L0312                               ;JUMP TO STEPPER ROUTINE
+            RST     38H                                 ;"FF"
+            RST     38H                                 ;"FF"
+            RST     38H                                 ;"FF"
+            RST     38H                                 ;"FF"
+            RST     38H                                 ;"FF"
+            RST     38H                                 ;"FF"
 
 ;JUMP TABLE FOR EXTERNAL SOFTWARE TO USE JMON ROUTINES
-L0041:		JP		L03DD								;MENU GATE
-L0044:		JP		L0479								;PERIMETER HANDLER ENTRY
-L0047:		JP		L03ED								;SOFT MENU ENTRY
-L004A:		JP		L069F								;ERR-IN ENTRY
-L004D:		JP		L05B4								;PASS/FAIL/MENU
-L0050:		JP		L04A3								;SOFT PERIMETER HANDLER ENTRY
-			RST		38H									;"FF"
-			RST		38H									;"FF"
-			RST		38H									;"FF"
-			RST		38H									;"FF"
-			RST		38H									;"FF"
-			RST		38H									;"FF"
-			RST		38H									;"FF"
-			RST		38H									;"FF"
-			RST		38H									;"FF"
-			RST		38H									;"FF"
-			RST		38H									;"FF"
+L0041:      JP      L03DD                               ;MENU GATE
+L0044:      JP      L0479                               ;PERIMETER HANDLER ENTRY
+L0047:      JP      L03ED                               ;SOFT MENU ENTRY
+L004A:      JP      L069F                               ;ERR-IN ENTRY
+L004D:      JP      L05B3                               ;PASS/FAIL/MENU
+L0050:      JP      L04A3                               ;SOFT PERIMETER HANDLER ENTRY
+            RST     38H                                 ;"FF"
+            RST     38H                                 ;"FF"
+            RST     38H                                 ;"FF"
+            RST     38H                                 ;"FF"
+            RST     38H                                 ;"FF"
+            RST     38H                                 ;"FF"
+            RST     38H                                 ;"FF"
+            RST     38H                                 ;"FF"
+            RST     38H                                 ;"FF"
+            RST     38H                                 ;"FF"
+            RST     38H                                 ;"FF"
 
 ;SHIFT-2 ROUTINE
 ;THIS STORES THE CURRENT EDIT LOCATION IN THE "NEXT PC" BUFFER. THE INTERRUPTS ARE THEN
 ;ENABLED AND THE PROGRAM JUMPS TO THE USER ROUTINE TO BE STEPPED. STEPPING OCCURS AT THE
 ;CURRENT EDIT LOCATION (CEL).
-			LD		HL, (L082E)							;PUT CURRENT EDIT LOCATION IN
-			LD		(L0858), HL							;"NEXT PC" BUFFER
-			EI											;ENABLE INTERRUPTS
-			JP		(HL)								;START STEPPING
+            LD      HL, (L082E)                         ;PUT CURRENT EDIT LOCATION IN
+            LD      (L0858), HL                         ;"NEXT PC" BUFFER
+            EI                                          ;ENABLE INTERRUPTS
+            JP      (HL)                                ;START STEPPING
 
 ;NMI HANDLER (IMMEDIATE RETURN)
-			RETN										;IGNORE NMI
-			RST		38H									;RESERVED
-			RST		38H									;FOR A "Post Burn"
-			RST		38H									;JUMP LOCATION
+            RETN                                        ;IGNORE NMI
+            RST     38H                                 ;RESERVED
+            RST     38H                                 ;FOR A "Post Burn"
+            RST     38H                                 ;JUMP LOCATION
 
 ;CONTINUATION OF MONITOR
-L006B:		IM		1									;SET INTERRUPT MODE 1 FOR STEPPER
-			LD		(L082E), HL							;STORE SOFT RESET INITIAL CEL
-			LD		HL, L0076							;LOAD HL WITH RE-ENTRY ADDRESS
-			JP		L0318								;JUMP TO SAVE REGISTERS
+L006B:      IM      1                                   ;SET INTERRUPT MODE 1 FOR STEPPER
+            LD      (L082E), HL                         ;STORE SOFT RESET INITIAL CEL
+            LD      HL, L0076                           ;LOAD HL WITH RE-ENTRY ADDRESS
+            JP      L0318                               ;JUMP TO SAVE REGISTERS
 
 
 ;RE-ENTRY POINT AFTER SAVING REGISTERS
-L0076:		LD		SP, L0820							;SET STACK (to the Keyboard Buffer??)
-			CALL	L02F7								;CALL RESET PATCH HANDLER
-			RST		20H									;LOOK FOR FORCED HARD RESET
-			JR		Z, L0086							;JUMP KEY PRESSED TO HARD RESET
-			LD		A, (L08FF)							;CHECK HARD/RESET FLAG
-			CP		0xAA								;FOR AA
-			JR		Z, L00A2							;JUMP TO SOFT RESET IF AA
+L0076:      LD      SP, L0820                           ;SET STACK (to the Keyboard Buffer??)
+            CALL    L02F7                               ;CALL RESET PATCH HANDLER
+            RST     20H                                 ;LOOK FOR FORCED HARD RESET
+            JR      Z, L0086                            ;JUMP KEY PRESSED TO HARD RESET
+            LD      A, (L08FF)                          ;CHECK HARD/RESET FLAG
+            CP      0xAA                                ;FOR AA
+            JR      Z, L00A2                            ;JUMP TO SOFT RESET IF AA
 
 ;HARD RESET
 ;MONITOR DEFAULT VARIABLES ARE RE-BOOTED AND USER PATCHES MASKED OFF.
 
-L0086:		LD		HL, L070F							;LOAD HL WITH START OF JMON DEFAULT
-			LD		DE, L0820							;VARIABLES ROM TABLE
-			LD		BC, 0x002B							;DE IS THE RAM DE(stination)
-			LDIR										;AND BC THE COUNT: MOVE TABLE
-			LD		B, 0x03								;MASK OF THE THREE USER PATCHES
-			LD		A, 0xC9								;BY PUTTING A RETURN AT THE FIRST
-L0095:		LD		(DE), A								;LOCATION OF EACH
-			INC		DE									;
-			INC		DE									;
-			INC		DE									;
-			DJNZ	L0095								;
-			CALL	L06D5								;INITIALIZE/TEST FOR THE LCD
-			XOR		A									;CLEAR HARD/SOFT
-			LD		(L08FF), A							;RESET FLAG
+L0086:      LD      HL, L070F                           ;LOAD HL WITH START OF JMON DEFAULT
+            LD      DE, L0820                           ;VARIABLES ROM TABLE
+            LD      BC, 0x002B                          ;DE IS THE RAM DE(stination)
+            LDIR                                        ;AND BC THE COUNT: MOVE TABLE
+            LD      B, 0x03                             ;MASK OF THE THREE USER PATCHES
+            LD      A, 0xC9                             ;BY PUTTING A RETURN AT THE FIRST
+L0095:      LD      (DE), A                             ;LOCATION OF EACH
+            INC     DE                                  ;
+            INC     DE                                  ;
+            INC     DE                                  ;
+            DJNZ    L0095                               ;
+            CALL    L06D5                               ;INITIALIZE/TEST FOR THE LCD
+            XOR     A                                   ;CLEAR HARD/SOFT
+            LD      (L08FF), A                          ;RESET FLAG
 
 ;THIS SECTION IS THE SOFT RESET SECTION. IT IS ALSO PART OF THE HARD RESET SECTION.
-L00A2:		LD		HL, L3800							;TEST FOR JMON UTILITIES ROM
-			LD		A, (HL)
-			CP		0xC3								;AND CALL ITS RESET ROUTINE
-			CALL	Z, L3800							;IF REQUIRED
-			CALL	L083C								;CALL RESET TONE ROUTINE
-			XOR		A									;CLEAR MONITOR CONTROL BYTE
-			LD		(L082B), A							;0 = DATA MODE, NO NIBBLES ENTERED
+L00A2:      LD      HL, L3800                           ;TEST FOR JMON UTILITIES ROM
+            LD      A, (HL)
+            CP      0xC3                                ;AND CALL ITS RESET ROUTINE
+            CALL    Z, L3800                            ;IF REQUIRED
+            CALL    L083C                               ;CALL RESET TONE ROUTINE
+            XOR     A                                   ;CLEAR MONITOR CONTROL BYTE
+            LD      (L082B), A                          ;0 = DATA MODE, NO NIBBLES ENTERED
 
 ;EACH TIME A KEYBOARD INPUT OR USER PATCH "PLANT", IS PROCESSED, THE PROGRAM JUMPS BACK
 ;TO HERE SO THE DISPLAYS MAY BE UP-DATED.
 
-L00B2:		LD		HL, (L082E)							;GET CURRENT EDIT LOCATION (CEL)
-			LD		BC, (L082C)							;AND DISPLAY BUFFER ADDRESS
-			CALL	L0830								;AND CONVERT CEL TO DISPLAY CODE
-			LD		A, (HL)								;AND THEN CONVERT CONTENTS OF
-			CALL	L0833								;CEL TO DISPLAY CODE
-			CALL	L0839								;CALL THE SET DOTS ROUTINE
-			CALL	L0842								;CALL SCAN/KEY/LCD/PATCH ROUTINE
+L00B2:      LD      HL, (L082E)                         ;GET CURRENT EDIT LOCATION (CEL)
+            LD      BC, (L082C)                         ;AND DISPLAY BUFFER ADDRESS
+            CALL    L0830                               ;AND CONVERT CEL TO DISPLAY CODE
+            LD      A, (HL)                             ;AND THEN CONVERT CONTENTS OF
+            CALL    L0833                               ;CEL TO DISPLAY CODE
+            CALL    L0839                               ;CALL THE SET DOTS ROUTINE
+            CALL    L0842                               ;CALL SCAN/KEY/LCD/PATCH ROUTINE
 
 ;THE SECTION BELOW IS EXECUTED WHEN EITHER A KEY OR KEY "PLANT" IS DETECTED IN THE
 ;SCAN/KEY/LCD/PATCH ROUTINE ROUTINE
 
-			LD		HL, (L082E)							;POINT HL TO CURRENT EDIT LOCATION
-			LD		C, A								;PRESERVE INPUT KEY IN C
-			LD		A, (L082B)							;GET MONITOR CONTROL BYTE (MCB)
-			BIT		4, A								;TEST FOR ADDRESS OR FUNCTION MODE
-			LD		B, A								;STORE MCB IN B
-			LD		A, C								;GET INPUT KEY BACK IN A
-			JR		NZ, L0102							;JUMP IF ADDRESS OR FUNCTION MODE
-			CP		0x10								;TEST FOR "+"
-			JR		NZ, L00E3							;JUMP IF NOT TO TEST FOR "-"
+            LD      HL, (L082E)                         ;POINT HL TO CURRENT EDIT LOCATION
+            LD      C, A                                ;PRESERVE INPUT KEY IN C
+            LD      A, (L082B)                          ;GET MONITOR CONTROL BYTE (MCB)
+            BIT     4, A                                ;TEST FOR ADDRESS OR FUNCTION MODE
+            LD      B, A                                ;STORE MCB IN B
+            LD      A, C                                ;GET INPUT KEY BACK IN A
+            JR      NZ, L0102                           ;JUMP IF ADDRESS OR FUNCTION MODE
+            CP      0x10                                ;TEST FOR "+"
+            JR      NZ, L00E3                           ;JUMP IF NOT TO TEST FOR "-"
 
 ;"+" KEY HANDLER-(WHEN IN DATA MODE ONLY)
 
-			INC		HL									;ADD 1 TO CURRENT EDIT LOCATION
+            INC     HL                                  ;ADD 1 TO CURRENT EDIT LOCATION
 
 ;COMMON CEL AND MCB UP-DATER
 ;SEVERAL SECTIONS JUMP HERE TO STORE AN UP-DATED CEL AND CLEAR THE NIBBLE COUNTER.
 
-L00D8:		LD		(L082E), HL							;STORE CEL
-			LD		A, B								;GET MCB
+L00D8:      LD      (L082E), HL                         ;STORE CEL
+            LD      A, B                                ;GET MCB
 
 ;COMMON MCB UP-DATER
 ;SOME KEY HANDLER SECTION THAT DON'T REQUIRE.A NEW CEL (OR HAVE ALREADY STORED IT) JUMP HERE.
 
-L00DC:		AND		0xFC								;CLEAR NIBBLE COUNTER
-			LD		(L082B), A							;STORE MCB
-L00E1:		JR		L00B2								;JUMP BACK TO UPDATE DISPLAY
-L00E3:		CP		0x11								;TEST FOR "-"
-			JR		NZ, L00EA							;JUMP IF NOT TO TEST FOR "GO"
+L00DC:      AND     0xFC                                ;CLEAR NIBBLE COUNTER
+            LD      (L082B), A                          ;STORE MCB
+L00E1:      JR      L00B2                               ;JUMP BACK TO UPDATE DISPLAY
+L00E3:      CP      0x11                                ;TEST FOR "-"
+            JR      NZ, L00EA                           ;JUMP IF NOT TO TEST FOR "GO"
 
 ;"-" KEY HANDLER (WHEN IN DATA MODE ONLY)
-			DEC		HL									;DECREASE CEL ADDRESS BY ONE
-			JR		L00D8								;JUMP TO COMMON CEL AND MCB UP-DATER
-L00EA:		CP		0x12								;TEST FOR GO
-			JR		NZ, L0102							;JUMP IF NOT TO TEST FOR "AD"
+            DEC     HL                                  ;DECREASE CEL ADDRESS BY ONE
+            JR      L00D8                               ;JUMP TO COMMON CEL AND MCB UP-DATER
+L00EA:      CP      0x12                                ;TEST FOR GO
+            JR      NZ, L0102                           ;JUMP IF NOT TO TEST FOR "AD"
 
 ;"GO" HANDLER (WHEN IN DATA MODEONLY)
-			LD		A, (L0823)							;TEST FOR ALTERNATE GO ADDRESS
-			CP		0xAA								;IF (0823)=AA
-			JR		Z, L00FA							;JUMP IF SET FOR ALTERNATE GO ADDR
-			LD		HL, (L082E)							;ELSE GET CURRENT EDIT LOCATION
-			JR		L00FD								;SKIP ALTERNATE JUMP ADDRESS FETCH
-L00FA:		LD		HL, (L0828)							;GET ALTERNATE GO ADDRESS
-L00FD:		LD		DE, L0845							;PUT RETURN ADDRESS ON STACK
-			PUSH	DE
-			JP		(HL)								;START USER EXECUTION
+            LD      A, (L0823)                          ;TEST FOR ALTERNATE GO ADDRESS
+            CP      0xAA                                ;IF (0823)=AA
+            JR      Z, L00FA                            ;JUMP IF SET FOR ALTERNATE GO ADDR
+            LD      HL, (L082E)                         ;ELSE GET CURRENT EDIT LOCATION
+            JR      L00FD                               ;SKIP ALTERNATE JUMP ADDRESS FETCH
+L00FA:      LD      HL, (L0828)                         ;GET ALTERNATE GO ADDRESS
+L00FD:      LD      DE, L0845                           ;PUT RETURN ADDRESS ON STACK
+            PUSH    DE
+            JP      (HL)                                ;START USER EXECUTION
 
 ;TEST HERE FOR ADDRESS KEY. IF THE KEY PRESSED IS NOT THE ADDRESS KEY, THEN A JUMP IS
 ;PERFORMED. OTHERWISE THE ADDRESS KEY IS PROCESSED.
 
-L0102:		CP		0x13								;TEST FOR ADDRESS KEY
-			JR		NZ, L0111							;0= IF NOT TO DATA KEY HANDLER
-			LD		A, B								;GET MONITOR CONTROL BYTE (MCB)
-			BIT		5, B								;TEST FOR FUNCTION MODE AND JUMP TO
-			JR		NZ, L010D							;CLEAR FUNCTION MODE BITS IF SO
-			XOR		0x10								;ELSE TOGGLE ADDRESS MODE BIT
-L010D:		AND		0xD3								;CLEAR ALL FUNCTION MODE BITS
-			JR		L00DC								;LOOP BACK TO COMMON MCB UP-DATER
+L0102:      CP      0x13                                ;TEST FOR ADDRESS KEY
+            JR      NZ, L0111                           ;0= IF NOT TO DATA KEY HANDLER
+            LD      A, B                                ;GET MONITOR CONTROL BYTE (MCB)
+            BIT     5, B                                ;TEST FOR FUNCTION MODE AND JUMP TO
+            JR      NZ, L010D                           ;CLEAR FUNCTION MODE BITS IF SO
+            XOR     0x10                                ;ELSE TOGGLE ADDRESS MODE BIT
+L010D:      AND     0xD3                                ;CLEAR ALL FUNCTION MODE BITS
+            JR      L00DC                               ;LOOP BACK TO COMMON MCB UP-DATER
 
 ;A TEST FOR ADDRESS/FUNCTION MODE IS DONE. IF IN ADDRESS OR FUNCTION MODE A JUMP IS PERFORMED.
-L0111:		LD		A, B								;GET MCB
-			BIT		4, A								;TEST FOR ADDRESS OR FUNCTION MODE
-			JR		NZ, L013B							;JUMP IF EITHER MODE
+L0111:      LD      A, B                                ;GET MCB
+            BIT     4, A                                ;TEST FOR ADDRESS OR FUNCTION MODE
+            JR      NZ, L013B                           ;JUMP IF EITHER MODE
 
 ;A TEST FOR SHIFT IS DONE AND A JUMP IS PERFORMED IF IN THE SHIFT MODE TO THE FUNCTION/SHIFT HANDLER.
-			IN		A, (KEYBOARD)						;TEST FOR THE SHIFT KEY
-			BIT		5, A								;AND JUMP IF SHIFT IS PRESSED
-			JR		Z, L0150							;TO THE FUNCTION HANDLER
+            IN      A, (KEYBOARD)                       ;TEST FOR THE SHIFT KEY
+            BIT     5, A                                ;AND JUMP IF SHIFT IS PRESSED
+            JR      Z, L0150                            ;TO THE FUNCTION HANDLER
 
 ;ANY TIME A DATA KEY IS PRESSED WHILE IN THE DATA MODE, IT IS PROCESSED STARTING HERE.
-			LD		A, B								;GET MCB
-			AND		0x03								;MASK IT DOWN TO BYTE COUNTER
-			CP		0x02								;AND TEST FOR TWO NIBBLES ENTERED
-			LD		A, B								;INPUT KEY VALUE BACK IN A
-			JR		NZ, L0132							;JUMP IF NOT READY FOR AUTO INC
-			PUSH	AF									;SAVE MCB
-			LD		A, (L0827)							;TEST AUTO INC MASK
-			OR		A									;IF NOT ZERO THEN JUMP AS USER
-			JR		NZ, L012F							;HAS SWITCHED OFF AUTO INC MODE
-			INC		HL									;ELSE INCREMENT CEL BEFORE ENTERING
-			LD		(L082E), HL							;NEW NIBBLE AND STORE NEW CEL
-L012F:		POP		AF									;RECOVER MON CONTROL BYTE IN A
-			AND		0xFC								;CLEAR BYTE COUNTER (BITS 0 AND 1)
-L0132:		INC		A									;ADD ONE TO NIBBLE COUNTER
-			LD		(L082B), A							;STORE IT
-			LD		A, (L0820)							;GET INPUT KEY FROM INPUT BUFFER
-			JR		L014C								;JUMP TO ENTER IT
+            LD      A, B                                ;GET MCB
+            AND     0x03                                ;MASK IT DOWN TO BYTE COUNTER
+            CP      0x02                                ;AND TEST FOR TWO NIBBLES ENTERED
+            LD      A, B                                ;INPUT KEY VALUE BACK IN A
+            JR      NZ, L0132                           ;JUMP IF NOT READY FOR AUTO INC
+            PUSH    AF                                  ;SAVE MCB
+            LD      A, (L0827)                          ;TEST AUTO INC MASK
+            OR      A                                   ;IF NOT ZERO THEN JUMP AS USER
+            JR      NZ, L012F                           ;HAS SWITCHED OFF AUTO INC MODE
+            INC     HL                                  ;ELSE INCREMENT CEL BEFORE ENTERING
+            LD      (L082E), HL                         ;NEW NIBBLE AND STORE NEW CEL
+L012F:      POP     AF                                  ;RECOVER MON CONTROL BYTE IN A
+            AND     0xFC                                ;CLEAR BYTE COUNTER (BITS 0 AND 1)
+L0132:      INC     A                                   ;ADD ONE TO NIBBLE COUNTER
+            LD      (L082B), A                          ;STORE IT
+            LD      A, (L0820)                          ;GET INPUT KEY FROM INPUT BUFFER
+            JR      L014C                               ;JUMP TO ENTER IT
 
 ;TEST HERE FOR A CONTROL KEY WHILE IN EITHER THE ADDRESS OR FUNCTION MODE AND JUMP TO
 ;ENCODE THE FUNCTION NUMBER BITS (2 AND 3 OF MCB). IF NOT A CONTROL KEY, THEN TEST FOR
 ;THE FUNCTION MODE AND JUMP TO FUNCTION JUMP CONTROL IF SO, ELSE SERVICE DATA KEY FOR
 ;ADDRESS MODE.
 
-L013B:		LD		A, (L0820)							;GET INPUT KEY FROM INPUT BUFFER
-			BIT		4, A								;TEST FOR CONTROL KEY (+,- OR GO)
-			JR		NZ, L0171							;JUMP IF CONTROL TO FUNCTION ENCODER
-			BIT		5, B								;TEST FUNCTION MODE
-			JR		NZ, L0150							;JUMP IF SO TO FUNCTION JUMP CONTROL
+L013B:      LD      A, (L0820)                          ;GET INPUT KEY FROM INPUT BUFFER
+            BIT     4, A                                ;TEST FOR CONTROL KEY (+,- OR GO)
+            JR      NZ, L0171                           ;JUMP IF CONTROL TO FUNCTION ENCODER
+            BIT     5, B                                ;TEST FUNCTION MODE
+            JR      NZ, L0150                           ;JUMP IF SO TO FUNCTION JUMP CONTROL
 
 ;DATA KEY PRESS WHILE IN THE ADDRESS MODE
-			LD		HL, L082E							;POINT HL TO CEL BUFFER
-			RLD											;AND SHIFT IN THE NEW NIBBLE
-			INC		HL									;AND MOVE THE OTHERS ACROSS
-L014C:		RLD											;THIS RLD USED BY DATA MODE ALSO
-L014E:		JR		L00E1								;JUMP (VIA A JUMP) TO UP-DATE DISPLAYS
+            LD      HL, L082E                           ;POINT HL TO CEL BUFFER
+            RLD                                         ;AND SHIFT IN THE NEW NIBBLE
+            INC     HL                                  ;AND MOVE THE OTHERS ACROSS
+L014C:      RLD                                         ;THIS RLD USED BY DATA MODE ALSO
+L014E:      JR      L00E1                               ;JUMP (VIA A JUMP) TO UP-DATE DISPLAYS
 
 ;FUNCTION AND SHIFT JUMP CONTROL
 ;BITS 2 AND 3 OF THE MONITOR CONTROL BYTE (MCB) ARE THE FUNCTION IDENTIFIER BITS.
@@ -476,26 +476,26 @@ L014E:		JR		L00E1								;JUMP (VIA A JUMP) TO UP-DATE DISPLAYS
 ;ENTRY IS FOUND, 17 IS PUT' INSIDE EL (VIA_ DE) AND THE ROUTINE JUMPS TO PART OF THE "GO"
 ;KEY ROUTINE TO CREATE A RETURN ADDRESS ON THE STACK AND EXECUTE THE SELECTED ROUTINE.
 
-L0150:		LD		A, B								;PUT MONITOR CONTROL BYTE IN A
-			AND		0x0C								;MASK IT DOWN TO FUNCTION BITS
-			LD		HL, L07DE							;JMON FUNCTION JUMP TABLE BASE -2
-			JR		Z, L0162							;JUMP IF FUNCTION 1 OR SHIFT
-			LD		HL, L08C0							;LOAD HL WITH USER TABLE -2
-														;*** Value is 08BE as User Table is at 08C0
-			CP		0x04								;TEST FOR FUNCTION 2
-			JR		Z, L0162							;JUMP IF FUNCTION 2 (USER FUNCTION)
-			LD		HL, L381E							;OTHERWISE MUST BE FUNCTION 3
-L0162:		LD		A, (L0820)							;GET INPUT KEY FROM INPUT BUFFER
-			INC		A									;ADD ONE IN CASE IT WAS ZERO
-			LD		B, A								;PUT IN B TO USE AS A LOOP COUNTER
-L0167:		INC		HL									;LOOK THROUGH TABLE
-			INC		HL									;FOR RIGHT JUMP VECTOR
-			DJNZ	L0167
-			LD		E, (HL)								;PUT IT IN HL
-			INC		HL									;VIA DE
-			LD		D, (HL)
-			EX		DE, HL								;JUMP TO CREATE RETURN ADDRESS AND
-			JR		L00FD								;EXECUTE SELECTED ROUTINE
+L0150:      LD      A, B                                ;PUT MONITOR CONTROL BYTE IN A
+            AND     0x0C                                ;MASK IT DOWN TO FUNCTION BITS
+            LD      HL, L07DE                           ;JMON FUNCTION JUMP TABLE BASE -2
+            JR      Z, L0162                            ;JUMP IF FUNCTION 1 OR SHIFT
+            LD      HL, L08C0                           ;LOAD HL WITH USER TABLE -2
+                                                        ;*** Value is 08BE as User Table is at 08C0
+            CP      0x04                                ;TEST FOR FUNCTION 2
+            JR      Z, L0162                            ;JUMP IF FUNCTION 2 (USER FUNCTION)
+            LD      HL, L381E                           ;OTHERWISE MUST BE FUNCTION 3
+L0162:      LD      A, (L0820)                          ;GET INPUT KEY FROM INPUT BUFFER
+            INC     A                                   ;ADD ONE IN CASE IT WAS ZERO
+            LD      B, A                                ;PUT IN B TO USE AS A LOOP COUNTER
+L0167:      INC     HL                                  ;LOOK THROUGH TABLE
+            INC     HL                                  ;FOR RIGHT JUMP VECTOR
+            DJNZ    L0167
+            LD      E, (HL)                             ;PUT IT IN HL
+            INC     HL                                  ;VIA DE
+            LD      D, (HL)
+            EX      DE, HL                              ;JUMP TO CREATE RETURN ADDRESS AND
+            JR      L00FD                               ;EXECUTE SELECTED ROUTINE
 
 ;FUNCTION NUMBER ENCODER
 ;THIS SECTION ENCODES THE FUNCTION IDENTIFIER BITS (BITS 2 AND 3) IN THE MONITOR CONTROL
@@ -505,16 +505,16 @@ L0167:		INC		HL									;LOOK THROUGH TABLE
 ;SELECT BITS (BITS 2 AND 3) IN THE MCB. THE INPUT CONTROL KEY IS IN THE ACCUMULATOR ON
 ;ENTRY AND THE MONITOR CONTROL BYTE (MCB) IN B.
 
-L0171:		AND		0x03								;MASK DOWN CONTROL KEY
-			RLCA										;SHIFT IT LEFT TWICE TO ALIGN BITS 0
-			RLCA										;AND 1 TO FUNCTION IDENTITY BITS IN MCB
-			OR		0x20								;SET FUNCTION MODE ENABLED FLAG
-			LD		C, A								;SAVE IN C
-			LD		A, B								;GET CURRENT MCB
-			AND		0xD3								;CLEAR ANY PREVIOUS FUNCTION BITS
-			OR		C									;MERGE TOGETHER
-			LD		(L082B), A							;STORE MCB
-			JR		L014E								;JUMP VIA JUMPS TO UP-DATE DISPLAYS
+L0171:      AND     0x03                                ;MASK DOWN CONTROL KEY
+            RLCA                                        ;SHIFT IT LEFT TWICE TO ALIGN BITS 0
+            RLCA                                        ;AND 1 TO FUNCTION IDENTITY BITS IN MCB
+            OR      0x20                                ;SET FUNCTION MODE ENABLED FLAG
+            LD      C, A                                ;SAVE IN C
+            LD      A, B                                ;GET CURRENT MCB
+            AND     0xD3                                ;CLEAR ANY PREVIOUS FUNCTION BITS
+            OR      C                                   ;MERGE TOGETHER
+            LD      (L082B), A                          ;STORE MCB
+            JR      L014E                               ;JUMP VIA JUMPS TO UP-DATE DISPLAYS
 
 ;THIS IS THE SCAN/KEY/LCD/PATCH ROUTINE. THIS ROUTINE LOOPS SCANNING THE LED DISPLAY AND
 ;SERVICING THE "DURING LOOP" USER PATCH UNTIL A KEY PRESS IS VALIDATED BY THE AUTO-KEY
@@ -528,72 +528,72 @@ L0171:		AND		0x03								;MASK DOWN CONTROL KEY
 ;THIS ROUTINE USES A BYTE AT 082A, CALLED THE AUTO KEY STATUS BYTE AS A FLAG AND TIMER
 ;TO GENERATE THE AUTO REPEAT DELAY.
 
-			CALL	L0848								;CALL LCD ROUTINES
-			CALL	L084B								;CALL PRE-SCAN USER PATCH
-L0187:		CALL	L0836								;CALL SCAN
-			CALL	L084E								;CALL USER "DURING LOOP" PATCH
-			LD		HL, L0820							;TEST KEY INPUT BUFFER BIT 7 FOR A
-			BIT		7, (HL)								;"PLANT" INSERTED BY USER DURING
-			RES		7, (HL)								;PATCH: RESET BIT 7 RETURN TO
-			RET		NZ									;SERVICE "PLANT" IF BIT 7 NOT ZERO
-			RST		20H									;TEST FOR KEY PRESS VIA RST 20
-			LD		HL, L082A							;SET HL TO POINT TO AUTO KEY STATUS
-			JR		C, L019F							;JUMP IF A KEY IS PRESSED
-			LD		(HL), 0x0080						;ELSE SET AUTO KEY STATUS TO
-			JR		L0187								;NO KEY STATE AND CONTINUE LOOP
-L019F:		CALL	L06CA								;CALL UNIVERSAL KEY INPUTTER
-			BIT		7, (HL)								;TEST AUTO KEY STATUS FOR FIRST KEY
-			JR		NZ, L01B6							;JUMP IF SO TO SET LONG KEY DELAY
-			DEC		(HL)								;ELSE COUNT DOWN KEY DELAY
-			JR		NZ, L0187							;LOOP IF NOT READY FOR KEY REPEAT
-			LD		(HL), 0x0C							;ELSE SET SHORT TIME DELAY BETWEEN
-L01AB:		CALL	L0851								;KEYS: CALL USER "AFTER KEY" PATCH
-			CALL	L083F								;CALL KEY TONE
-			XOR		A									;SET ZERO FLAG AND CLEAR CARRY
-			LD		A, (L0820)							;PUT INPUT KEY IN A
-			RET											;AND RETURN FOR KEY SERVICE
-L01B6:		LD		(HL), 0x0070						;SET KEY TIMER FOR LONG DELAY
-			JR		L01AB								;JUMP TO SERVICE PATCH, TONE ETC.
+            CALL    L0848                               ;CALL LCD ROUTINES
+            CALL    L084B                               ;CALL PRE-SCAN USER PATCH
+L0187:      CALL    L0836                               ;CALL SCAN
+            CALL    L084E                               ;CALL USER "DURING LOOP" PATCH
+            LD      HL, L0820                           ;TEST KEY INPUT BUFFER BIT 7 FOR A
+            BIT     7, (HL)                             ;"PLANT" INSERTED BY USER DURING
+            RES     7, (HL)                             ;PATCH: RESET BIT 7 RETURN TO
+            RET     NZ                                  ;SERVICE "PLANT" IF BIT 7 NOT ZERO
+            RST     20H                                 ;TEST FOR KEY PRESS VIA RST 20
+            LD      HL, L082A                           ;SET HL TO POINT TO AUTO KEY STATUS
+            JR      C, L019F                            ;JUMP IF A KEY IS PRESSED
+            LD      (HL), 0x0080                        ;ELSE SET AUTO KEY STATUS TO
+            JR      L0187                               ;NO KEY STATE AND CONTINUE LOOP
+L019F:      CALL    L06CA                               ;CALL UNIVERSAL KEY INPUTTER
+            BIT     7, (HL)                             ;TEST AUTO KEY STATUS FOR FIRST KEY
+            JR      NZ, L01B6                           ;JUMP IF SO TO SET LONG KEY DELAY
+            DEC     (HL)                                ;ELSE COUNT DOWN KEY DELAY
+            JR      NZ, L0187                           ;LOOP IF NOT READY FOR KEY REPEAT
+            LD      (HL), 0x0C                          ;ELSE SET SHORT TIME DELAY BETWEEN
+L01AB:      CALL    L0851                               ;KEYS: CALL USER "AFTER KEY" PATCH
+            CALL    L083F                               ;CALL KEY TONE
+            XOR     A                                   ;SET ZERO FLAG AND CLEAR CARRY
+            LD      A, (L0820)                          ;PUT INPUT KEY IN A
+            RET                                         ;AND RETURN FOR KEY SERVICE
+L01B6:      LD      (HL), 0x0070                        ;SET KEY TIMER FOR LONG DELAY
+            JR      L01AB                               ;JUMP TO SERVICE PATCH, TONE ETC.
 
 ;THIS IS THE LED SCAN ROUTINE.
-			LD		B, 20H								;B IS THE SCAN BIT
-			LD		HL, (L082C)							;GET ADDRESS OF DISPLAY BUFFER
-L01BF:		LD		A, (HL)								;GET FIRST BYTE
-			OUT		(DSEGMENT), A						;AND OUTPUT IT TO SEGMENTS
-			LD		A, B								;GET SCAN BIT
-			OUT		(DSCAN), A							;OUTPUT IT TO COMMONS
-			LD		B, 40H								;CREATE SHORT
-L01C7:		DJNZ	L01C7								;DELAY IN B
-			INC		HL									;INCREASE HL TO NEXT DISPLAY BYTE
-			LD		B, A								;GET SCAN BIT BACK IN B
-			XOR		A									;CLEAR THE LAST PORT OUTPUTTED TO
-			OUT		(DSCAN), A							;TO PREVENT "GHOSTING"
-			RRC		B									;SHIFT SCAN BIT ACROSS TO NEXT
-			JR		NC, L01BF							;COMMON: WHEN SCAN BIT FALLS INTO
-			OUT		(DSEGMENT), A						;CARRY SCAN IS TERMINATED: CLEAR
-			RET											;PORT 2 AND RETURN
+            LD      B, 20H                              ;B IS THE SCAN BIT
+            LD      HL, (L082C)                         ;GET ADDRESS OF DISPLAY BUFFER
+L01BF:      LD      A, (HL)                             ;GET FIRST BYTE
+            OUT     (DSEGMENT), A                       ;AND OUTPUT IT TO SEGMENTS
+            LD      A, B                                ;GET SCAN BIT
+            OUT     (DSCAN), A                          ;OUTPUT IT TO COMMONS
+            LD      B, 40H                              ;CREATE SHORT
+L01C7:      DJNZ    L01C7                               ;DELAY IN B
+            INC     HL                                  ;INCREASE HL TO NEXT DISPLAY BYTE
+            LD      B, A                                ;GET SCAN BIT BACK IN B
+            XOR     A                                   ;CLEAR THE LAST PORT OUTPUTTED TO
+            OUT     (DSCAN), A                          ;TO PREVENT "GHOSTING"
+            RRC     B                                   ;SHIFT SCAN BIT ACROSS TO NEXT
+            JR      NC, L01BF                           ;COMMON: WHEN SCAN BIT FALLS INTO
+            OUT     (DSEGMENT), A                       ;CARRY SCAN IS TERMINATED: CLEAR
+            RET                                         ;PORT 2 AND RETURN
 
 ;THIS ROUTINE CONVERTS HL TO DISPLAY CODE AND STORE THE DISPLAY CODE IN A BUFFER POINTED TO BY BC.
-			LD		A, H								;PUT H IN A
-			CALL	L0833								;CONVERT A TO DISPLAY CODE
-			LD		A, L								;NOW DO FOR L
+            LD      A, H                                ;PUT H IN A
+            CALL    L0833                               ;CONVERT A TO DISPLAY CODE
+            LD      A, L                                ;NOW DO FOR L
 
 ;THIS SECTION CONVERTS THE BYTE IN A TO TWO DISPLAY BYTES.
-			PUSH	AF									;SAVE A
-			RLCA										;SHIFT MSN TO LSN PLACE
-			RLCA										;FOR NIBBLE AT A TIME CONVERSION
-			RLCA
-			RLCA
-			CALL	L01E3								;CONVERT FIRST NIBBLE
-			POP		AF									;RECOVER A TO CONVERT SECOND NIBBLE
-L01E3:		AND		0x0F								;MASK OF HIGH NIBBLE
-			LD		DE, 07D0H							;SET DE TO BASE OF CONVERSION
-			ADD		A, E								;TABLE: ADD A TO BASE
-			LD		E, A								;UPDATE POINTER
-			LD		A, (DE)								;GET DISPLAY CODE
-			LD		(BC), A								;STORE IN DISPLAY BUFFER
-			INC		BC									;INCREMENT DISPLAY BUFFER POINTER
-			RET											;NIBBLE CONVERSION DONE
+            PUSH    AF                                  ;SAVE A
+            RLCA                                        ;SHIFT MSN TO LSN PLACE
+            RLCA                                        ;FOR NIBBLE AT A TIME CONVERSION
+            RLCA
+            RLCA
+            CALL    L01E3                               ;CONVERT FIRST NIBBLE
+            POP     AF                                  ;RECOVER A TO CONVERT SECOND NIBBLE
+L01E3:      AND     0x0F                                ;MASK OF HIGH NIBBLE
+            LD      DE, 07D0H                           ;SET DE TO BASE OF CONVERSION
+            ADD     A, E                                ;TABLE: ADD A TO BASE
+            LD      E, A                                ;UPDATE POINTER
+            LD      A, (DE)                             ;GET DISPLAY CODE
+            LD      (BC), A                             ;STORE IN DISPLAY BUFFER
+            INC     BC                                  ;INCREMENT DISPLAY BUFFER POINTER
+            RET                                         ;NIBBLE CONVERSION DONE
 
 ;SET DOTS
 ;THIS ROUTINE SETS THE DOTS IN THE DISPLAY BUFFER. IF IN ADDRESS MODE THEN 4 DOTS ARE SET
@@ -602,57 +602,57 @@ L01E3:		AND		0x0F								;MASK OF HIGH NIBBLE
 ;IF IN THE DATA MODE THEN 2 DOTS IN THE DATA DISPLAY BUFFER OR ONE DOT, ON THE RIGHTMOST
 ;DISPLAY, IF TWO NIBBLES HAVE BEEN ENTERED AND IN THE AUTO-INCREMENT MODE.
 
-			LD		B, 0x02								;SET B FOR 2 DOTS
-			LD		HL, (L082C)							;PUT DISPLAY BUFFER IN HL
-			LD		A, (L082B)							;GET MONITOR CONTROL BYTE (MCB)
-			BIT		4, A								;TEST FOR ADDRESS OR FUNCTION MODE
-			JR		Z, L0214							;JUMP IF NOT TO DO DATA DOTS
-			BIT		5, A								;TEST ONLY FOR FUNCTION MODE
-			JR		NZ, L0206							;JUMP IF FUNCTION MODE
-			LD		B, 4								;ADDRESS MODE SO SET B FOR 4 DOTS
-L0200:		SET		4, (HL)								;SET DOT IN DISPLAY BUFFER
-			INC		HL									;NEXT LOCATION
-			DJNZ	L0200								;DO 4 TIMES
-			RET											;DONE
+            LD      B, 0x02                             ;SET B FOR 2 DOTS
+            LD      HL, (L082C)                         ;PUT DISPLAY BUFFER IN HL
+            LD      A, (L082B)                          ;GET MONITOR CONTROL BYTE (MCB)
+            BIT     4, A                                ;TEST FOR ADDRESS OR FUNCTION MODE
+            JR      Z, L0214                            ;JUMP IF NOT TO DO DATA DOTS
+            BIT     5, A                                ;TEST ONLY FOR FUNCTION MODE
+            JR      NZ, L0206                           ;JUMP IF FUNCTION MODE
+            LD      B, 4                                ;ADDRESS MODE SO SET B FOR 4 DOTS
+L0200:      SET     4, (HL)                             ;SET DOT IN DISPLAY BUFFER
+            INC     HL                                  ;NEXT LOCATION
+            DJNZ    L0200                               ;DO 4 TIMES
+            RET                                         ;DONE
 
-L0206:		DEC		B									;FUNCTION MODE: SET B FOR ONE DOT
-			BIT		3, A								;TEST FOR FUNCTION 3
-			JR		NZ, L0211							;JUMP IF FUNCTION 3 TO ADD HL+1
-			BIT		2, A								;TEST FOR FUNCTION 2
-			JR		NZ, L0210							;JUMP IF FUNCTION 2 TO ADD HL+2
-L020F:		INC		HL									;INCREMENT HL TO POINT TO THE
-L0210:		INC		HL									;REQUIRED DISPLAY BYTE
-L0211:		INC		HL									;
-			JR		L0200								;JUMP TO SET DOT
-L0214:		INC		HL									;DATA MODE: HL NOW POINTS TO SECOND
-			LD		C, A								;LEFT MOST DISPLAY BUFFER: SAVE MCB
-			LD		A, (L0827)							;IN C: TEST AUTO INCREMENT ENABLE
-			OR		A									;FLAG
-			JR		NZ, L020F							;JUMP IF NO AUTO INCREMENT TO SET BOTH
-			BIT		1, C								;DATA DOTS: TEST BYTE COUNTER FOR 2
-			JR		Z, L020F							;NIBBLES: JUMP IF NOT TO SET BOTH DATA
-			INC		HL									;DOTS: ELSE SKIP DOT ON ONE DISPLAY
-			DEC		B									;AND DECREASE DOT COUNT FROM 2 TO 1
-			JR		L020F								;JUMP TO ADJUST HL AND SET DOTS
+L0206:      DEC     B                                   ;FUNCTION MODE: SET B FOR ONE DOT
+            BIT     3, A                                ;TEST FOR FUNCTION 3
+            JR      NZ, L0211                           ;JUMP IF FUNCTION 3 TO ADD HL+1
+            BIT     2, A                                ;TEST FOR FUNCTION 2
+            JR      NZ, L0210                           ;JUMP IF FUNCTION 2 TO ADD HL+2
+L020F:      INC     HL                                  ;INCREMENT HL TO POINT TO THE
+L0210:      INC     HL                                  ;REQUIRED DISPLAY BYTE
+L0211:      INC     HL                                  ;
+            JR      L0200                               ;JUMP TO SET DOT
+L0214:      INC     HL                                  ;DATA MODE: HL NOW POINTS TO SECOND
+            LD      C, A                                ;LEFT MOST DISPLAY BUFFER: SAVE MCB
+            LD      A, (L0827)                          ;IN C: TEST AUTO INCREMENT ENABLE
+            OR      A                                   ;FLAG
+            JR      NZ, L020F                           ;JUMP IF NO AUTO INCREMENT TO SET BOTH
+            BIT     1, C                                ;DATA DOTS: TEST BYTE COUNTER FOR 2
+            JR      Z, L020F                            ;NIBBLES: JUMP IF NOT TO SET BOTH DATA
+            INC     HL                                  ;DOTS: ELSE SKIP DOT ON ONE DISPLAY
+            DEC     B                                   ;AND DECREASE DOT COUNT FROM 2 TO 1
+            JR      L020F                               ;JUMP TO ADJUST HL AND SET DOTS
 
 ;MASKABLE RESET TONE ROUTINE
 ;IF 0822 IS NOT ZERO THEN NO TONE
-			CALL	L083F								;CALL TONE
+            CALL    L083F                               ;CALL TONE
 
 ;MASKABLE TONE ROUTINE
-			LD		A, (L0822)							;TEST SOUND MASK
-			OR		A									;
-			RET		NZ									;NO TONE IF NOT ZERO
-			LD		C, 0x40								;LOAD C WITH PERIOD
-			LD		L, 0x31								;LOAD L WITH NUMBER OF CYCLES
-			XOR		A									;CLEAR A
-L0231:		OUT		(DSCAN), A							;OUT TO SPEAKER
-			LD		B, C								;
-L0234:		DJNZ	L0234								;DELAY FOR PERIOD
-			XOR		0x80								;TOGGLE SPEAKER BIT
-			DEC		L									;DECREMENT CYCLE COUNT
-			JR		NZ, L0231							;LOOP UNTIL ZERO
-			RET											;DONE
+            LD      A, (L0822)                          ;TEST SOUND MASK
+            OR      A                                   ;
+            RET     NZ                                  ;NO TONE IF NOT ZERO
+            LD      C, 0x40                             ;LOAD C WITH PERIOD
+            LD      L, 0x31                             ;LOAD L WITH NUMBER OF CYCLES
+            XOR     A                                   ;CLEAR A
+L0231:      OUT     (DSCAN), A                          ;OUT TO SPEAKER
+            LD      B, C                                ;
+L0234:      DJNZ    L0234                               ;DELAY FOR PERIOD
+            XOR     0x80                                ;TOGGLE SPEAKER BIT
+            DEC     L                                   ;DECREMENT CYCLE COUNT
+            JR      NZ, L0231                           ;LOOP UNTIL ZERO
+            RET                                         ;DONE
 
 ;LCD ROUTINE
 ;IF 0821 IS NOT ZERO, THEN LCD HAS BEEN MASKED OFF BY EITHER THE USER OR THE LCD
@@ -661,61 +661,61 @@ L0234:		DJNZ	L0234								;DELAY FOR PERIOD
 ;INTERNAL CURSOR ON THE LCD IS REFERRED TO AS THE CURSOR, WHILE THE ">" ON THE LCD IS
 ;REFERRED TO AS THE PROMPT.
 
-			LD		A, (L0821)							;TEST LCD MASK
-			OR		A
-			RET		NZ									;NOT ZERO = LCD NOT REQUIRED OR FITTED
-			LD		A, 0x80								;SET LCD CURSOR TO HOME
-			OUT		(LCDINST), A
-			RST		30H									;WAIT UNTIL LCD READY
-			CALL	L0253								;CALL SET-UP AND OUTPUT FIRST LINE
-			LD		A, 0xC0								;SET CURSOR TO BOTTOM LINE
-			OUT		(LCDINST), A
-			RST		30H									;WAIT
-			CALL	L025A								;CALL ROUTINE TO OUTPUT BOTTOM LINE
-			JR		L0286								;JUMP TO PROMPT ROUTINE
+            LD      A, (L0821)                          ;TEST LCD MASK
+            OR      A
+            RET     NZ                                  ;NOT ZERO = LCD NOT REQUIRED OR FITTED
+            LD      A, 0x80                             ;SET LCD CURSOR TO HOME
+            OUT     (LCDINST), A
+            RST     30H                                 ;WAIT UNTIL LCD READY
+            CALL    L0253                               ;CALL SET-UP AND OUTPUT FIRST LINE
+            LD      A, 0xC0                             ;SET CURSOR TO BOTTOM LINE
+            OUT     (LCDINST), A
+            RST     30H                                 ;WAIT
+            CALL    L025A                               ;CALL ROUTINE TO OUTPUT BOTTOM LINE
+            JR      L0286                               ;JUMP TO PROMPT ROUTINE
 
 ;SET-UP
 ;MODIFY CURRENT EDIT LOCATION ADDRESS IN HL SO THAT IT POINTS TO A BYTE AT AN ADDRESS
 ;ENDING IN EITHER 0 OR 8.
 
-L0253:		LD		HL, (L082E)							;GET CEL AND PUT LOW BYTE IN A
-			LD		A, L								;THEN MASK OFF THE 3 LOWEST BITS
-			AND		0xF8								;AS THE ADDR OF THE FIRST BYTE ON
-			LD		L, A								;THE LCD WILL END WITH 0 OR 8
+L0253:      LD      HL, (L082E)                         ;GET CEL AND PUT LOW BYTE IN A
+            LD      A, L                                ;THEN MASK OFF THE 3 LOWEST BITS
+            AND     0xF8                                ;AS THE ADDR OF THE FIRST BYTE ON
+            LD      L, A                                ;THE LCD WILL END WITH 0 OR 8
 
 ;OUTPUT A LINE
-L025A:		CALL	L026C								;CALL "HI TO ASCII OUTPUT"
-			LD		B, 04								;SET B FOR 4 BYTES ON A LINE
-L025F:		LD		A, 0x20								;LOAD A WITH ASCII SPACE
-			OUT		(LCDDATA), A						;CHARATER AND OUTPUT IT
-			RST		30H									;WAIT
-			LD		A, (HL)								;GET BYTE TO DISPLAY
-			CALL	L0271								;CONVERT AND OUTPUT IT
-			INC		HL									;POINT TO NEXT BYTE
-			DJNZ	L025F								;DO FOR 4 BYTES
-			RET											;DONE
+L025A:      CALL    L026C                               ;CALL "HI TO ASCII OUTPUT"
+            LD      B, 04                               ;SET B FOR 4 BYTES ON A LINE
+L025F:      LD      A, 0x20                             ;LOAD A WITH ASCII SPACE
+            OUT     (LCDDATA), A                        ;CHARATER AND OUTPUT IT
+            RST     30H                                 ;WAIT
+            LD      A, (HL)                             ;GET BYTE TO DISPLAY
+            CALL    L0271                               ;CONVERT AND OUTPUT IT
+            INC     HL                                  ;POINT TO NEXT BYTE
+            DJNZ    L025F                               ;DO FOR 4 BYTES
+            RET                                         ;DONE
 
 ;CONVERT HL TO ASCII (VIA CONVERT A) AND OUTPUT IT
-L026C:		LD		A, H								;CONVERT AND
-			CALL	L0271								;OUTPUT H
-			LD		A, L								;THEN L
+L026C:      LD      A, H                                ;CONVERT AND
+            CALL    L0271                               ;OUTPUT H
+            LD      A, L                                ;THEN L
 
 ;CONVERT A TO ASCII AND OUTPUT IT
-L0271:		PUSH	AF									;SAVE A FOR SECOND NIBBLE
-			RRCA										;SHIFT HIGH NIBBLE ACROSS
-			RRCA										;
-			RRCA										;
-			RRCA										;
-			CALL	L027A								;CALL NIBBLE CONVERTER
-			POP		AF									;RECOVER LOW NIBBLE
-L027A:		AND		0x0F								;MASK OFF HIGH NIBBLE
-			ADD		A, 0x90								;CONVERT TO
-			DAA											;ASCII
-			ADC		A, 0x40								;USING THIS
-			DAA											;AMAZING ROUTINE
-L0282:		OUT		(LCDDATA), A						;OUTPUT IT
-			RST		30H									;WAIT
-			RET											;DONE
+L0271:      PUSH    AF                                  ;SAVE A FOR SECOND NIBBLE
+            RRCA                                        ;SHIFT HIGH NIBBLE ACROSS
+            RRCA                                        ;
+            RRCA                                        ;
+            RRCA                                        ;
+            CALL    L027A                               ;CALL NIBBLE CONVERTER
+            POP     AF                                  ;RECOVER LOW NIBBLE
+L027A:      AND     0x0F                                ;MASK OFF HIGH NIBBLE
+            ADD     A, 0x90                             ;CONVERT TO
+            DAA                                         ;ASCII
+            ADC     A, 0x40                             ;USING THIS
+            DAA                                         ;AMAZING ROUTINE
+L0282:      OUT     (LCDDATA), A                        ;OUTPUT IT
+            RST     30H                                 ;WAIT
+            RET                                         ;DONE
 
 ;LCD PROMPT AND MODE WORD OUTPUT
 ;THE 3 LOWEST BITS OF THE CURRENT EDIT LOCATION (CEL) ARE USED AS A DISPLACEMENT WHICH IS
@@ -726,27 +726,27 @@ L0282:		OUT		(LCDDATA), A						;OUTPUT IT
 ;BETWEEN THE DATA BYTES AND THE NINTH IS TO PARK THE PROMPT AT THE TOP LEFT-HAND CORNER
 ;WHEN A SCREEN CHANGE IS DUE
 
-L0286:		LD		A, (L082E)							;GET LOW BYTE OF CEL
-			AND		0x07								;MASK IT DOWN TO THE 3 LOWEST BITS
-			LD		C, A								;SAVE IN C
-			LD		A, (L0827)							;TEST FOR AUTO INCREMENT MODE
-			OR		A									;O=ON
-			LD		A, (L082B)							;GET MCB
-			LD		D, A								;PUT MCB IN D
-			JR		NZ, L029B							;JUMP IF AUTO INCREMENT MODE OFF
-			BIT		1, A								;TEST FOR 2 NIBBLES ENTERED: JUMP
-			JR		Z, L029B							;IF NOT: ELSE INCREMENT
-			INC		C									;DISPLACEMENT TO ADVANCE TO
-L029B:		LD		A, C								;NEXT PROMPT LOCATION ADDRESS
-			LD		HL, L07BD							;LOAD HL WITH BASE OF PROMPT
-			ADD		A, L								;TABLE AND ADD DISPLACEMENT
-			LD		L, A								;PUT LOW BYTE OF TABLE ADDRESS
-			LD		A, (HL)								;IN L AND GET PROMPT ADDRESS IN A
-			OUT		(LCDINST), A						;AND OUTPUT PROMPT ADDRESS TO LCD
-			RST		30H									;WAIT
-			LD		A, 0x3E								;LOAD A WITH ASCII FOR ">"
-			OUT		(LCDDATA), A						;OUTPUT PROMPT
-			RST		30H									;WAIT
+L0286:      LD      A, (L082E)                          ;GET LOW BYTE OF CEL
+            AND     0x07                                ;MASK IT DOWN TO THE 3 LOWEST BITS
+            LD      C, A                                ;SAVE IN C
+            LD      A, (L0827)                          ;TEST FOR AUTO INCREMENT MODE
+            OR      A                                   ;O=ON
+            LD      A, (L082B)                          ;GET MCB
+            LD      D, A                                ;PUT MCB IN D
+            JR      NZ, L029B                           ;JUMP IF AUTO INCREMENT MODE OFF
+            BIT     1, A                                ;TEST FOR 2 NIBBLES ENTERED: JUMP
+            JR      Z, L029B                            ;IF NOT: ELSE INCREMENT
+            INC     C                                   ;DISPLACEMENT TO ADVANCE TO
+L029B:      LD      A, C                                ;NEXT PROMPT LOCATION ADDRESS
+            LD      HL, L07BD                           ;LOAD HL WITH BASE OF PROMPT
+            ADD     A, L                                ;TABLE AND ADD DISPLACEMENT
+            LD      L, A                                ;PUT LOW BYTE OF TABLE ADDRESS
+            LD      A, (HL)                             ;IN L AND GET PROMPT ADDRESS IN A
+            OUT     (LCDINST), A                        ;AND OUTPUT PROMPT ADDRESS TO LCD
+            RST     30H                                 ;WAIT
+            LD      A, 0x3E                             ;LOAD A WITH ASCII FOR ">"
+            OUT     (LCDDATA), A                        ;OUTPUT PROMPT
+            RST     30H                                 ;WAIT
 
 ;OUTPUT MODE WORD TO BOTTOM LEFT CORNER OF THE LCD.
 ;IF THE MODE IS EITHER DATA OR ADDR, THEN THE FOUR ASCII BYTES ARE OUTPUTTED. IF IN THE
@@ -757,31 +757,31 @@ L029B:		LD		A, C								;NEXT PROMPT LOCATION ADDRESS
 ;IF YOU LOOK AT THE TABLE AT 07AD, YOU WILL SEE THAT IT IS STAGGERED WITH THE THIRD ENTRY
 ;12 BYTES AWAY FROM THE BASE.
 
-			LD		A, 0xC0								;SET CURSOR TO BOTTOM LINE
-			OUT		(LCDINST), A						;OUTPUT
-			RST		30H									;AND WAIT
-			LD		A, D								;PUT MONITOR CONTROL BYTE (MCB) IN A
-			RRCA										;SHIFT MODE BITS TO BITS 2 AND 3
-			RRCA										;TO USE AS TABLE DISPLACEMENT
-			LD		D, A								;SAVE IN D AND MASK OFF ALL BITS
-			AND		0x0C								;EXCEPT THE 2 THAT FLAG BETWEEN DATA,
-			LD		HL, L07AD							;ADDR AND FUNCTION: A=0 IF DATA, 4 IF
-			ADD		A, L								;ADDR, 12 IF FUNCTION, NOTE THAT TABLE
-			LD		L, A								;IS STAGGERED (SEE 07AD): ADD A TO BASE
-			CP		0xB9								;IF A=B9 THEN MODE IS FUNCTION MODE
-			LD		BC, 0484H							;LOAD C WITH PORT, B WITH BYTE COUNT
-			JR		Z, L02C7							;JUMP IF FUNCTION MDDE TO OUT 3 BYTES
-L02C1:		OUTI										;OUT (HL) TO (C) B=B-1
-			RST		30H									;HL=HL+1: WAIT FOR LCD BUSY FLAG
-			JR		NZ, L02C1							;LOOP UNTIL B=0
-			RET											;DONE
+            LD      A, 0xC0                             ;SET CURSOR TO BOTTOM LINE
+            OUT     (LCDINST), A                        ;OUTPUT
+            RST     30H                                 ;AND WAIT
+            LD      A, D                                ;PUT MONITOR CONTROL BYTE (MCB) IN A
+            RRCA                                        ;SHIFT MODE BITS TO BITS 2 AND 3
+            RRCA                                        ;TO USE AS TABLE DISPLACEMENT
+            LD      D, A                                ;SAVE IN D AND MASK OFF ALL BITS
+            AND     0x0C                                ;EXCEPT THE 2 THAT FLAG BETWEEN DATA,
+            LD      HL, L07AD                           ;ADDR AND FUNCTION: A=0 IF DATA, 4 IF
+            ADD     A, L                                ;ADDR, 12 IF FUNCTION, NOTE THAT TABLE
+            LD      L, A                                ;IS STAGGERED (SEE 07AD): ADD A TO BASE
+            CP      0xB9                                ;IF A=B9 THEN MODE IS FUNCTION MODE
+            LD      BC, 0484H                           ;LOAD C WITH PORT, B WITH BYTE COUNT
+            JR      Z, L02C7                            ;JUMP IF FUNCTION MDDE TO OUT 3 BYTES
+L02C1:      OUTI                                        ;OUT (HL) TO (C) B=B-1
+            RST     30H                                 ;HL=HL+1: WAIT FOR LCD BUSY FLAG
+            JR      NZ, L02C1                           ;LOOP UNTIL B=0
+            RET                                         ;DONE
 
-L02C7:		LD		B, 0x03								;ONLY THREE BYTES FOR FUNCTION MODE
-			CALL	L02C1								;CALL THE OUTPUT ROUTINE ABOVE
-			LD		A, D								;PUT MCB (SHIFTED RIGHT TWICE) IN A
-			AND		0x03								;MASK IT DOWN TO GET JUST THE FUNCTION
-			ADD		A, 0x31								;NUMBER BITS: ADD ASCII "1"
-			JR		L0282								;JUMP TO OUTPUT FUNCTION NUMBER
+L02C7:      LD      B, 0x03                             ;ONLY THREE BYTES FOR FUNCTION MODE
+            CALL    L02C1                               ;CALL THE OUTPUT ROUTINE ABOVE
+            LD      A, D                                ;PUT MCB (SHIFTED RIGHT TWICE) IN A
+            AND     0x03                                ;MASK IT DOWN TO GET JUST THE FUNCTION
+            ADD     A, 0x31                             ;NUMBER BITS: ADD ASCII "1"
+            JR      L0282                               ;JUMP TO OUTPUT FUNCTION NUMBER
 
 ;-END OF MONITOR ROUTINES- (EXCEPT KEYBOARD READER AT 06AD)
 
@@ -790,22 +790,22 @@ L02C7:		LD		B, 0x03								;ONLY THREE BYTES FOR FUNCTION MODE
 ;THE RETURN IS DONE, JMON IS RE-ENTERED AT 00132 (VIA THE SOFT RE-ENTRY JUMP AT L0845, THE
 ;ADDRESS OF WHICH HAS BEEN PLACED ON THE STACK BY PART OF THE "GO" ROUTINE).
 
-			LD		DE, 0x0004							;DE= +4
-L02D6:		LD		HL, (L082E)							;PUT CEL IN HL
-			ADD		HL, DE								;ADD TO GET NEW CEL
-			LD		(L082E), HL							;STORE IN CEL BUFFER
-			RET											;DONE
+            LD      DE, 0x0004                          ;DE= +4
+L02D6:      LD      HL, (L082E)                         ;PUT CEL IN HL
+            ADD     HL, DE                              ;ADD TO GET NEW CEL
+            LD      (L082E), HL                         ;STORE IN CEL BUFFER
+            RET                                         ;DONE
 
-			LD		DE, 0xFFFC							;DE= -4
-			JR		L02D6								;JUMP TO ADD
-			LD		DE, 0xFFFF							;DE= -1
-			JR		L02D6								;JUMP TO ADD
-			LD		DE, 0x0001							;DE= +1
-			JR		L02D6								;JUMP TO ADD
-			LD		DE, 0x0008							;DE= +8
-			JR		L02D6								;JUMP TO ADD
-			LD		DE, 0xFFF8							;DE= -8
-			JR		L02D6								;JUMP TO ADD
+            LD      DE, 0xFFFC                          ;DE= -4
+            JR      L02D6                               ;JUMP TO ADD
+            LD      DE, 0xFFFF                          ;DE= -1
+            JR      L02D6                               ;JUMP TO ADD
+            LD      DE, 0x0001                          ;DE= +1
+            JR      L02D6                               ;JUMP TO ADD
+            LD      DE, 0x0008                          ;DE= +8
+            JR      L02D6                               ;JUMP TO ADD
+            LD      DE, 0xFFF8                          ;DE= -8
+            JR      L02D6                               ;JUMP TO ADD
 
 ;RESET PATCH CHECKER.
 ;TESTS FOR PATCH REQUIREMENT AND UP TO THE FIRST 256 BYTES OF THE PATCH ROUTINE. THE
@@ -819,54 +819,54 @@ L02D6:		LD		HL, (L082E)							;PUT CEL IN HL
 ;A VARIABLE CAN BE PASSED TO YOUR PATCH ROUTINE IN THE "C" REGISTER. TO DO THIS THE VARIABLE
 ;IS PLACED AT ADDRESS LOCATION 08B3.
 
-L02F7:		LD		A, (L08B0)							;TEST FOR RESET PATCH REQUIRED
-			CP		0xAA
-			RET		NZ									;RETURN IF NOT
-			LD		BC, (L08B3)							;PUT NO OF BYTES IN B VARIABLE IN C
-			LD		HL, (L08B1)							;START IN HL
-			XOR		A									;CLEAR A
-L0305:		ADD		A, (HL)								;ADD CHECKSUM
-			INC		HL
-			DJNZ	L0305								;UNTIL B=0
-			LD		HL, L08B5							;POINT TO REQUIRED CHECKSUM
-			CP		(HL)								;TEST FOR EQUAL
-			RET		NZ									;ABORT IF NOT
-			LD		HL, (L08B6)							;ELSE GET START ADDR
-			JP		(HL)								;AND DO RESET PATCH
+L02F7:      LD      A, (L08B0)                          ;TEST FOR RESET PATCH REQUIRED
+            CP      0xAA
+            RET     NZ                                  ;RETURN IF NOT
+            LD      BC, (L08B3)                         ;PUT NO OF BYTES IN B VARIABLE IN C
+            LD      HL, (L08B1)                         ;START IN HL
+            XOR     A                                   ;CLEAR A
+L0305:      ADD     A, (HL)                             ;ADD CHECKSUM
+            INC     HL
+            DJNZ    L0305                               ;UNTIL B=0
+            LD      HL, L08B5                           ;POINT TO REQUIRED CHECKSUM
+            CP      (HL)                                ;TEST FOR EQUAL
+            RET     NZ                                  ;ABORT IF NOT
+            LD      HL, (L08B6)                         ;ELSE GET START ADDR
+            JP      (HL)                                ;AND DO RESET PATCH
 
 ;STEPPER ROUTINE
 ;THE STEPPER ROUTINE IS BROKEN UP INTO SEVERAL SECTIONS. THE FIRST IS THE REGISTER SAVE,
 ;WHERE ALL THE Z80 USER REGISTERS ARE STORED IN MEMORY.
 
-L0312:		LD		(L0870), HL				;STORE HL IN ITS REGISTER STACK SPOT
-			LD		HL, L0344				;LOAD HL WITH RETURN ADDRESS - Was 0x0344
+L0312:      LD      (L0870), HL             ;STORE HL IN ITS REGISTER STACK SPOT
+            LD      HL, L0344               ;LOAD HL WITH RETURN ADDRESS - Was 0x0344
 
 ;MONITOR JUMPS TO HERE ON RESET TO PRESERVE USER REGISTERS.
-L0318:		LD		(L0860), HL							;STORE RE-ENTRY ADDRESS IN BUFFER
-			LD		HL, (L0858)							;GET ADDRESS OF INSTRUCTION JUST
-			LD		(L0868), HL							;STEPPED AND PUT IT IN "NEXT PC"
-			LD		(L087E), SP							;BUFFER: SAVE STACK POINTER VALUE
-			POP		HL									;GET RETURN ADDR, THIS IS THE ADDRESS
-			LD		(L0858), HL							;OF NEXT BYTE TO STEP: STORE IN
-			LD		SP, L087E							;"NEXT PC" BUFFER: LOAD REGISTER DUMP
-			EX		AF, AF'								;STACK: PUSH ALTERNATE REGISTERS
-			EXX											;FIRST
-			PUSH	HL									;SAVE ALL REGISTERS
-			PUSH	DE
-			PUSH	BC
-			PUSH	AF
-			PUSH	IY
-			PUSH	IX
-			EX		AF, AF'
-			EXX
-			DEC		SP
-			DEC		SP
-			PUSH	DE
-			PUSH	BC
-			PUSH	AF
-			LD		HL, (L0860)							;RE-ENTER CALLING ROUTINE VIA
-			JP		(HL)								;THE ADDRESS IT SUPPLIED AT 0860
-			LD		SP, L086A							;SHIFT 7 ROUTINE START (REG DISPLAY)
+L0318:      LD      (L0860), HL                         ;STORE RE-ENTRY ADDRESS IN BUFFER
+            LD      HL, (L0858)                         ;GET ADDRESS OF INSTRUCTION JUST
+            LD      (L0868), HL                         ;STEPPED AND PUT IT IN "NEXT PC"
+            LD      (L087E), SP                         ;BUFFER: SAVE STACK POINTER VALUE
+            POP     HL                                  ;GET RETURN ADDR, THIS IS THE ADDRESS
+            LD      (L0858), HL                         ;OF NEXT BYTE TO STEP: STORE IN
+            LD      SP, L087E                           ;"NEXT PC" BUFFER: LOAD REGISTER DUMP
+            EX      AF, AF'                             ;STACK: PUSH ALTERNATE REGISTERS
+            EXX                                         ;FIRST
+            PUSH    HL                                  ;SAVE ALL REGISTERS
+            PUSH    DE
+            PUSH    BC
+            PUSH    AF
+            PUSH    IY
+            PUSH    IX
+            EX      AF, AF'
+            EXX
+            DEC     SP
+            DEC     SP
+            PUSH    DE
+            PUSH    BC
+            PUSH    AF
+            LD      HL, (L0860)                         ;RE-ENTER CALLING ROUTINE VIA
+            JP      (HL)                                ;THE ADDRESS IT SUPPLIED AT 0860
+            LD      SP, L086A                           ;SHIFT 7 ROUTINE START (REG DISPLAY)
 
 ;THE REGISTERS HAVE BEEN SAVED. NOW THE DISPLAY AND KEYBOARD HANDLER IS SET UP. THE STACK
 ;IS DECREMENTED BY TWO TO POINT TO THE "PC" BUFFER. THE ADDRESS IN THE "PC" BUFFER IS THE
@@ -874,58 +874,58 @@ L0318:		LD		(L0860), HL							;STORE RE-ENTRY ADDRESS IN BUFFER
 ;THE NUMBER OF THE FIRST REGISTER (1 FOR "PC") IS PUT INTO THE CURRENT REGISTER NUMBER
 ;BUFFER.
 
-L0344:		LD		HL, L0806							;CREATE NEW DISPLAY BUFFER
-			LD		(L082C), HL							;
-			DEC		SP									;DECREASE SP BY 2 TO POINT TO THE
-			DEC		SP									;"PC" BUFFER
+L0344:      LD      HL, L0806                           ;CREATE NEW DISPLAY BUFFER
+            LD      (L082C), HL                         ;
+            DEC     SP                                  ;DECREASE SP BY 2 TO POINT TO THE
+            DEC     SP                                  ;"PC" BUFFER
 
 ;WHEN UP-DATING THE DISPLAY, THE ROUTINE MAY JUMP BACK TO HERE IF THE FIRST DISPLAY IS REQUIRED.
-L034C:		LD		A, 0x01								;SET UP FOR THE FIRST REGISTER (PC)
-			LD		(L085A), A							;DISPLAY
+L034C:      LD      A, 0x01                             ;SET UP FOR THE FIRST REGISTER (PC)
+            LD      (L085A), A                          ;DISPLAY
 
 ;OR HERE IF IT HAS ALTERED THE CURRENT REGISTER NUMBER IN ITS STORAGE LOCATION (085A).
-L0351:		LD		A, (L085A)							;DISPLAY LOOP STARTS HERE
+L0351:      LD      A, (L085A)                          ;DISPLAY LOOP STARTS HERE
 
 ;HL IS LOADED WITH THE STACK POINTER VALUE, (WHICH POINTS TO THE "PC" BUFFER), MINUS TWO.
 ;THE TWO IS SUBTRACTED BECAUSE AN EXTRA TWO WILL BE ADDED TO HL DURING THE REGISTER BUFFER
 ;CALCULATOR (IMMEDIATELY BELOW) AS THE NUMBER OF THE FIRST REGISTER IS 1 AND NOT ZERO.
-			LD		HL, 0xFFFE							;HL=-2
-			ADD		HL, SP								;HL=SP-2
-L0358:		INC		HL									;INCREMENT HL TO POINT TO THE
-			INC		HL									;CURRENT REGISTER BUFFER
-			DEC		A									;INDICATED BY THE NUMBER IN A
-			JR		NZ, L0358
+            LD      HL, 0xFFFE                          ;HL=-2
+            ADD     HL, SP                              ;HL=SP-2
+L0358:      INC     HL                                  ;INCREMENT HL TO POINT TO THE
+            INC     HL                                  ;CURRENT REGISTER BUFFER
+            DEC     A                                   ;INDICATED BY THE NUMBER IN A
+            JR      NZ, L0358
 
 ;HL NOW POINTS TO THE CURRENT REGISTER BUFFER. THIS SECTION PUTS THE REGISTER(S) CONTENT(S)
 ;INTO HL AND CONVERTS IT TO DISPLAY CODE AND STORE THE DISPLAY CODE IN THE DISPLAY BUFFER.
 
-			LD		A, (HL)								;GET 16 BIT VALUE
-			INC		HL									;AND PUT IT
-			LD		H, (HL)								;BACK INTO
-			LD		L, A								;HL
-			LD		BC, (L082C)							;PUT DISPLAY BUFFER ADDRESS IN BC
-			CALL	L0830								;CALL HL TO DISPLAY CODE ROUTINE
+            LD      A, (HL)                             ;GET 16 BIT VALUE
+            INC     HL                                  ;AND PUT IT
+            LD      H, (HL)                             ;BACK INTO
+            LD      L, A                                ;HL
+            LD      BC, (L082C)                         ;PUT DISPLAY BUFFER ADDRESS IN BC
+            CALL    L0830                               ;CALL HL TO DISPLAY CODE ROUTINE
 
 ;THIS SECTION CALCULATES THE ADDRESS OF THE REGISTER NAME FOR THE DATA DISPLAYS. THESE
 ;ARE STORED IN A TABLE. THE REQUIRED REGISTER NAME IS THEN TRANSFERRED TO THE DISPLAY
 ;BUFFER.
 
-			LD		A, (L085A)							;GET REGISTER NUMBER
-			PUSH	BC									;PUT NEXT DISPLAY BUFFER
-			POP		DE									;LOCATION INTO DE(stination)
-			LD		BC, 0x0002							;BC IS THE NUMBER OF DATA DISPLAYS
-			LD		HL, L0792							;HL=THE BASE OF THE NAME TABLE
-L0373:		ADD		HL, BC								;ADD TO HL 2 FOR EACH
-			DEC		A									;REGISTER NUMBER TO ACCESS THE
-			JR		NZ, L0373							;CURRENT REGISTER NAME
-			LDIR										;MOVE REGISTER NAME INTO RAM
+            LD      A, (L085A)                          ;GET REGISTER NUMBER
+            PUSH    BC                                  ;PUT NEXT DISPLAY BUFFER
+            POP     DE                                  ;LOCATION INTO DE(stination)
+            LD      BC, 0x0002                          ;BC IS THE NUMBER OF DATA DISPLAYS
+            LD      HL, L0792                           ;HL=THE BASE OF THE NAME TABLE
+L0373:      ADD     HL, BC                              ;ADD TO HL 2 FOR EACH
+            DEC     A                                   ;REGISTER NUMBER TO ACCESS THE
+            JR      NZ, L0373                           ;CURRENT REGISTER NAME
+            LDIR                                        ;MOVE REGISTER NAME INTO RAM
 
 ;THE SCAN AND KEYBOARD ROUTINE ARE NOW CALLED (VIA THE RST 18). IF A VALID KEY IS PRESSED,
 ;THEN THE ZERO FLAG IS SET WHEN THE RST RETURNS.
 
-L0379:		RST		18H									;SCAN/KEY READ RST
-			LD		HL, L0824							;(HL)=AUTO STEP CONTROL/TIMER BYTE
-			JR		Z, L038A							;JUMP IF VALID KEY PRESSED
+L0379:      RST     18H                                 ;SCAN/KEY READ RST
+            LD      HL, L0824                           ;(HL)=AUTO STEP CONTROL/TIMER BYTE
+            JR      Z, L038A                            ;JUMP IF VALID KEY PRESSED
 
 ;NO KEY IS PRESSED SO THE ROUTINE CHECKS FOR THE AUTO REPEAT MODE ENABLED FLAG (BIT 7 AUTO
 ;STEP CONTROL/TIMER BYTE, ZERO IS AUTO STEP ENABLED) AND DECREMENTS THE COUNTER IF IT IS.
@@ -934,52 +934,52 @@ L0379:		RST		18H									;SCAN/KEY READ RST
 ;REACH ZERO, THEN THE ROUTINE LOOPS BACK TO SCAN THE DISPLAY AND WAIT FOR EITHER A KEY
 ;PRESS OR FOR THE COUNTER TO REACH ZERO.
 
-			BIT		7, (HL)								;TEST FOR AUTO INCREMENT JUMP IF NOT
-			JR		NZ, L0379							;ENABLED TO SCAN/KEY READ LOOP
-			DEC		(HL)								;DECREMENT COUNTER: LOOP TO
-			JR		NZ, L0379							;SCAN/KEY READ UNTIL COUNT=0
+            BIT     7, (HL)                             ;TEST FOR AUTO INCREMENT JUMP IF NOT
+            JR      NZ, L0379                           ;ENABLED TO SCAN/KEY READ LOOP
+            DEC     (HL)                                ;DECREMENT COUNTER: LOOP TO
+            JR      NZ, L0379                           ;SCAN/KEY READ UNTIL COUNT=0
 
 ;AT THIS POINT THE AUTO-STEP DELAY HAS REACHED ZERO AND IS RELOADED WITH THE DELAY VALUE.
 ;A JUMP IS THEN DONE TO RECOVER THE REGISTERS AND STEP THE NEXT INSTRUCTION.
-			LD		(HL), 0x0030						;RESET AUTO STEP DELAY, JUMP TO RECOVER
-			JR		L03AC								;REGISTERS AND STEP NEXT INSTRUCTION
+            LD      (HL), 0x0030                        ;RESET AUTO STEP DELAY, JUMP TO RECOVER
+            JR      L03AC                               ;REGISTERS AND STEP NEXT INSTRUCTION
 
 ;KEY PROCESSING STARTS HERE
 ;THE AUTO-STEP IS DISABLED AND THEN THE KEY IS IDENTIFIED AND HANDLED.
 ;THE AUTO-STEP WILL BE RE-ENABLED IF THE KEY PRESSED IS A DATA KEY.
 
-L038A:		LD		B, A								;SAVE KEY
-			LD		(HL), 0x00FF						;SET AUTO STEP CONTROL/TIMER BIT 7
-			LD		HL, L085A							;THUS DISABLING THE AUTO REPEAT MODE
-			LD		A, B								;POINT HI, TO CURRENT REG No. BUFFER
-			CP		0x10								;PUT INPUT IN A,TEST IT FOR "+"
-			JR		NZ, L039D							;JUMP IF NOT TO TEST FOR "-"
+L038A:      LD      B, A                                ;SAVE KEY
+            LD      (HL), 0x00FF                        ;SET AUTO STEP CONTROL/TIMER BIT 7
+            LD      HL, L085A                           ;THUS DISABLING THE AUTO REPEAT MODE
+            LD      A, B                                ;POINT HI, TO CURRENT REG No. BUFFER
+            CP      0x10                                ;PUT INPUT IN A,TEST IT FOR "+"
+            JR      NZ, L039D                           ;JUMP IF NOT TO TEST FOR "-"
 
 ;"+" KEY HANDLER
 ;THE CURRENT REGISTER NUMBER IS INCREMENTED AND THEN CHECK TO SEE THAT IT HAS NOT EXCEEDED
 ;THE HIGHEST REGISTER NUMBER (OC). IF IT HAS, THE ROUTINE JUMPS TO RESET THE CURRENT
 ;REGISTER NUMBER WITH 1, OTHERWISE IT JUMPS TO THE DISPLAY LOOP.
 
-			INC		(HL)								;INCREMENT REGISTER NUMBER
-			LD		A, (HL)								;AND CHECK TO SEE IF IT LARGER
-			CP		0x0D								;THAN HIGHEST REG No. (0C): IF LOWER
-			JR		C, L0351							;THAN OD JUMP TO DISPLAY LOOP ELSE
-			JR		L034C								;JUMP TO SET REGISTER NUMBER TO 1
-L039D:		CP		11H									;TEST FOR "-"
-			JR		NZ, L03A8							;JUMP IF NOT
+            INC     (HL)                                ;INCREMENT REGISTER NUMBER
+            LD      A, (HL)                             ;AND CHECK TO SEE IF IT LARGER
+            CP      0x0D                                ;THAN HIGHEST REG No. (0C): IF LOWER
+            JR      C, L0351                            ;THAN OD JUMP TO DISPLAY LOOP ELSE
+            JR      L034C                               ;JUMP TO SET REGISTER NUMBER TO 1
+L039D:      CP      11H                                 ;TEST FOR "-"
+            JR      NZ, L03A8                           ;JUMP IF NOT
 
 ;"-" HANDLER
 ;ONE IS TAKEN FROM THE CURRENT REGISTER NUMBER AND THEN IT IS CHECKED FOR ZERO. IF IT
 ;BECOMES ZERO, THEN THE CURRENT REGISTER NUMBER IS SET TO THE HIGHEST REGISTER NUMBER (OC)
 ;TO WRAP-AROUND TO DISPLAY THE LAST REGISTER.
-			DEC		(HL)								;SUBTRACT 1 FROM REGISTER NUMBER
-			JR		NZ, L0351							;JUMP IF NOT 0 TO UP-DATE DISPLAY
-			LD		(HL), 0x0C							;ELSE SET TO LAST REGISTER
-			JR		L0351								;AND UP-DATE
+            DEC     (HL)                                ;SUBTRACT 1 FROM REGISTER NUMBER
+            JR      NZ, L0351                           ;JUMP IF NOT 0 TO UP-DATE DISPLAY
+            LD      (HL), 0x0C                          ;ELSE SET TO LAST REGISTER
+            JR      L0351                               ;AND UP-DATE
 
 ;TEST FOR "GO"
-L03A8:		CP		0x12								;TEST FOR "GO" AND JUMP IF NOT
-			JR		NZ, L03C6							;TO TEST FOR "AD" OR DATA KEY
+L03A8:      CP      0x12                                ;TEST FOR "GO" AND JUMP IF NOT
+            JR      NZ, L03C6                           ;TO TEST FOR "AD" OR DATA KEY
 
 ;"GO" KEY
 ;THE GO KEY CAUSES STEPPING EXECUTION TO CONTINUE.
@@ -990,48 +990,48 @@ L03A8:		CP		0x12								;TEST FOR "GO" AND JUMP IF NOT
 ;INTERRUPTS RE-ENABLED. THE RETURN ADDRESS FOR THE ROUTINE BEING STEPPED, STILL THERE ON
 ;THE TOP OF THE REAL STACK, IS USED AS THE RETURN ADDRESS.
 
-L03AC:		RST		20H									;WAIT UNTIL ALL KEYS ARE RELEASED
-			JR		Z, L03AC							;BEFORE RESTARTING
-			POP		HL									;RECOVER ALL
-			POP		AF									;REGISTERS
-			POP		BC									;IN
-			POP		DE									;THE
-			POP		HL									;REVERSE
-			POP		IX									;ORDER
-			POP		IY									;TO
-			EX		AF, AF'								;HOW
-			EXX											;THEY
-			POP		AF									;STORED
-			POP		BC
-			POP		DE
-			POP		HL
-			EX		AF, AF'
-			EXX
-			LD		SP, (L087E)							;AND STACK POINTER
-			EI											;RE-ENABLE THE INTERRUPTS
-			RET											;RET TO STEP NEXT INSTRUCTION
+L03AC:      RST     20H                                 ;WAIT UNTIL ALL KEYS ARE RELEASED
+            JR      Z, L03AC                            ;BEFORE RESTARTING
+            POP     HL                                  ;RECOVER ALL
+            POP     AF                                  ;REGISTERS
+            POP     BC                                  ;IN
+            POP     DE                                  ;THE
+            POP     HL                                  ;REVERSE
+            POP     IX                                  ;ORDER
+            POP     IY                                  ;TO
+            EX      AF, AF'                             ;HOW
+            EXX                                         ;THEY
+            POP     AF                                  ;STORED
+            POP     BC
+            POP     DE
+            POP     HL
+            EX      AF, AF'
+            EXX
+            LD      SP, (L087E)                         ;AND STACK POINTER
+            EI                                          ;RE-ENABLE THE INTERRUPTS
+            RET                                         ;RET TO STEP NEXT INSTRUCTION
 
 ;TEST FOR "AD" KEY (RETURN TO JMON)
-L03C6:		CP		0x13								;TEST FOR "ADDR" KEY
-			JR		NZ, L03CB							;JUMP IF NOT TO ASSUME DATA KEY
-			RST		00H									;RETURN TO MONITOR
+L03C6:      CP      0x13                                ;TEST FOR "ADDR" KEY
+            JR      NZ, L03CB                           ;JUMP IF NOT TO ASSUME DATA KEY
+            RST     00H                                 ;RETURN TO MONITOR
 
 ;DATA KEY HANDLER (ENABLE AUTO STEP)
-L03CB:		LD		A, 0x20								;SET AND ENABLE AUTO STEP IN THE
-			LD		(L0824), A							;CONTROL/TIMER BYTE (BIT 7 LOW, 20
-			JR		L0379								;CYCLES): JUMP TO DISPLAY LOOP
+L03CB:      LD      A, 0x20                             ;SET AND ENABLE AUTO STEP IN THE
+            LD      (L0824), A                          ;CONTROL/TIMER BYTE (BIT 7 LOW, 20
+            JR      L0379                               ;CYCLES): JUMP TO DISPLAY LOOP
 ;-END OF STEPPER-
 
 ;START OF MENU
 ;MENU IS SET-UP FOR TAPE ROUTINE HERE
 ;THE VARIABLES ARE MOVED FROM ROM TO RAM AND THE DISPLAY BUFFER IS SET TO 0800.
 
-			LD		HL, 077CH							;LOAD HL WITH START OF TAPE
-			LD		DE, 0880H							;VARIABLES: DE IS RAM DE(stination)
-			LD		BC, 0018H							;BC IS THE COUNT
-			LDIR										;SHIFT VARIABLES
-L03DD:		LD		HL, 0800H							;PUT DISPLAY BUFFER AT 0800
-			LD		(L082C), HL
+            LD      HL, 077CH                           ;LOAD HL WITH START OF TAPE
+            LD      DE, 0880H                           ;VARIABLES: DE IS RAM DE(stination)
+            LD      BC, 0018H                           ;BC IS THE COUNT
+            LDIR                                        ;SHIFT VARIABLES
+L03DD:      LD      HL, 0800H                           ;PUT DISPLAY BUFFER AT 0800
+            LD      (L082C), HL
 
 ;MENU DISPLAY LOOP STARTS HERE
 ;THE MENU ENTRY NUMBER (MEN), HOLDS THE NUMBER OF THE CURRENT MENU ENTRY ON THE DISPLAY.
@@ -1048,25 +1048,25 @@ L03DD:		LD		HL, 0800H							;PUT DISPLAY BUFFER AT 0800
 ;(4 FOR ADDR AND 2 FOR DATA TABLES) IS ADDED TO THE POINTERS.
 ;AFTER THE REQUIRED ENTRIES ARE FOUND, THEY ARE MOVED INTO THE RAM DISPLAY BUFFER.
 
-L03E3:		LD		A, (L088F)							;GET MENU ENTRY NUMBER (MEN)
-L03E6:		LD		DE, (L0895)							;DE POINTS TO DATA DISPLAY TABLE
-			LD		HL, (L0893)							;HL POINTS TO ADDR DISPLAY TABLE
-L03ED:		LD		BC, 0004H							;BC IS BOTH AN INDEX OFFSET AND
-			OR		A									;BYTE COUNTER (USED BELOW): TEST
-			JR		Z, L03F9							;A AND SKIP CALCULATOR IF ZERO
-L03F3:		ADD		HL, BC								;ADD 4 TO HL TO POINT TO NEXT ADDR
-			INC		DE									;DISPLAY AND 2 TO DE FOR NEXT DATA
-			INC		DE									;DISPLAY
-			DEC		A									;DO UNTIL A=0
-			JR		NZ, L03F3
-L03F9:		PUSH	HL									;SAVE ADDR POINTER (not required)
-			PUSH	DE									;AND DATA POINTER
-			LD		DE, L0800							;SHIFT ACROSS ADDR DISPLAY
-			LDIR										;TO 0800 (LC-0004 FROM ABOVE)
-			POP		HL									;POP DATA DISPLAY ADDR INTO HL
-			LD		C, 0x02								;SET PC TO SHIFT DATA DISPLAY BYTES
-			LDIR										;SHIFT THE BYTES TO DISPLAY RAM
-			POP		HL									;CLEAN UP STACK
+L03E3:      LD      A, (L088F)                          ;GET MENU ENTRY NUMBER (MEN)
+L03E6:      LD      DE, (L0895)                         ;DE POINTS TO DATA DISPLAY TABLE
+            LD      HL, (L0893)                         ;HL POINTS TO ADDR DISPLAY TABLE
+L03ED:      LD      BC, 0004H                           ;BC IS BOTH AN INDEX OFFSET AND
+            OR      A                                   ;BYTE COUNTER (USED BELOW): TEST
+            JR      Z, L03F9                            ;A AND SKIP CALCULATOR IF ZERO
+L03F3:      ADD     HL, BC                              ;ADD 4 TO HL TO POINT TO NEXT ADDR
+            INC     DE                                  ;DISPLAY AND 2 TO DE FOR NEXT DATA
+            INC     DE                                  ;DISPLAY
+            DEC     A                                   ;DO UNTIL A=0
+            JR      NZ, L03F3
+L03F9:      PUSH    HL                                  ;SAVE ADDR POINTER (not required)
+            PUSH    DE                                  ;AND DATA POINTER
+            LD      DE, L0800                           ;SHIFT ACROSS ADDR DISPLAY
+            LDIR                                        ;TO 0800 (LC-0004 FROM ABOVE)
+            POP     HL                                  ;POP DATA DISPLAY ADDR INTO HL
+            LD      C, 0x02                             ;SET PC TO SHIFT DATA DISPLAY BYTES
+            LDIR                                        ;SHIFT THE BYTES TO DISPLAY RAM
+            POP     HL                                  ;CLEAN UP STACK
 
 ;THIS SECTION CALLS THE SCAN/KEY/LCD/PATCH ROUTINE.
 ;WHEN A KEY IS DETECTED A KEY HANDLER ROUTINE IS CALLED. THIS KEY HANDLER IS COMMON TO
@@ -1084,24 +1084,24 @@ L03F9:		PUSH	HL									;SAVE ADDR POINTER (not required)
 ;ENTRY IS POINTED TO BY HL, IT IS THEN JUMPED TO VIA JP (HL), AND THE TABLE ENTRY,,,ITSELF
 ;BEING A 3 BYTE JUMP THEN JUMPS TO THE SELECTED MENU ENTRY'S ROUTINE.
 
-			CALL	L0842								;CALL SCAN/KEY/LCD/PATCH ROUTINE
-			LD		HL, L088F							;POINT HL TO MENU ENTRY NUMBER
-			CALL	L04B2								;CALL COMMON KEY HANDLER
-			JR		Z, L0416							;JUMP IF KEY WAS "GO" ELSE CALL TO
-			CALL	L0897								;RETURN INSTRUCTION (UNUSED BY JMON)
-			JR		L03E3								;LOOP TO MAIN DISPLAY LOOP
+            CALL    L0842                               ;CALL SCAN/KEY/LCD/PATCH ROUTINE
+            LD      HL, L088F                           ;POINT HL TO MENU ENTRY NUMBER
+            CALL    L04B2                               ;CALL COMMON KEY HANDLER
+            JR      Z, L0416                            ;JUMP IF KEY WAS "GO" ELSE CALL TO
+            CALL    L0897                               ;RETURN INSTRUCTION (UNUSED BY JMON)
+            JR      L03E3                               ;LOOP TO MAIN DISPLAY LOOP
 
 ;MENU "GO" KEYHANDLER
-L0416:		LD		HL, (L0891)							;POINT HL TO BASE OF JUMP TABLE
-			LD		A, (L088F)							;GET MENU ENTRY NUMBER
-			OR		A									;TEST FOR ZERO
-			JR		Z, L0425							;SKIP CALCULATOR IF ZERO
-L041F:		INC		HL									;FIND JUMP VECTOR FOR THE CURRENT
-			INC		HL									;MENU HEADING
-			INC		HL
-			DEC		A
-			JR		NZ, L041F
-L0425:		JP		(HL)								;AND JUMP TO THE REQUIRED ROUTINE
+L0416:      LD      HL, (L0891)                         ;POINT HL TO BASE OF JUMP TABLE
+            LD      A, (L088F)                          ;GET MENU ENTRY NUMBER
+            OR      A                                   ;TEST FOR ZERO
+            JR      Z, L0425                            ;SKIP CALCULATOR IF ZERO
+L041F:      INC     HL                                  ;FIND JUMP VECTOR FOR THE CURRENT
+            INC     HL                                  ;MENU HEADING
+            INC     HL
+            DEC     A
+            JR      NZ, L041F
+L0425:      JP      (HL)                                ;AND JUMP TO THE REQUIRED ROUTINE
 
 ;PERIMETER HANDLER SET-UP ROUTINES FOR THE TAPE SOFTWARE
 ;WHEN GO IS PRESSED IN THE MENU HANDLER, ONE OF THE IMMEDIATE FOLLOWING ROUTINES IS EXECUTED
@@ -1124,35 +1124,35 @@ L0425:		JP		(HL)								;AND JUMP TO THE REQUIRED ROUTINE
 ;THE PERIMETER HANDLER WILL BE ENTERED WITH THE FIRST WINDOW (FILE NUMBER) SHOWING.
 
 ;"LOAD" SET-UP
-			XOR		A									;CLEAR A FOR LOAD SIGN-ON BYTE
+            XOR     A                                   ;CLEAR A FOR LOAD SIGN-ON BYTE
 
 ;COMMON AREA FOR LOAD AND TESTS
-L0427:		LD		(L088A), A							;SAVE SIGN-ON BYTE IN BUFFER
-			LD		A, 0x01								;LOAD A WITH NUMBER OF WANTED
-			LD		HL, 0xFFFF							;WINDOWS -1 (2 WINDOWS): SET
-			LD		(L089A), HL							;OPTIONAL START WINDOW TO FFFF
-			LD		HL, 0x0531							;LOAD HL WITH "GO" ADDR OF LOAD/TEST
-			JR		L0444								;ROUTINE: JUMP TO STORE HL AND A
+L0427:      LD      (L088A), A                          ;SAVE SIGN-ON BYTE IN BUFFER
+            LD      A, 0x01                             ;LOAD A WITH NUMBER OF WANTED
+            LD      HL, 0xFFFF                          ;WINDOWS -1 (2 WINDOWS): SET
+            LD      (L089A), HL                         ;OPTIONAL START WINDOW TO FFFF
+            LD      HL, 0x0531                          ;LOAD HL WITH "GO" ADDR OF LOAD/TEST
+            JR      L0444                               ;ROUTINE: JUMP TO STORE HL AND A
 
 ;"TEST BLOCK" SET-UP
-			LD		A, 0x02								;2=TEST BLOCK SIGN-ON BYTE
-L0439:		JR		L0427								;JUMP TO TEST/LOAD COMMON AREA
+            LD      A, 0x02                             ;2=TEST BLOCK SIGN-ON BYTE
+L0439:      JR      L0427                               ;JUMP TO TEST/LOAD COMMON AREA
 
 ;"TEST CHECKSUM" SET-UP
 
-			LD		A, 0x03								;3=TEST CHECKSUM SIGN-ON BYTE
-			JR		L0439								;JUMP TO TEST/LOAD COMMON AREA
+            LD      A, 0x03                             ;3=TEST CHECKSUM SIGN-ON BYTE
+            JR      L0439                               ;JUMP TO TEST/LOAD COMMON AREA
 
 ;SAVE SET-UP
-			LD		HL, 0x0450							;POINT HL TO START OF SAVE PRE-AMBLE
-			LD		A, 0x03								;SET UP FOR 4 WINDOWS
+            LD      HL, 0x0450                          ;POINT HL TO START OF SAVE PRE-AMBLE
+            LD      A, 0x03                             ;SET UP FOR 4 WINDOWS
 
 ;COMMON AREA FOR ALL SET-UPS
-L0444:		LD		(L0888), HL							;STORE HL AND A
-			LD		(L0887), A
-			XOR		A									;SET MEN TO FIRST WINDOW (FILE NUMBER)
-			LD		(L0886), A
-			JR		L0473								;JUMP TO PERIMETER HANDLER
+L0444:      LD      (L0888), HL                         ;STORE HL AND A
+            LD      (L0887), A
+            XOR     A                                   ;SET MEN TO FIRST WINDOW (FILE NUMBER)
+            LD      (L0886), A
+            JR      L0473                               ;JUMP TO PERIMETER HANDLER
 
 ;SAVE ROUTINE PRE-AMBLE
 ;THE SAVE PREAMBLE FITS IN BETWEEN THE PERIMETER HANDLER AND THE ACTUAL SAVE ROUTINE. THE
@@ -1161,26 +1161,26 @@ L0444:		LD		(L0888), HL							;STORE HL AND A
 ;FILE INFORMATION BLOCK WHICH IS OUTPUTTED TO THE TAPE.
 ;IF THE END IS LOWER THAN THE START THE ROUTINE WILL JUMP TO DISPLAY "Err -In".
 
-			LD		HL, (L089E)							;SHIFT OPTIONAL GO TO OUTPUT BUFFER
-			LD		(L08AA), HL
-			LD		HL, (L089A)							;SHIFT START ADDRESS OF BLOCK
-			LD		(L08A6), HL							;TO TAPE FILE OUTPUT BUFFER
-			EX		DE, HL								;PUT START OF BLOCK IN DE
-			LD		HL, (L089C)							;GET END OF BLOCK IN HL
-			OR		A									;CLEAR CARRY
-			SBC		HL, DE								;CALCULATE NUMBER OF BYTES IN
-			INC		HL									;BLOCK (DIFFERENCE +1)
-			JP		C, L004A							;JUMP IF CARRY TO "Err-In"
-			LD		(L08A8), HL							;STORE COUNT IN FILE INFO OUTPUT
-			LD		HL, (L0898)							;SHIFT FILE NUMBER TO
-			LD		(L08A4), HL							;TAPE FILE INFO OUTPUT BUFFER
-			JP		L04F0								;JUMP TO SAVE OUTPUT ROUTINE
+            LD      HL, (L089E)                         ;SHIFT OPTIONAL GO TO OUTPUT BUFFER
+            LD      (L08AA), HL
+            LD      HL, (L089A)                         ;SHIFT START ADDRESS OF BLOCK
+            LD      (L08A6), HL                         ;TO TAPE FILE OUTPUT BUFFER
+            EX      DE, HL                              ;PUT START OF BLOCK IN DE
+            LD      HL, (L089C)                         ;GET END OF BLOCK IN HL
+            OR      A                                   ;CLEAR CARRY
+            SBC     HL, DE                              ;CALCULATE NUMBER OF BYTES IN
+            INC     HL                                  ;BLOCK (DIFFERENCE +1)
+            JP      C, L004A                            ;JUMP IF CARRY TO "Err-In"
+            LD      (L08A8), HL                         ;STORE COUNT IN FILE INFO OUTPUT
+            LD      HL, (L0898)                         ;SHIFT FILE NUMBER TO
+            LD      (L08A4), HL                         ;TAPE FILE INFO OUTPUT BUFFER
+            JP      L04F0                               ;JUMP TO SAVE OUTPUT ROUTINE
 
 ;FINAL TAPE SET-UP BEFORE THE PERIMETER HANDLER. THIS PLACES FFFF IN THE OPTIONAL GO WINDOW
 ;BEFORE ENTERING THE PERIMETER HANDLER.
 
-L0473:		LD		HL, 0xFFFF							;PUT FFFF IN OPTIONAL GO WINDOW
-			LD		(L089E), HL							;
+L0473:      LD      HL, 0xFFFF                          ;PUT FFFF IN OPTIONAL GO WINDOW
+            LD      (L089E), HL                         ;
 
 ;PERIMETER HANDLER
 ;THE PERIMETER HANDLER ROUTINE IS SIMILAR TO THE MENU DRIVER. THE MAJOR DIFFERENCES ARELISTED BELOW:
@@ -1196,43 +1196,43 @@ L0473:		LD		HL, 0xFFFF							;PUT FFFF IN OPTIONAL GO WINDOW
 ;THE MENU ENTRY NUMBER FROM THE MENU DRIVER HAS AN EQUIVALENT HERE. IT IS THE ACTIVE WINDOW
 ;NUMBER AND IS USEDIN IDENTICAL FASHION.
 
-.ORG		$0479
-L0479:		LD		A, (L0886)							;GET NUMBER OF ACTIVE WINDOW
-			LD		HL, (L0884)							;GET ADDRESS OF FIRST (FILE) WINDOW+1
-			LD		DE, (L0882)							;GET BASE OF DATA DISPLAY TABLE
-			OR		A									;TEST ACTIVE WINDOW NUMBER FOR ZERO
-			JR		Z, L048D							;SKIP CALCULATOR IF ZERO
-L0486:		INC		DE									;FINE CURRENT DATA DISPLAY
-			INC		DE									;AND WINDOW
-			INC		HL
-			INC		HL
-			DEC		A
-			JR		NZ, L0486
+ORG     $0479
+L0479:      LD      A, (L0886)                          ;GET NUMBER OF ACTIVE WINDOW
+            LD      HL, (L0884)                         ;GET ADDRESS OF FIRST (FILE) WINDOW+1
+            LD      DE, (L0882)                         ;GET BASE OF DATA DISPLAY TABLE
+            OR      A                                   ;TEST ACTIVE WINDOW NUMBER FOR ZERO
+            JR      Z, L048D                            ;SKIP CALCULATOR IF ZERO
+L0486:      INC     DE                                  ;FINE CURRENT DATA DISPLAY
+            INC     DE                                  ;AND WINDOW
+            INC     HL
+            INC     HL
+            DEC     A
+            JR      NZ, L0486
 
 ;AFTER THE ADDRESS+1 OF THE ACTIVE WINDOW IS CALCULATED, IT IS STORED IN A BUFFER (AT
 ;088C). EACH TIME A DATA KEY 1S PRESSED, HL IS LOADED FROM THIS BUFFER AND THEREFORE POINTS
 ;TO THE ACTIVE WINDOW. THE DATA CAN THEN BE SHIFTED INTO THE ACTIVE WINDOW IMMEDIATELY.
 
-L048D:		LD		(L088C), HL							;STORE ACTIVE WINDOW ADDRESS+l
+L048D:      LD      (L088C), HL                         ;STORE ACTIVE WINDOW ADDRESS+l
 
 ;BELOW THE DATA DISPLAY BYTES ARE PUT INTO THE DATA SECTION OF THE DISPLAY BUFFER VIA HL.
-			EX		DE, HL								;PUT DATA DISPLAY ADDRESS IN HL
-			LD		A, (HL)								;GET RIGHT-HAND DISPLAY BYTE IN A
-			INC		HL									;AND LEFT-HAND IN H
-			LD		H, (HL)								;PUT RIGHT-HAND BYTE IN L
-			LD		L, A								;HL HOLDS THE DATA DISPLAY BYTES
-			LD		(L0804), HL							;STORE DATA DISPLAY IN BUFFER
+            EX      DE, HL                              ;PUT DATA DISPLAY ADDRESS IN HL
+            LD      A, (HL)                             ;GET RIGHT-HAND DISPLAY BYTE IN A
+            INC     HL                                  ;AND LEFT-HAND IN H
+            LD      H, (HL)                             ;PUT RIGHT-HAND BYTE IN L
+            LD      L, A                                ;HL HOLDS THE DATA DISPLAY BYTES
+            LD      (L0804), HL                         ;STORE DATA DISPLAY IN BUFFER
 
 ;BELOW THE 16 BIT CONTENTS OF THE ACTIVE WINDOW ARE CONVERTED TO DISPLAY CODE ARE PLACED
 ;IN THE ADDRESS SECTION OF THE DISPLAY BUFFER.
 
-			EX		DE, HL								;GET ACTIVE WINDOW ADDRESS FROM DE
-			LD		A, (HL)								;AND TRANSFER
-			DEC		HL									;THE 16 BIT CONTENTS OF THE ACTIVE
-			LD		L, (HL)								;WINDOW INTO HL
-			LD		H, A								;READY TO COVERT TO DISPLAY CODE
-			LD		BC, L0800							;BC=DISPLAY BUFFER START
-			CALL	L0830								;CALL CONVERSION HL TO DISPLAY CODE
+            EX      DE, HL                              ;GET ACTIVE WINDOW ADDRESS FROM DE
+            LD      A, (HL)                             ;AND TRANSFER
+            DEC     HL                                  ;THE 16 BIT CONTENTS OF THE ACTIVE
+            LD      L, (HL)                             ;WINDOW INTO HL
+            LD      H, A                                ;READY TO COVERT TO DISPLAY CODE
+            LD      BC, L0800                           ;BC=DISPLAY BUFFER START
+            CALL    L0830                               ;CALL CONVERSION HL TO DISPLAY CODE
 
 ;THE DISPLAY BUFFER IS NOW SET-UP AND THE SCAN/KEY LOOP IS CALLED. WHEN A KEY IS PRESSED,
 ;A COMMON KEY HANDLER IS CALLED.
@@ -1243,12 +1243,12 @@ L048D:		LD		(L088C), HL							;STORE ACTIVE WINDOW ADDRESS+l
 ;A DATA KEY IS PRESSED THEN THE ZERO FLAG IS CLEAR (NOT ZERO) AND CARRY FLAG IS CLEAR THE
 ;DATA KEY HANDLER IS EXECUTED IF THESE CONDITIONS ARE MET.
 
-L04A3:		CALL	L0842								;CALL SCAN/KEY/LCD/PATCH ROUTINE
-			LD		HL, L0886							;POINT HL TO ACTIVE WINDOW NUMBER
-			CALL	L04B2								;CALL COMMON KEY HANDLER
-			JR		NZ, L04C4							;JUMP IF NOT GO KEY TO TEST FOR DATA
-			LD		HL, (L0888)							;OR CONTROL KEY: ELSE GET JUMP ADDRESS
-			JP		(HL)								;STORED BY SET-UP AND GO
+L04A3:      CALL    L0842                               ;CALL SCAN/KEY/LCD/PATCH ROUTINE
+            LD      HL, L0886                           ;POINT HL TO ACTIVE WINDOW NUMBER
+            CALL    L04B2                               ;CALL COMMON KEY HANDLER
+            JR      NZ, L04C4                           ;JUMP IF NOT GO KEY TO TEST FOR DATA
+            LD      HL, (L0888)                         ;OR CONTROL KEY: ELSE GET JUMP ADDRESS
+            JP      (HL)                                ;STORED BY SET-UP AND GO
 
 ;COMMON KEY HANDLER
 ;BECAUSE THE PERIMETER HANDLER AND THE MENU DRIVER ARE VERY SIMILAR, THEY ARE ABLE TO
@@ -1266,30 +1266,30 @@ L04A3:		CALL	L0842								;CALL SCAN/KEY/LCD/PATCH ROUTINE
 ;THE DISPLAY IS UP-DATED, THE DISPLAYS WILL BE SHIFTED TO EITHER THE NEXT DISPLAY FOR "+"
 ;OR TO THE PREVIOUS ONE FOR "- " AND WRAP-AROUND IF REQUIRED.
 
-L04B2:		CP		0x10								;IS THE KEY
-			JR		Z, L04D1							;JUMP IF SO TO "+" HANDLER
-			CP		0x11								;IS IT "-"
-			JR		Z, L04D1							;JUMP IF SO TO "-" HANDLER
-			CP		0x13								;IS IT "AD"
-			JR		NZ, L04C0							;JUMP IF NOT TO TEST FOR "GO"
-			POP		HL									;CLEAN UP STACK
-			RET											;RETURN TO JMON (OR CALLING ROUTINE)
-L04C0:		CP		0x12								;IS IT "GO"
-			CCF											;CLEAR CARRY IF NOT IF GO C=1 Z=1
-			RET											;IF DATA SET Z=0 C=0: RETURN
+L04B2:      CP      0x10                                ;IS THE KEY
+            JR      Z, L04D1                            ;JUMP IF SO TO "+" HANDLER
+            CP      0x11                                ;IS IT "-"
+            JR      Z, L04D1                            ;JUMP IF SO TO "-" HANDLER
+            CP      0x13                                ;IS IT "AD"
+            JR      NZ, L04C0                           ;JUMP IF NOT TO TEST FOR "GO"
+            POP     HL                                  ;CLEAN UP STACK
+            RET                                         ;RETURN TO JMON (OR CALLING ROUTINE)
+L04C0:      CP      0x12                                ;IS IT "GO"
+            CCF                                         ;CLEAR CARRY IF NOT IF GO C=1 Z=1
+            RET                                         ;IF DATA SET Z=0 C=0: RETURN
 
 ;BELOW IS THE PERIMETER HANDLER DATA KEY HANDLER/DISCRIMINATOR
 ;IF THE KEY WAS "+" OR "-" THEN IT HAS ALREADY BEEN HANDLED AND THIS CONDITION IS FLAGGED
 ;BY THE CARRY BEING SET. IN THIS CASE, A JUMP IS DONE BACK TO THE MAIN BODY TO UP-DATE
 ;THE DISPLAY OTHERWISE THE DATA KEY VALUE IS SHIFTED INTO THE ACTIVE WINDOW.
 
-L04C4:		JR		C, L0479							;JUMP IF KEY WAS "+" OR "-”
-			LD		HL, (L088C)							;POINT HL TO ACTIVE WINDOW+1
-			DEC		HL									;POINT TO LOW ORDER BYTE
-			RLD											;SHIFT IN DATA KEY VALUE
-			INC		HL									;AND SHIFT OTHER NIBBLES
-			RLD											;ACROSS
-			JR		L0479								;JUMP BACK TO UP-DATE DISPLAY
+L04C4:      JR      C, L0479                            ;JUMP IF KEY WAS "+" OR "-”
+            LD      HL, (L088C)                         ;POINT HL TO ACTIVE WINDOW+1
+            DEC     HL                                  ;POINT TO LOW ORDER BYTE
+            RLD                                         ;SHIFT IN DATA KEY VALUE
+            INC     HL                                  ;AND SHIFT OTHER NIBBLES
+            RLD                                         ;ACROSS
+            JR      L0479                               ;JUMP BACK TO UP-DATE DISPLAY
 
 ;THIS ROUTINE IS CALLED FROM THE COMMON KEY HANDLER IF EITHER "+" OR "-" HAVE BEEN PUSHED.
 ;THIS ROUTINE WILL EITHER INCREMENT OR DECREMENT THE MEMORY LOCATION ADDRESSED BY HL FOR
@@ -1315,32 +1315,32 @@ L04C4:		JR		C, L0479							;JUMP IF KEY WAS "+" OR "-”
 ;WHEN THE MENU DRIVER OR PERIMETER HANDLER ARE RE-ENTERED, THEY WILL SHOW THE NEXT DISPLAY
 ;FOR "+" OR THE PREVIOUS FOR "-" AND WRAP-AROUND AUTOMATICALLY IF REQUIRED.
 
-.ORG		$04D1
-L04D1:		LD		C, A								;SAVE INPUT KEY VALUE IN C
-			INC		HL									;PUT MAX NUMBER OF DISPLAYS-1
-			LD		B, (HL)								;IN B
-			DEC		HL									;RESET HL TO POINT TO CURRENT NUMBER
-			RRCA										;WAS KEY "+" OR "-"? BIT 0 WILL TELL
-			LD		A, (HL)								;PUT CURRENT NUMBER IN A
-			JR		C, L04DB							;JUMP IF KEY WAS "-"
-			INC		A									;INCREASE A BY 2
-			INC		A									;
-L04DB:		DEC		A									;DECREASE A BY ONE
-			INC		B									;ADD 1 TO MAX NUMBER-1: IS CURRENT
-			CP		B									;NUMBER EQUAL OR GREATER THAN MAX?
-			JR		NC, L04E5							;JUMP IF SO TO UNDER/OVERFLOW HANDLER
-L04E0:		LD		(HL), A								;ELSE STORE UPDATED CURRENT NUMBER
-			XOR		A									;SET ZERO FLAG
-			DEC		A									;CHANGE ZERO FLAG TO 0
-			SCF											;AND SET CARRY
-			RET											;DONE
-L04E5:		BIT		0, C								;TEST FOR "+" OR "-"
-			JR		NZ, L04EC							;JUMP IF "-" TO SET CURRENT NUMBER
-			XOR		A									;TO LAST DISPLAY: ELSE SET FIRST
-			JR		L04E0								;DISPLAY: JUMP TO STORE NEW NUMBER
-L04EC:		DEC		B									;CORRECT MAX NUMBER-1
-			LD		A, B								;SET A TO LAST DISPLAY NUMBER
-			JR		L04E0								;JUMP TO STORE LAST DISPLAY NUMBER
+ORG     $04D1
+L04D1:      LD      C, A                                ;SAVE INPUT KEY VALUE IN C
+            INC     HL                                  ;PUT MAX NUMBER OF DISPLAYS-1
+            LD      B, (HL)                             ;IN B
+            DEC     HL                                  ;RESET HL TO POINT TO CURRENT NUMBER
+            RRCA                                        ;WAS KEY "+" OR "-"? BIT 0 WILL TELL
+            LD      A, (HL)                             ;PUT CURRENT NUMBER IN A
+            JR      C, L04DB                            ;JUMP IF KEY WAS "-"
+            INC     A                                   ;INCREASE A BY 2
+            INC     A                                   ;
+L04DB:      DEC     A                                   ;DECREASE A BY ONE
+            INC     B                                   ;ADD 1 TO MAX NUMBER-1: IS CURRENT
+            CP      B                                   ;NUMBER EQUAL OR GREATER THAN MAX?
+            JR      NC, L04E5                           ;JUMP IF SO TO UNDER/OVERFLOW HANDLER
+L04E0:      LD      (HL), A                             ;ELSE STORE UPDATED CURRENT NUMBER
+            XOR     A                                   ;SET ZERO FLAG
+            DEC     A                                   ;CHANGE ZERO FLAG TO 0
+            SCF                                         ;AND SET CARRY
+            RET                                         ;DONE
+L04E5:      BIT     0, C                                ;TEST FOR "+" OR "-"
+            JR      NZ, L04EC                           ;JUMP IF "-" TO SET CURRENT NUMBER
+            XOR     A                                   ;TO LAST DISPLAY: ELSE SET FIRST
+            JR      L04E0                               ;DISPLAY: JUMP TO STORE NEW NUMBER
+L04EC:      DEC     B                                   ;CORRECT MAX NUMBER-1
+            LD      A, B                                ;SET A TO LAST DISPLAY NUMBER
+            JR      L04E0                               ;JUMP TO STORE LAST DISPLAY NUMBER
 
 ;THIS IS THE TAPE OUTPUT ROUTINE
 ;THE ACTION IS AS FOLLOWS:
@@ -1354,15 +1354,15 @@ L04EC:		DEC		B									;CORRECT MAX NUMBER-1
 ;IF THERE IS AN ODD SIZE BLOCK, IT IS OUTPUTTED AS THE LAST BLOCK.
 ;AFTER ALL THE BLOCKS HAVE BEEN OUTPUTTED, AN END OF FILE HIGH FREQUENCY TONE IS OUTPUTTED.
 
-L04F0:		LD		HL, 0x3000							;HL HAS NUMBER OF LEADER CYCLES
-			CALL	L0680								;CALL LOW TONE
-			LD		HL, 0x08A4							;HL IS START OF FILE INFORMATION BLOCK
-			LD		B, 0x0C								;LOAD B WITH NUMBER OF BYTES TO BE
-			XOR		A									;OUTPUTTED: ZERO A FOR CHECKSUM
-			CALL	L064B								;CALL OUT BLOCK
-			LD		HL, 0x5000							;LD HL WITH MID SYNC CYCLE COUNT
-			CALL	L0684								;CALL HIGH TONE
-			LD		HL, (L08A6)							;LOAD HL, WITH START OF OUTPUT BLOCK
+L04F0:      LD      HL, 0x3000                          ;HL HAS NUMBER OF LEADER CYCLES
+            CALL    L0680                               ;CALL LOW TONE
+            LD      HL, 0x08A4                          ;HL IS START OF FILE INFORMATION BLOCK
+            LD      B, 0x0C                             ;LOAD B WITH NUMBER OF BYTES TO BE
+            XOR     A                                   ;OUTPUTTED: ZERO A FOR CHECKSUM
+            CALL    L064B                               ;CALL OUT BLOCK
+            LD      HL, 0x5000                          ;LD HL WITH MID SYNC CYCLE COUNT
+            CALL    L0684                               ;CALL HIGH TONE
+            LD      HL, (L08A6)                         ;LOAD HL, WITH START OF OUTPUT BLOCK
 
 ;OUTPUT LOOP STARTS HERE
 ;THE DISCUSSION BELOW ON THE BYTE COUNTER AND BLOCK FORMATION APPLIES TO THE TAPE INPUT
@@ -1387,37 +1387,37 @@ L04F0:		LD		HL, 0x3000							;HL HAS NUMBER OF LEADER CYCLES
 ;BEFORE THE DATA IS SENT TO THE TAPE, A SHORT HIGH TONE SYNC IS OUTPUTTED TO COVER THE
 ;SOFTWARE OVERHEAD OF THE TAPE INPUT ROUTINE, AND A IS ZEROED TO BE USED AS THE CHECK-SUM.
 
-L0508:		LD		BC, (L08A8)							;LOAD BC WITH NUMBER OF BYTES
-			CALL	L05C9								;CALL ROUTINE TO DISPLAY BLOCK COUNT
-			JR		NZ, L0516							;AND TEST LENGTH: JUMP IF FULL BLOCK
-			LD		A, B								;TO OUTPUT: TEST LOW BYTE OF COUNT
-			OR		A									;IN B IS ZERO AND JUMP TO DISPLAY
-			JR		Z, L0526							;"-END-S" IF SO
+L0508:      LD      BC, (L08A8)                         ;LOAD BC WITH NUMBER OF BYTES
+            CALL    L05C9                               ;CALL ROUTINE TO DISPLAY BLOCK COUNT
+            JR      NZ, L0516                           ;AND TEST LENGTH: JUMP IF FULL BLOCK
+            LD      A, B                                ;TO OUTPUT: TEST LOW BYTE OF COUNT
+            OR      A                                   ;IN B IS ZERO AND JUMP TO DISPLAY
+            JR      Z, L0526                            ;"-END-S" IF SO
 
 ;THE XOR A INSTRUCTION BELOW SETS THE ZERO FLAG TO SIGNIFY THAT THE BLOCK ABOUT TO BE
 ;OUTPUTTED IS THE FINAL BLOCK. THE ROUTINE WILL THEN DISPLAY "-END-S" (AFTER A SHORT END
 ;SYNC TONE).
 
-			XOR		A									;SET ZERO FLAG
-L0516:		PUSH	AF									;AND SAVE ON STACK
+            XOR     A                                   ;SET ZERO FLAG
+L0516:      PUSH    AF                                  ;AND SAVE ON STACK
 
 ;AT THIS POINT IF THE ZERO FLAG ON THE STACK IS CLEAR (NOT ZERO STATE), THEN AFTER THE
 ;CURRENT BLOCK IS OUTPUTTED, THE ROUTINE WILL LOOP BACK TO START OF THE OUTPUT LOOP TO
 ;SEE IF THERE IS ANY MORE BYTES TO BE OUTPUTTED.
-			EXX											;SWAP REGISTERS
-			LD		HL, 0x0214							;LOAD HL FOR SHORT BURST OF
-			CALL	L0684								;HIGH TONE
-			EXX											;SWAP BACK REGISTERS
-			XOR		A									;ZERO A FOR CHECKSUM
-			CALL	L064B								;CALL OUTBLOCK
-			POP		AF									;RECOVER FLAGS AND JUMP IF
-			JR		NZ, L0508							;THERE MIGHT BE MORE TO OUTPUT
+            EXX                                         ;SWAP REGISTERS
+            LD      HL, 0x0214                          ;LOAD HL FOR SHORT BURST OF
+            CALL    L0684                               ;HIGH TONE
+            EXX                                         ;SWAP BACK REGISTERS
+            XOR     A                                   ;ZERO A FOR CHECKSUM
+            CALL    L064B                               ;CALL OUTBLOCK
+            POP     AF                                  ;RECOVER FLAGS AND JUMP IF
+            JR      NZ, L0508                           ;THERE MIGHT BE MORE TO OUTPUT
 
 ;ALL BLOCKS HAVE BEEN OUTPUTTED SO FINISH WITH A SHORT END TONE AND SET-UP END DISPLAY "-END-S".
-L0526:		LD		HL, 0x1000							;LOAD HL WITH SHORT END TONE
-			CALL	L0684								;CALL HIGH TONE
-			LD		A, 0x05								;LD A TO INDEX "END-S DISPLAY
-			JP		L03E6								;JUMP BACK TO MENU
+L0526:      LD      HL, 0x1000                          ;LOAD HL WITH SHORT END TONE
+            CALL    L0684                               ;CALL HIGH TONE
+            LD      A, 0x05                             ;LD A TO INDEX "END-S DISPLAY
+            JP      L03E6                               ;JUMP BACK TO MENU
 
 ;THIS IS THE START OF THE TAPE INPUT SECTION.
 ;THE ACTION HERE IS TO DETECT A VALID LEADER BY COUNTING 1000H CYCLES OF LOW FREQUENCY
@@ -1426,32 +1426,32 @@ L0526:		LD		HL, 0x1000							;LOAD HL WITH SHORT END TONE
 ;IF AN ERROR IS DETECTED, THE ROUTINE JUMPS TO DISPLAY "FAIL -XX", OTHERWISE THE FILE
 ;NUMBER IS CONVERTED TO DISPLAY FORMAT AND DISPLAYED FOR A FEW SECONDS.
 
-L0531:		LD		BC, 0x1000							;LOAD BC TO COUNT 0x1000 CYCLES
-L0534:		CALL	L0630								;CALL PERIOD
-			JR		C, L0531							;LOOP UNTIL LOW TONE IS DETECTED
-			DEC		BC									;COUNT LONG
-			LD		A, B								;PERIODS
-			OR		C									;IF BC REACHES ZERO THEN IT IS
-			JR		NZ, L0534							;ACCEPTED THAT A VALID FILE FOLLOWS
-			LD		B, 0x0C								;LOAD B TO INPUT 12 BYTES AND
-			LD		HL, 0x08A4							;POINT HL TO FILE INFO BLOCK INPUT
-L0543:		CALL	L0630								;BUFFER: CALL PERIOD
-			JR		NC, L0543							;AND WAIT FOR LOW TONE TO END
-			CALL	L05E7								;CALL INBLOCK TO GET FILE INFO BLOCK
-			JR		NZ, L05A1							;JUMP NOT ZERO TO FAIL LOAD ROUTINE
-			LD		BC, 0x0800							;LOAD BC TO POINT TO DISPLAY BUFFER
-			LD		HL, (L08A4)							;PUT FILE NUMBER INTO EL
-			CALL	L0830								;CONVERT HL TO DISPLAY CODE
-			LD		A, 0x47								;PUT "F" IN DISPLAY BUFFER
-			LD		(L0805), A							;FOR "FILE"
-			LD		BC, 0x01F2							;LD BC WITH THE DISPLAY ON TIME
-L055E:		PUSH	BC									;SAVE ON STACK
-			CALL	L0836								;CALL SCAN
-			POP		BC									;RECOVER BC
-			DEC		BC									;DECREMENT
-			LD		A, B								;AND LOOP UNTIL
-			OR		C									;BC IS ZERO
-			JR		NZ, L055E
+L0531:      LD      BC, 0x1000                          ;LOAD BC TO COUNT 0x1000 CYCLES
+L0534:      CALL    L0630                               ;CALL PERIOD
+            JR      C, L0531                            ;LOOP UNTIL LOW TONE IS DETECTED
+            DEC     BC                                  ;COUNT LONG
+            LD      A, B                                ;PERIODS
+            OR      C                                   ;IF BC REACHES ZERO THEN IT IS
+            JR      NZ, L0534                           ;ACCEPTED THAT A VALID FILE FOLLOWS
+            LD      B, 0x0C                             ;LOAD B TO INPUT 12 BYTES AND
+            LD      HL, 0x08A4                          ;POINT HL TO FILE INFO BLOCK INPUT
+L0543:      CALL    L0630                               ;BUFFER: CALL PERIOD
+            JR      NC, L0543                           ;AND WAIT FOR LOW TONE TO END
+            CALL    L05E7                               ;CALL INBLOCK TO GET FILE INFO BLOCK
+            JR      NZ, L05A1                           ;JUMP NOT ZERO TO FAIL LOAD ROUTINE
+            LD      BC, 0x0800                          ;LOAD BC TO POINT TO DISPLAY BUFFER
+            LD      HL, (L08A4)                         ;PUT FILE NUMBER INTO EL
+            CALL    L0830                               ;CONVERT HL TO DISPLAY CODE
+            LD      A, 0x47                             ;PUT "F" IN DISPLAY BUFFER
+            LD      (L0805), A                          ;FOR "FILE"
+            LD      BC, 0x01F2                          ;LD BC WITH THE DISPLAY ON TIME
+L055E:      PUSH    BC                                  ;SAVE ON STACK
+            CALL    L0836                               ;CALL SCAN
+            POP     BC                                  ;RECOVER BC
+            DEC     BC                                  ;DECREMENT
+            LD      A, B                                ;AND LOOP UNTIL
+            OR      C                                   ;BC IS ZERO
+            JR      NZ, L055E
 
 ;AFTER A FILE INFORMATION BLOCK IS LOADED AND THE FILE NUMBER DISPLAYED, A TEST IS DONE
 ;ON THE REQUIRED FILE NUMBER WINDOW. FIRST IT IS TESTED FOR FFFF (LOAD/TEST NEXT FOUND
@@ -1462,23 +1462,23 @@ L055E:		PUSH	BC									;SAVE ON STACK
 ;TAPE IS USED. IF THE OPTIONAL START BUFFER HAS SOMETHING OTHER THAT FFFF, THEN THE ADDRESS
 ;HERE IS USED AS THE START ADDRESS TO LOAD/TEST THE TAPE.
 
-			LD		HL, (L0898)							;TEST FOR FFFF IN FILE NAME WINDOW
-			INC		HL
-			LD		A, H
-			OR		L
-			DEC		HL									;JUMP IF FILE WINDOW IS FFFF
-			JR		Z, L057A							;TO INPUT FILE REGARDLESS OF ITS NUMBER
-			LD		DE, (L08A4)							;ELSE TEST THAT INPUT FILE NAME
-			OR		A									;IS THE SAME AS THE ONE IN THE FILE
-			SBC		HL, DE								;NUMBER WINDOW AND JUMP IF NOT
-			JR		NZ, L0531							;SELECTED FILE TO LOOK FOR NEXT FILE
-L057A:		LD		HL, (L089A)							;TEST THAT OPTIONAL START ADDRESS
-			INC		HL									;IS FFFF
-			LD		A, H
-			OR		L
-			DEC		HL
-			JR		NZ, L0586							;JUMP IF NOT, ELSE USE START ADDRESS
-			LD		HL, (L08A6)							;PROVIDED FROM THE TAPE
+            LD      HL, (L0898)                         ;TEST FOR FFFF IN FILE NAME WINDOW
+            INC     HL
+            LD      A, H
+            OR      L
+            DEC     HL                                  ;JUMP IF FILE WINDOW IS FFFF
+            JR      Z, L057A                            ;TO INPUT FILE REGARDLESS OF ITS NUMBER
+            LD      DE, (L08A4)                         ;ELSE TEST THAT INPUT FILE NAME
+            OR      A                                   ;IS THE SAME AS THE ONE IN THE FILE
+            SBC     HL, DE                              ;NUMBER WINDOW AND JUMP IF NOT
+            JR      NZ, L0531                           ;SELECTED FILE TO LOOK FOR NEXT FILE
+L057A:      LD      HL, (L089A)                         ;TEST THAT OPTIONAL START ADDRESS
+            INC     HL                                  ;IS FFFF
+            LD      A, H
+            OR      L
+            DEC     HL
+            JR      NZ, L0586                           ;JUMP IF NOT, ELSE USE START ADDRESS
+            LD      HL, (L08A6)                         ;PROVIDED FROM THE TAPE
 
 ;THE MAIN LOAD/TEST ROUTINE STARTS HERE.
 ;REFER TO THE DESCRIPTION OF THE BYTE COUNT AND BLOCK FORMATION AT THE OUTPUT SECTION
@@ -1487,36 +1487,36 @@ L057A:		LD		HL, (L089A)							;TEST THAT OPTIONAL START ADDRESS
 ;THE LED DISPLAY.
 ;HL IS POINTING TO THE PLACE IN MEMORY WHERE THE FILE WILL BE LOADED/TESTED.
 
-L0586:		LD		BC, (L08A8)							;PUT NUMBER OF BYTES INTO BC
-			CALL	L05C9								;CALL B CONVERT AND TEST
-			JR		NZ, L0594							;JUMP IF NOT ZERO AS THERE IS AT
-			LD		A, B								;LEAST ONE FULL BLOCK TO LOAD/TEST
-			OR		A									;CHECK THAT B (FORMALLY C)=0
-			JR		Z, L059D							;JUMP IF SO AS ALL BYTES DONE
-			XOR		A									;ELSE SET ZERO FLAG TO REMEMBER
-L0594:		PUSH	AF									;SAVE FLAGS ON STACK
-			CALL	L05E3								;CALL INBLOCK
-			JR		NZ, L05A0							;JUMP IF LOAD/TEST FAILED
-			POP		AF									;RECOVER FLAGS
-			JR		NZ, L0586							;LOOP IF THERE MIGHT BE MORE
-L059D:		XOR		A									;SET ZERO (SUCCESS) FLAG
-			JR		L05A1								;JUMP TO END HANDLER
-L05A0:		POP		DE									;CLEAN UP STACK
-L05A1:		JR		NZ, L05B4							;JUMP IF FAILED LOAD/TEST
+L0586:      LD      BC, (L08A8)                         ;PUT NUMBER OF BYTES INTO BC
+            CALL    L05C9                               ;CALL B CONVERT AND TEST
+            JR      NZ, L0594                           ;JUMP IF NOT ZERO AS THERE IS AT
+            LD      A, B                                ;LEAST ONE FULL BLOCK TO LOAD/TEST
+            OR      A                                   ;CHECK THAT B (FORMALLY C)=0
+            JR      Z, L059D                            ;JUMP IF SO AS ALL BYTES DONE
+            XOR     A                                   ;ELSE SET ZERO FLAG TO REMEMBER
+L0594:      PUSH    AF                                  ;SAVE FLAGS ON STACK
+            CALL    L05E3                               ;CALL INBLOCK
+            JR      NZ, L05A0                           ;JUMP IF LOAD/TEST FAILED
+            POP     AF                                  ;RECOVER FLAGS
+            JR      NZ, L0586                           ;LOOP IF THERE MIGHT BE MORE
+L059D:      XOR     A                                   ;SET ZERO (SUCCESS) FLAG
+            JR      L05A1                               ;JUMP TO END HANDLER
+L05A0:      POP     DE                                  ;CLEAN UP STACK
+L05A1:      JR      NZ, L05B3                           ;JUMP IF FAILED LOAD/TEST
 
 ;THE LOAD/TEST HAS PASSED. TEST HERE FOR OPTIONAL AUTO-GO AND FOR LOAD OPERATION (NO
 ;AUTO-GO FOR TEST OPERATIONS). START EXECUTION AT AUTO-GO ADDRESS IF REQUIRED.
 
-			LD		HL, (L08AA)							;PUT OPTIONAL GO ADDRESS IN HL
-			INC		HL									;TEST FOR FFFF
-			LD		A, H								;AND JUMP
-			OR		L									;IF FFFF
-			DEC		HL									;AS THERE
-			JR		Z, L05B3							;IS NO AUTO-GO
-			LD		A, (L088A)							;TEST THAT A LOAD OPERATION WAS
-			OR		A									;DONE
-			JR		NZ, L05B3							;SKIP JUMP IF IT WAS A TEST
-			JP		(HL)								;ELSE AUTO START THE PROGRAM
+            LD      HL, (L08AA)                         ;PUT OPTIONAL GO ADDRESS IN HL
+            INC     HL                                  ;TEST FOR FFFF
+            LD      A, H                                ;AND JUMP
+            OR      L                                   ;IF FFFF
+            DEC     HL                                  ;AS THERE
+            JR      Z, L05B3                            ;IS NO AUTO-GO
+            LD      A, (L088A)                          ;TEST THAT A LOAD OPERATION WAS
+            OR      A                                   ;DONE
+            JR      NZ, L05B3                           ;SKIP JUMP IF IT WAS A TEST
+            JP      (HL)                                ;ELSE AUTO START THE PROGRAM
 
 ;THE POST LOAD/TEST MENU DISPLAYS ARE SET UP HERE. IF THE LOAD/TEST FAILED THE ZERO FLAG
 ;IS CLEAR THE ROUTINE WILL POINT TO THE "FAIL" DISPLAY. OTHERWISE IT IS SET TO POINT TO
@@ -1524,19 +1524,19 @@ L05A1:		JR		NZ, L05B4							;JUMP IF FAILED LOAD/TEST
 ;THE JUST PERFORMED OPERATION X2, TO THE TABLE BASE OF POST LOAD/TEST DATA DISPLAYS.
 ;(THE MENU ENTRY NUMBER IS STILL THE SAME AS IT WAS WHEN "GO" WAS PRESS FROM THE MENU).
 
-.ORG 		$05B3
-L05B3:		XOR		A
-L05B4:		LD		DE, L0768							;LOAD DE TO BASE OF DATA DISPLAY
-L05B7:		LD		HL, L075C							;TABLE AND HL "FAIL" DISPLAY
-			JR		NZ, L05BE							;TABLE:
-			LD		L, 0x58								;ADJUST HL TO PASS IF ZERO
-L05BE:		LD		A, (L088F)							;FIND WHAT OPERATION WAS PERFORMED
-			RLCA										;AND DOUBLE VALUE AND ADD TO HL TO
-			ADD		A, E								;POINT DE AT POST TAPE OPERATION
-			LD		E, A								;DATA DISPLAY ENTRY (SEE 0768-0771)
-			NOP											;(FROM FIXED ERROR)
-			XOR		A									;ZERO A
-			JP		L0047								;JUMP TO SOFT MENU ENTRY
+ORG         $05B3
+L05B3:      LD      DE, L0768                           ;LOAD DE TO BASE OF DATA DISPLAY
+            LD      HL, L075C                           ;TABLE AND HL "FAIL" DISPLAY
+            JR      NZ, L05BE                           ;TABLE:
+            LD      L, 0x58                             ;ADJUST HL TO PASS IF ZERO
+L05BE:      NOP                                         ;(FROM FIXED ERROR)
+            LD      A, (L088F)                          ;FIND WHAT OPERATION WAS PERFORMED
+            RLCA                                        ;AND DOUBLE VALUE AND ADD TO HL TO
+            ADD     A, E                                ;POINT DE AT POST TAPE OPERATION
+            LD      E, A                                ;DATA DISPLAY ENTRY (SEE 0768-0771)
+            NOP                                         ;(FROM FIXED ERROR)
+            XOR     A                                   ;ZERO A
+            JP      L0047                               ;JUMP TO SOFT MENU ENTRY
 
 ;THIS IS THE CONVERT/TEST B ROUTINE.
 ;THE VALUE IN B IS CONVERTED AND OUTPUTTED TO PORT 2.
@@ -1544,24 +1544,24 @@ L05BE:		LD		A, (L088F)							;FIND WHAT OPERATION WAS PERFORMED
 ;TRANSFERRED INTO B AND THE ZERO FLAG IS SET. IF B IS NOT 0 THEN B IS DECREMENTED, THE
 ;COUNT IS UP-DATED IN ITS BUFFER AND THE ZERO FLAG AND B IS CLEARED.
 
-.ORG		$05C9
-L05C9:		LD		A, B								;PUT HIGH BYTE OF COUNT IN A
-			AND		0x0F								;MASK TO ONE DIGIT
-			LD		DE, 07D0H							;POINT DE TO DISPLAY CODE TABLE
-			ADD		A, E								;ADD A
-			LD		E, A
-			LD		A, (DE)								;GET DISPLAY VALUE
-			OUT		(DSEGMENT), A						;OUTPUT IT TO DISPLAY
-			LD		A, B								;TEST HIGH BYTE
-			OR		A									;FOR ZERO
-			JR		Z, L05E1							;JUMP IF ZERO
-			DEC		B									;ELSE DECREASE COUNT BY ONE BLOCK
-			LD		(L08A8), BC							;STORE COUNT
-			LD		B, 0x00								;LOAD B FOR 256 BYTE OUTPUT BLOCK
-			OR		A									;CLEAR ZERO FLAG
-			RET											;DONE
-L05E1:		LD		B, C								;PUT LAST BLOCK SIZE IN B
-			RET											;DONE
+ORG     $05C9
+L05C9:      LD      A, B                                ;PUT HIGH BYTE OF COUNT IN A
+            AND     0x0F                                ;MASK TO ONE DIGIT
+            LD      DE, 07D0H                           ;POINT DE TO DISPLAY CODE TABLE
+            ADD     A, E                                ;ADD A
+            LD      E, A
+            LD      A, (DE)                             ;GET DISPLAY VALUE
+            OUT     (DSEGMENT), A                       ;OUTPUT IT TO DISPLAY
+            LD      A, B                                ;TEST HIGH BYTE
+            OR      A                                   ;FOR ZERO
+            JR      Z, L05E1                            ;JUMP IF ZERO
+            DEC     B                                   ;ELSE DECREASE COUNT BY ONE BLOCK
+            LD      (L08A8), BC                         ;STORE COUNT
+            LD      B, 0x00                             ;LOAD B FOR 256 BYTE OUTPUT BLOCK
+            OR      A                                   ;CLEAR ZERO FLAG
+            RET                                         ;DONE
+L05E1:      LD      B, C                                ;PUT LAST BLOCK SIZE IN B
+            RET                                         ;DONE
 
 ;THIS BLOCK LOADS/TESTS THE BYTES IN FROM THE TAPE. THE NUMBER OF BYTES IS HELD IN B ON
 ;INPUT. AFTER THE SUB-ROUTINE THAT INPUTS A BYTE IS CALLED, A TEST AND JUMP IS DONE. THE
@@ -1570,42 +1570,42 @@ L05E1:		LD		B, C								;PUT LAST BLOCK SIZE IN B
 ;OUTPUT ROUTINE. THIS ADDED ONE IS REMOVED IN THIS ROUTINE BEFORE THE CHECK-SUM COMPARE
 ;IS DONE.
 
-L05E3:		LD		A, (L088A)							;GET CURRENT OPERATION
-			LD		C, A								;SAVE IN C
-L05E7:		XOR		A									;CLEAR A FOR CHECKSUM
-L05E8:		PUSH	AF									;SAVE CHECKSUM
-			CALL	L060B								;CALL GET BYTE
-			BIT		1, C								;TEST FOR CURRENT OPERATION
-			JR		NZ, L05FE							;JUMP IF A EITHER TEST
-			LD		(HL), E								;ELSE STORE INPUTTED BYTE IN MEMORY
-			INC		HL									;POINT TO NEXT LOCATION
-L05F2:		POP		AF									;GET CHECKSUM
-L05F3:		ADD		A, E								;ADD TO NEW BYTE
-			DJNZ	L05E8								;DO UNTIL BLOCK DONE
-			PUSH	AF									;SAVE CHECKSUM
-			CALL	L060B								;GET TAPE CHECKSUM
-			POP		AF									;GET MEMORY CHECKSUM
-			DEC		E									;CORRECT TAPE CHECKSUM
-			CP		E									;TEST CHECKSUMS TO SET FLAGS
-			RET											;BLOCK DONE
-L05FE:		BIT		0, C								;TEST FOR WHICH TEST
-			JR		Z, L05F2							;JUMP IF CHECKSUM ONLY TEST
-			POP		AF									;GET CHECKSUM
-			LD		D, A								;SAVE IN D
-			LD		A, E								;GET INPUT BYTE
-			CP		(HL)								;TEST TO MEMORY
-			INC		HL									;POINT TO NEXT LOCATION
-			LD		A, D								;PUT CHECKSUM BACK IN A
-			JR		Z, L05F3							;JUMP TO MAIN LOOP IF ALL OK
-			RET											;RETURN IF ERROR
+L05E3:      LD      A, (L088A)                          ;GET CURRENT OPERATION
+            LD      C, A                                ;SAVE IN C
+L05E7:      XOR     A                                   ;CLEAR A FOR CHECKSUM
+L05E8:      PUSH    AF                                  ;SAVE CHECKSUM
+            CALL    L060B                               ;CALL GET BYTE
+            BIT     1, C                                ;TEST FOR CURRENT OPERATION
+            JR      NZ, L05FE                           ;JUMP IF A EITHER TEST
+            LD      (HL), E                             ;ELSE STORE INPUTTED BYTE IN MEMORY
+            INC     HL                                  ;POINT TO NEXT LOCATION
+L05F2:      POP     AF                                  ;GET CHECKSUM
+L05F3:      ADD     A, E                                ;ADD TO NEW BYTE
+            DJNZ    L05E8                               ;DO UNTIL BLOCK DONE
+            PUSH    AF                                  ;SAVE CHECKSUM
+            CALL    L060B                               ;GET TAPE CHECKSUM
+            POP     AF                                  ;GET MEMORY CHECKSUM
+            DEC     E                                   ;CORRECT TAPE CHECKSUM
+            CP      E                                   ;TEST CHECKSUMS TO SET FLAGS
+            RET                                         ;BLOCK DONE
+L05FE:      BIT     0, C                                ;TEST FOR WHICH TEST
+            JR      Z, L05F2                            ;JUMP IF CHECKSUM ONLY TEST
+            POP     AF                                  ;GET CHECKSUM
+            LD      D, A                                ;SAVE IN D
+            LD      A, E                                ;GET INPUT BYTE
+            CP      (HL)                                ;TEST TO MEMORY
+            INC     HL                                  ;POINT TO NEXT LOCATION
+            LD      A, D                                ;PUT CHECKSUM BACK IN A
+            JR      Z, L05F3                            ;JUMP TO MAIN LOOP IF ALL OK
+            RET                                         ;RETURN IF ERROR
 
 ;THIS ROUTINE INPUTS A SINGLE BYTE.
-L060B:		CALL	L0618								;GET START BIT
-			LD		D, 0x08								;LOAD D FOR 8 BITS
-L0610:		CALL	L0618								;GET BIT
-			RR		E									;PUT IT IN E
-			DEC		D
-			JR		NZ, L0610							;DO FOR EIGHT BITS,
+L060B:      CALL    L0618                               ;GET START BIT
+            LD      D, 0x08                             ;LOAD D FOR 8 BITS
+L0610:      CALL    L0618                               ;GET BIT
+            RR      E                                   ;PUT IT IN E
+            DEC     D
+            JR      NZ, L0610                           ;DO FOR EIGHT BITS,
 
 ;THIS ROUTINE INPUTS A SINGLE BIT
 ;THE STRUCTURE OF EACH BIT IS IMPORTANT TO UNDERSTAND AT THIS POINT. A LOGIC 0 IS REPRESENTED
@@ -1618,67 +1618,67 @@ L0610:		CALL	L0618								;GET BIT
 ;IS ACTUALLY THE FIRST CELL OF THE NEXT BIT.
 ;THE VALUE OF THE BIT INPUTTED IS THEN POT INTO THE CARRY FLAG.
 
-L0618:		EXX											;SWAP REGISTERS
-			LD		HL, 0x0000							;ZERO HL
-L061C:		CALL	L0630								;CALL TO MEASURE PERIOD
-			JR		C, L0627							;JUMP IF SHORT PERIOD
-			DEC		L									;SET HIGH ORDER BIT OF L TO ONES
-			DEC		L
-			SET		0, H								;REMEMBER THAT THE LONG PERIOD
-			JR		L061C								;HAS BEEN DETECTED: LOOP BACK
-L0627:		INC		L									;SHORT PERIOD SO ADD ONE TO L
-			BIT		0, H								;TEST FOR SHORT AFTER LONG PERIOD
-			JR		Z, L061C							;JUMP IF NOT
-			RL		L									;END OF BIT: PUT BIT 7,L INTO
-			EXX											;CARRY: SWAP REGISTERS
-			RET											;INPUT BIT IN CARRY
+L0618:      EXX                                         ;SWAP REGISTERS
+            LD      HL, 0x0000                          ;ZERO HL
+L061C:      CALL    L0630                               ;CALL TO MEASURE PERIOD
+            JR      C, L0627                            ;JUMP IF SHORT PERIOD
+            DEC     L                                   ;SET HIGH ORDER BIT OF L TO ONES
+            DEC     L
+            SET     0, H                                ;REMEMBER THAT THE LONG PERIOD
+            JR      L061C                               ;HAS BEEN DETECTED: LOOP BACK
+L0627:      INC     L                                   ;SHORT PERIOD SO ADD ONE TO L
+            BIT     0, H                                ;TEST FOR SHORT AFTER LONG PERIOD
+            JR      Z, L061C                            ;JUMP IF NOT
+            RL      L                                   ;END OF BIT: PUT BIT 7,L INTO
+            EXX                                         ;CARRY: SWAP REGISTERS
+            RET                                         ;INPUT BIT IN CARRY
 
 ;THIS ROUTINE INPUTS AND MEASURES THE PERIOD OF EACH TAPE CELL AND COMPARES IT TO THE
 ;THRESHOLD BETWEEN A SHORT AND LONG PERIOD. THE CELL IS ALSO ECHOED ON THE TEC SPEAKER.
 
-L0630:		LD		DE, 0x0000							;ZERO DE FOR PERIOD MEASUREMENT
-L0633:		IN		A, (DATLATCH)						;TEST TAPE LEVEL
-			INC		DE									;TIME PERIOD
-			RLA											;PUT TAPE LEVEL INTO CARRY
-			JR		NC, L0633							;LOOP UNTIL IT GOES HIGH
-			XOR		A									;ECHO IT ON
-			OUT		(DSCAN), A							;THE TEC SPEAKER
-L063C:		IN		A, (DATLATCH)						;MEASURE SECOND HALF OF CYCLE
-			INC		DE									;IN THE SAME FASHION AS ABOVE
-			RLA
-			JR		C, L063C							;THIS TIME LOOP UNTIL TAPE LEVEL
-			LD		A, 0x84								;GOES LOW: ECHO IT ON TEC SPEAKER
-			OUT		(DSCAN), A
-			LD		A, E								;GET PERIOD MEASUREMENT
-			CP		0x1A								;COMPARE IT TO THRESHOLD
-			RET											;TO SET FLAGS: DONE
+L0630:      LD      DE, 0x0000                          ;ZERO DE FOR PERIOD MEASUREMENT
+L0633:      IN      A, (DATLATCH)                       ;TEST TAPE LEVEL
+            INC     DE                                  ;TIME PERIOD
+            RLA                                         ;PUT TAPE LEVEL INTO CARRY
+            JR      NC, L0633                           ;LOOP UNTIL IT GOES HIGH
+            XOR     A                                   ;ECHO IT ON
+            OUT     (DSCAN), A                          ;THE TEC SPEAKER
+L063C:      IN      A, (DATLATCH)                       ;MEASURE SECOND HALF OF CYCLE
+            INC     DE                                  ;IN THE SAME FASHION AS ABOVE
+            RLA
+            JR      C, L063C                            ;THIS TIME LOOP UNTIL TAPE LEVEL
+            LD      A, 0x84                             ;GOES LOW: ECHO IT ON TEC SPEAKER
+            OUT     (DSCAN), A
+            LD      A, E                                ;GET PERIOD MEASUREMENT
+            CP      0x1A                                ;COMPARE IT TO THRESHOLD
+            RET                                         ;TO SET FLAGS: DONE
 
 ;THIS ROUTINE OUTPUTS A BLOCK TO THE TAPE. THE NUMBER OF BYTES IS HELD IN B AND THE BLOCK
 ;IS ADDRESS BY HL. AFTER ALL THE BYTES HAVE BEEN OUTPUTTED, THE CHECKSUM +1, WHICH WAS
 ;ADDED OF AS EACH BYTE WAS OUTPUTTED, IS SENT TO THE TAPE.
 
-L064A:		EX		AF, AF'								;GET CHECKSUM IN A
-L064B:		LD		E, (HL)								;PUT BYTE TO BE OUTPUTTED IN E
-			ADD		A, E								;ADD FOR CHECKSUM
-			EX		AF, AF'								;SAVE IN ALTERNATE AF
-			CALL	L0657								;CALL OUT BYTE
-			INC		HL									;POINT TO NEXT BYTE
-			DJNZ	L064A
-			EX		AF, AF'								;GET CHECKSUM
-			INC		A									;INCREASE IT BY ONE
-			LD		E, A								;PUT IT IN E
+L064A:      EX      AF, AF'                             ;GET CHECKSUM IN A
+L064B:      LD      E, (HL)                             ;PUT BYTE TO BE OUTPUTTED IN E
+            ADD     A, E                                ;ADD FOR CHECKSUM
+            EX      AF, AF'                             ;SAVE IN ALTERNATE AF
+            CALL    L0657                               ;CALL OUT BYTE
+            INC     HL                                  ;POINT TO NEXT BYTE
+            DJNZ    L064A
+            EX      AF, AF'                             ;GET CHECKSUM
+            INC     A                                   ;INCREASE IT BY ONE
+            LD      E, A                                ;PUT IT IN E
 
 ;THIS ROUTINE OUTPUTS A SINGLE BYTE IN E TO THE TAPE. THE FORMAT IS 1 START BIT, EIGHT
 ;DATA BITS AND 1 STOP BIT.
 
-L0657:		LD		D, 0x08								;SET D FOR 8 BITS
-			OR		A									;CLEAR CARRY AND CALL OUTBIT
-			CALL	L0666								;TO OUTPUT BINARY ZERO FOR START BIT
-L065D:		RR		E									;PUT FIRST BIT IN CARRY
-			CALL	L0666								;CALL OUT BIT
-			DEC		D
-			JR		NZ, L065D							;DO FOR 8 BITS
-			SCF											;SET CARRY TO OUTPUT STOP BIT (1)
+L0657:      LD      D, 0x08                             ;SET D FOR 8 BITS
+            OR      A                                   ;CLEAR CARRY AND CALL OUTBIT
+            CALL    L0666                               ;TO OUTPUT BINARY ZERO FOR START BIT
+L065D:      RR      E                                   ;PUT FIRST BIT IN CARRY
+            CALL    L0666                               ;CALL OUT BIT
+            DEC     D
+            JR      NZ, L065D                           ;DO FOR 8 BITS
+            SCF                                         ;SET CARRY TO OUTPUT STOP BIT (1)
 
 ;THIS ROUTINE OUTPUTS A SINGLE BIT. IF THE CARRY IS SET, THEN A LOGIC 1 IS OUTPUTTED
 ;OTHERWISE A LOGIC O.
@@ -1688,50 +1688,50 @@ L065D:		RR		E									;PUT FIRST BIT IN CARRY
 ;IN THE TONE ROUTINE. IF THE HIGH SPEED SAVE IS SELECTED, THEN THE CYCLE COUNT WILL BE
 ;HALVED IN THE TONE ROUTINE.
 
-L0666:		EXX											;SWAP REGISTERS
-			LD		H, 0x00								;ZERO H
-			JR		C, L0674							;JUMP IF BINARY 1 IS TO BE OUTPUTTED
-			LD		L, 0x10								;LOAD L WITH HIGH TONE CYCLE COUNT
-			CALL	L0684								;CALL HIGH TONE
-			LD		L, 0x04								;LOAD L WITH LOW TONE CYCLE COUNT
-			JR		L067B								;JUMP TO LOW TONE
-L0674:		LD		L, 0x08								;LOAD L FOR HIGH TONE CYCLE COUNT
-			CALL	L0684								;FOR BINARY ONE: CALL HIGH TONE
-			LD		L, 0x08								;LOAD L FOR LOW TONE CYCLE COUNT
-L067B:		CALL	L0680								;CALL LOW TONE
-			EXX											;SWAP BACK REGISTERS
-			RET											;DONE
+L0666:      EXX                                         ;SWAP REGISTERS
+            LD      H, 0x00                             ;ZERO H
+            JR      C, L0674                            ;JUMP IF BINARY 1 IS TO BE OUTPUTTED
+            LD      L, 0x10                             ;LOAD L WITH HIGH TONE CYCLE COUNT
+            CALL    L0684                               ;CALL HIGH TONE
+            LD      L, 0x04                             ;LOAD L WITH LOW TONE CYCLE COUNT
+            JR      L067B                               ;JUMP TO LOW TONE
+L0674:      LD      L, 0x08                             ;LOAD L FOR HIGH TONE CYCLE COUNT
+            CALL    L0684                               ;FOR BINARY ONE: CALL HIGH TONE
+            LD      L, 0x08                             ;LOAD L FOR LOW TONE CYCLE COUNT
+L067B:      CALL    L0680                               ;CALL LOW TONE
+            EXX                                         ;SWAP BACK REGISTERS
+            RET                                         ;DONE
 
 ;SET-UP FOR LOW TONE (LONG PERIOD)
-L0680:		LD		C, 0x29								;LOAD C FOR LOW TONE
-			JR		L0686								;JUMP TO TONE ROUTINE
+L0680:      LD      C, 0x29                             ;LOAD C FOR LOW TONE
+            JR      L0686                               ;JUMP TO TONE ROUTINE
 
 ;SET-UP FOR HIGH TONE (SHORT PERIOD)
-L0684:		LD		C, 11H								;LOAD C FOR HIGH TONE
+L0684:      LD      C, 11H                              ;LOAD C FOR HIGH TONE
 
 ;TONE ROUTINE
 ;TESTS FOR LOWSPEED SAVE. IF SO THEN IT HALVES THE CYCLE COUNT IN L.
-L0686:		LD		A, (L088F)							;FIND WHICH SPEED
-			OR		A									;ZERO = HIGH SPEED
-			JR		NZ, L068E							;JUMP IF LOW SPEED
-			SRL		L									;ELSE HALVE CYCLE COUNT
-L068E:		LD		DE, 0001H							;
-			LD		A, 0x84								;TURN ON SPEAKER AND MIDDLE DISPLAY
-L0693:		OUT		(DSCAN), A							;
-			LD		B, C								;
-L0696:		DJNZ	L0696								;PERIOD DELAY
-			XOR		0x80								;TOGGLE SPEAKER BIT
-			SBC		HL, DE								;DECREASE CYCLE COUNT
-			JR		NZ, L0693							;JUMP IF NOT ALL CYCLES DONE
-			RET											;ELSE RETURN
+L0686:      LD      A, (L088F)                          ;FIND WHICH SPEED
+            OR      A                                   ;ZERO = HIGH SPEED
+            JR      NZ, L068E                           ;JUMP IF LOW SPEED
+            SRL     L                                   ;ELSE HALVE CYCLE COUNT
+L068E:      LD      DE, 0001H                           ;
+            LD      A, 0x84                             ;TURN ON SPEAKER AND MIDDLE DISPLAY
+L0693:      OUT     (DSCAN), A                          ;
+            LD      B, C                                ;
+L0696:      DJNZ    L0696                               ;PERIOD DELAY
+            XOR     0x80                                ;TOGGLE SPEAKER BIT
+            SBC     HL, DE                              ;DECREASE CYCLE COUNT
+            JR      NZ, L0693                           ;JUMP IF NOT ALL CYCLES DONE
+            RET                                         ;ELSE RETURN
 
 ;THIS ROUTINE SETS UP THE "ERR-IN DISPLAY ON THE PERIMETER HANDLER.
-.ORG		$069F
-L069F:		LD		HL, L0752							;POINT HL TO "Err-In" DISPLAY
-			LD		DE, L0800							;CODE AND DE TO RAM DEstination
-			LD		BC, 0x0006							;BC(ount)
-			LDIR										;MOVE BLOCK
-			JP		L0050								;JUNE TO SOFT PERIMETER ENTRY
+ORG     $069F
+L069F:      LD      HL, L0752                           ;POINT HL TO "Err-In" DISPLAY
+            LD      DE, L0800                           ;CODE AND DE TO RAM DEstination
+            LD      BC, 0x0006                          ;BC(ount)
+            LDIR                                        ;MOVE BLOCK
+            JP      L0050                               ;JUNE TO SOFT PERIMETER ENTRY
 
 ;----END OF TAPE ROUTINES----
 ;THIS ROUTINE IS THE KEYBOARD READER/VALIDATER
@@ -1750,38 +1750,38 @@ L069F:		LD		HL, L0752							;POINT HL TO "Err-In" DISPLAY
 ;THAT A KEY IS STILL BEING HELD DOWN. THE AUTO KEY REPEAT SECTION MAKE UP ITS OWN MIND
 ;WHETHER IT IS VALID OR NOT.
 
-.ORG		$06AD
+ORG     $06AD
 ;#IFDEF DA_KEYBOARD
-;L06AD: IN A,(KEYBOARD)									;TEST FOR KEY PRESSED
+;L06AD: IN A,(KEYBOARD)                                 ;TEST FOR KEY PRESSED
 ;#ELSE
-L06AD:		IN		A, (DATLATCH)						;TEST FOR KEY PRESSED
+L06AD:      IN      A, (DATLATCH)                       ;TEST FOR KEY PRESSED
 ;#ENDIF
-			BIT		6, A
+            BIT     6, A
 ;#IFDEF DA_ACTIVE_HIGH
-;			JR		NZ,L06BB							;DA IS HIGH = KEYPRESS
+;           JR      NZ,L06BB                            ;DA IS HIGH = KEYPRESS
 ;#ELSE
-			JR		Z, L06BB							;DA IS LOW = KEYPRESS
+            JR      Z, L06BB                            ;DA IS LOW = KEYPRESS
 ;#ENDIF
 
-			DJNZ	L06AD								;LOOP LOOKING FOR KEY UNTIL B=0
-L06B5:		XOR		A									;CLEAR KEY PRESS FLAG
-			LD		(L0825), A
-			DEC		A									;SET A TO FF AND CLEAR ZERO FLAG
-L06BA:		RET											;DONE
-L06BB:		LD		A, (L0825)							;GET KEY PRESS FLAG
-			OR		A									;TEST FOR ZERO
-			JR		NZ, L06C1							;DUMMY JUMP TO EQUALIZE TIME
-L06C1:		DJNZ	L06BB								;FINISH LOOP
-			SCF											;SET CARRY
-			JR		NZ, L06BA							;DUMMY JUMP TO RETURN
-			DEC		A									;SET KEY PRESS FLAG TO FF
-			LD		(L0825), A
-L06CA:		IN		A, (KEYBOARD)						;GET INPUT KEY FROM ENCODER CHIP
-			AND		0x1F								;MASK OFF UNUSED BITS
-			BIT		7, A								;SET ZERO FLAG (THINK ABOUT IT!)
-			SCF											;SET CARRY
-			LD		(L0820), A							;STORE INPUT KEY
-			RET											;DONE
+            DJNZ    L06AD                               ;LOOP LOOKING FOR KEY UNTIL B=0
+L06B5:      XOR     A                                   ;CLEAR KEY PRESS FLAG
+            LD      (L0825), A
+            DEC     A                                   ;SET A TO FF AND CLEAR ZERO FLAG
+L06BA:      RET                                         ;DONE
+L06BB:      LD      A, (L0825)                          ;GET KEY PRESS FLAG
+            OR      A                                   ;TEST FOR ZERO
+            JR      NZ, L06C1                           ;DUMMY JUMP TO EQUALIZE TIME
+L06C1:      DJNZ    L06BB                               ;FINISH LOOP
+            SCF                                         ;SET CARRY
+            JR      NZ, L06BA                           ;DUMMY JUMP TO RETURN
+            DEC     A                                   ;SET KEY PRESS FLAG TO FF
+            LD      (L0825), A
+L06CA:      IN      A, (KEYBOARD)                       ;GET INPUT KEY FROM ENCODER CHIP
+            AND     0x1F                                ;MASK OFF UNUSED BITS
+            BIT     7, A                                ;SET ZERO FLAG (THINK ABOUT IT!)
+            SCF                                         ;SET CARRY
+            LD      (L0820), A                          ;STORE INPUT KEY
+            RET                                         ;DONE
 
 ;THIS ROUTINE IS CALLED ONCE ON EVERY HARD RESET. IT INITIALIZES THE LCD THEN TESTS THAT
 ;IT IS THERE (IT CANNOT DO IT THE OTHER WAY AROUND AS THE LCD NEEDS TO BE INITIALIZED
@@ -1791,161 +1791,161 @@ L06CA:		IN		A, (KEYBOARD)						;GET INPUT KEY FROM ENCODER CHIP
 ;BUFFER. IF THE RESULT IS ZERO THEN THE LCD IS ENABLED. IT IS VITAL TO KNOW IF THE LCD IS
 ;FITTED, OTHERWISE THE ROUTINE WHICH READS THE BUSY FLAG MAY LOOP FOREVER.
 
-L06D5:		LD		HL, L07B5							;POINT HL TO LCD INITIALIZE TABLE
-			LD		BC, 0x0404							;B=4 BYTES, C=PORT 4
-L06DB:		LD		DE, 0500H							;DELAY BETWEEN
-L06DE:		DEC		DE									;EACH BYTE
-			LD		A, D								;AS PER
-			OR		E									;LCD MANUFACTER'S
-			JR		NZ, L06DE							;INSTRUCTIONS
-			OUTI										;OUTPUT (HL) TO (C). HL=HL=1,B=B-1
-			JR		NZ, L06DB							;JUMP IF B NOT 0
-L06E7:		DJNZ	L06E7								;SHORT DELAY
-			IN		A, (LCDDATA)						;INPUT FROM LCD TO SEE IF IT'S THERE
-			SUB		0x20								;SUBTRACT ASCII SPACE, IF LCD FITTED
-			LD		(L0821), A							;RESULT WILL BE ZERO: STORE THIS IN
-			RET											;LCD MASK: DONE
-			RST		38H									;
-			RST		38H									;
-			RST		38H									;
-			RST		38H									;
-			RST		38H									;
-			RST		38H									;
-			RST		38H									;
-			RST		38H									;
-			RST		38H									;
-			RST		38H									;
-			RST		38H									;
-			RST		38H									;
-			RST		38H									;
-			RST		38H									;
-			RST		38H									;
+L06D5:      LD      HL, L07B5                           ;POINT HL TO LCD INITIALIZE TABLE
+            LD      BC, 0x0404                          ;B=4 BYTES, C=PORT 4
+L06DB:      LD      DE, 0500H                           ;DELAY BETWEEN
+L06DE:      DEC     DE                                  ;EACH BYTE
+            LD      A, D                                ;AS PER
+            OR      E                                   ;LCD MANUFACTER'S
+            JR      NZ, L06DE                           ;INSTRUCTIONS
+            OUTI                                        ;OUTPUT (HL) TO (C). HL=HL=1,B=B-1
+            JR      NZ, L06DB                           ;JUMP IF B NOT 0
+L06E7:      DJNZ    L06E7                               ;SHORT DELAY
+            IN      A, (LCDDATA)                        ;INPUT FROM LCD TO SEE IF IT'S THERE
+            SUB     0x20                                ;SUBTRACT ASCII SPACE, IF LCD FITTED
+            LD      (L0821), A                          ;RESULT WILL BE ZERO: STORE THIS IN
+            RET                                         ;LCD MASK: DONE
+            RST     38H                                 ;
+            RST     38H                                 ;
+            RST     38H                                 ;
+            RST     38H                                 ;
+            RST     38H                                 ;
+            RST     38H                                 ;
+            RST     38H                                 ;
+            RST     38H                                 ;
+            RST     38H                                 ;
+            RST     38H                                 ;
+            RST     38H                                 ;
+            RST     38H                                 ;
+            RST     38H                                 ;
+            RST     38H                                 ;
+            RST     38H                                 ;
 
 ;AT 0700 IS THE TAPE'S MENU JUMP TABLE.
-.ORG		0x0700
-			.DB		0xC3, 0x3F, 0x04					;HIGH SPEED SAVE
-			.DB		0xC3, 0x3F, 0x04					;LOW SPEED SAVE
-			.DB		0xC3, 0x3B, 0x04					;TEST BLOCK
-			.DB		0xC3, 0x37, 0x04					;TEST CHECKSUM
-			.DB		0xC3, 0x26, 0x04					;LOAD TAPE
+ORG     0x0700
+            DB      0xC3, 0x3F, 0x04                    ;HIGH SPEED SAVE
+            DB      0xC3, 0x3F, 0x04                    ;LOW SPEED SAVE
+            DB      0xC3, 0x3B, 0x04                    ;TEST BLOCK
+            DB      0xC3, 0x37, 0x04                    ;TEST CHECKSUM
+            DB      0xC3, 0x26, 0x04                    ;LOAD TAPE
 
 
 ;BELOW ARE THE JMON DEFAULT RESET VARIABLES (A ZERO IS THE ACTIVE RAM
 ;STATE UNLESS OTHERWISE STATED). LOCATION
 ;* DENOTES CONTROL BYTES DESIGNED TO BE USER ALTERED (IN RAM).
 
-.ORG		$070F
-L070F:		.DB		0x00								;KEY BUFFER 0820
-L0710:		.DB		0x00								;LCD ON/OFF FLAG 0821*
-L0711:		.DB		0x00								;SOUND ON/OFF 0822*
-L0712:		.DB		0xFF								;GO AT ALTERNATE GO ADDRESS IF AA 0823*
-L0713:		.DB		0xFF								;STEPPER KEY CONTROL/TIMER 0824
-L0714:		.DB		0x00								;KEY PRESSED FLAG 0825
-L0715:		.DB		0xFF								;UNUSED 0826
-L0716:		.DB		0x00								;AUTO INCREMENT ON/OFF 0827*
-L0717:		.DB		0x00, 0x0A							;ALT GO ADDR/SOFT RESET EDIT LOCATION ($1000) 0828*
-L0719:		.DB		0x70								;AUTO KEY REPEAT TIMER 082A
-L071A:		.DB		0x00								;MONITOR CONTROL BYTE 082B
-L071B:		.DB		0x00, 0x08							;DISPLAY BUFFER ADDRESS 082C*
-L071D:		.DB		0x00, 0x09							;INITIAL EDITING LOCATION 082E
+ORG     $070F
+L070F:      DB      0x00                                ;KEY BUFFER 0820
+L0710:      DB      0x00                                ;LCD ON/OFF FLAG 0821*
+L0711:      DB      0x00                                ;SOUND ON/OFF 0822*
+L0712:      DB      0xFF                                ;GO AT ALTERNATE GO ADDRESS IF AA 0823*
+L0713:      DB      0xFF                                ;STEPPER KEY CONTROL/TIMER 0824
+L0714:      DB      0x00                                ;KEY PRESSED FLAG 0825
+L0715:      DB      0xFF                                ;UNUSED 0826
+L0716:      DB      0x00                                ;AUTO INCREMENT ON/OFF 0827*
+L0717:      DB      0x00, 0x0A                          ;ALT GO ADDR/SOFT RESET EDIT LOCATION ($1000) 0828*
+L0719:      DB      0x70                                ;AUTO KEY REPEAT TIMER 082A
+L071A:      DB      0x00                                ;MONITOR CONTROL BYTE 082B
+L071B:      DB      0x00, 0x08                          ;DISPLAY BUFFER ADDRESS 082C*
+L071D:      DB      0x00, 0x09                          ;INITIAL EDITING LOCATION 082E
 
 ;BELOW ARE THE JMON INDIRECT JUMP ADDRESSES. THIS TABLE IS SHIFTED DOWN TO 0830 ON A HARD RESET.
-L071F:		.DB		0xC3, 0xD5, 0x01					;CONVERT HL TO DISPLAY CODE 0830
-L0722:		.DB		0xC3, 0xDA, 0x01					;CONVERT A TO DISPLAY CODE 0833
-L0725:		.DB		0xC3, 0xBA, 0x01					;LED SCAN ROUTINE 0836
-L0728:		.DB		0xC3, 0xEE, 0x01					;SET LED DOTS 0839
-L072B:		.DB		0xC3, 0x24, 0x02					;RESET TONES 083C
-L072E:		.DB		0xC3, 0x27, 0x02					;TONE 083F
-L0731:		.DB		0xC3, 0x81, 0x01					;SCAN/KEY/LCD/PATCH LOOP 0842
-L0734:		.DB		0xC3, 0xB2, 0x00					;SOFT JMON ENTRY L0845
-L0737:		.DB		0xC3, 0x3C, 0x02					;LCD ROUTINE 0848
+L071F:      DB      0xC3, 0xD5, 0x01                    ;CONVERT HL TO DISPLAY CODE 0830
+L0722:      DB      0xC3, 0xDA, 0x01                    ;CONVERT A TO DISPLAY CODE 0833
+L0725:      DB      0xC3, 0xBA, 0x01                    ;LED SCAN ROUTINE 0836
+L0728:      DB      0xC3, 0xEE, 0x01                    ;SET LED DOTS 0839
+L072B:      DB      0xC3, 0x24, 0x02                    ;RESET TONES 083C
+L072E:      DB      0xC3, 0x27, 0x02                    ;TONE 083F
+L0731:      DB      0xC3, 0x81, 0x01                    ;SCAN/KEY/LCD/PATCH LOOP 0842
+L0734:      DB      0xC3, 0xB2, 0x00                    ;SOFT JMON ENTRY L0845
+L0737:      DB      0xC3, 0x3C, 0x02                    ;LCD ROUTINE 0848
 
 ;BELOW ARE THE DISPLAY TABLES FOR THE TAPE'S MENU ADDRESS DISPLAYS AND
 ;THE "ERR-IN" DISPLAY THAT IS SUPERIMPOSED OVER THE PERIMETER HANDLER.
-L073A:		.DB		0xA7, 0x6F, 0xEA, 0xC7				;"SAVE"
-L073E:		.DB		0xA7, 0x6F, 0xEA, 0xC7				;"SAVE"
-L0742:		.DB		0xC6, 0xC7, 0xA7, 0xC6				;"TEST"
-L0746:		.DB		0xC6, 0xC7, 0xA7, 0xC6				;"TEST"
-L074A:		.DB		0xC2, 0xEB, 0x6F, 0xEC				;"LOAD"
-L074E:		.DB		0x04, 0xC7, 0x64, 0xEC				;"-End"
-L0752:		.DB		0x04, 0xC7, 0x44, 0x44, 0x28, 0x64	;"-Err In"
-L0758:		.DB		0x4F, 0x6F, 0xA7, 0xA7				;"PASS"
-L075C:		.DB		0x47, 0x6F, 0x28, 0xC2				;"FAIL"
+L073A:      DB      0xA7, 0x6F, 0xEA, 0xC7              ;"SAVE"
+L073E:      DB      0xA7, 0x6F, 0xEA, 0xC7              ;"SAVE"
+L0742:      DB      0xC6, 0xC7, 0xA7, 0xC6              ;"TEST"
+L0746:      DB      0xC6, 0xC7, 0xA7, 0xC6              ;"TEST"
+L074A:      DB      0xC2, 0xEB, 0x6F, 0xEC              ;"LOAD"
+L074E:      DB      0x04, 0xC7, 0x64, 0xEC              ;"-End"
+L0752:      DB      0x04, 0xC7, 0x44, 0x44, 0x28, 0x64  ;"-Err In"
+L0758:      DB      0x4F, 0x6F, 0xA7, 0xA7              ;"PASS"
+L075C:      DB      0x47, 0x6F, 0x28, 0xC2              ;"FAIL"
 
 ;BELOW ARE THE TAPE'S MENU DATA DISPLAYS.
-L0760:		.DB		0x04, 0x6E							;"-H"
-L0762:		.DB		0x04, 0xC2							;"-L"
-L0764:		.DB		0xE6, 0xC2							;"bL"
-L0766:		.DB		0xC3, 0xA7							;"CS"
-L0768:		.DB		0x04, 0xC6							;"-t"
-L076A:		.DB		0x04, 0xA7
-L076C:		.DB		0xC6, 0xE6							;"tb"
-L076E:		.DB		0xC3, 0xA7							;"CS"
-L0770:		.DB		0xC2, 0xEC							;"Ld"
-L0772:		.DB		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF		;(UNUSED)
+L0760:      DB      0x04, 0x6E                          ;"-H"
+L0762:      DB      0x04, 0xC2                          ;"-L"
+L0764:      DB      0xE6, 0xC2                          ;"bL"
+L0766:      DB      0xC3, 0xA7                          ;"CS"
+L0768:      DB      0x04, 0xC6                          ;"-t"
+L076A:      DB      0x04, 0xA7                          ;"-S"
+L076C:      DB      0xC6, 0xE6                          ;"tb"
+L076E:      DB      0xC3, 0xA7                          ;"CS"
+L0770:      DB      0xC2, 0xEC                          ;"Ld"
+L0772:      DB      0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF      ;(UNUSED)
 
 ;BELOW IS THE PERIMETER HANDLER COMMAND STRING FOR THE TAPE SOFTWARE.
-L077C		.DB 	0x00,0xFF,0xC6,0x07,0x99,0x08,0x00,0x03
+L077C:      DB  0x00,0xFF,0xC6,0x07,0x99,0x08,0x00,0x03
 ;(FF FF; THE JUMP ADDRESS FOR THE TAPE ROUTINES IS SUPPLIED BY THE POST MENU SET-UP ROUTINES, SEE 0426-044E).
 
 ;0786 - 0788 FF ;(RESERVED FOR COMMAND STRING EXPANSION).
-L0786		.DB		0xFF,0xFF,0xFF,0xFF,0xFF
+L0786:      DB      0xFF,0xFF,0xFF,0xFF,0xFF
 
 ;BELOW IS THE TAPE'S MENU DRIVER COMMAND STRING.
-L0789		.DB		0xFF,0xFF,0x00,0x04,0x00,0x07,0x3A,0x07,0x60,0x07
+L0789:      DB      0xFF,0xFF,0x00,0x04,0x00,0x07,0x3A,0x07,0x60,0x07
 
 ;TAPE'S SOFTWARE MENU DATA KEY HANDLER ROUTINE JUMP VECTOR (A RETURN INSTRUCTION).
-L0793		.DB		0xC9
+L0793:      DB      0xC9
 
 ;BELOW IS THE STEPPERS DATA DISPLAY CODES.
-.ORG		$0794
-L0794:		.DB		0x4F, 0xC3							;"PC"
-L0796:		.DB		0x6F, 0x47							;"AF"
-L0798:		.DB		0xE6, 0xC3							;"BC"
-L079A:		.DB		0xEC, 0xC7							;"DE"
-L079C:		.DB		0x6E, 0xC2							;"HL"
-L079E:		.DB		0x28, 0x6E							;"IX"
-L07A0:		.DB		0x28, 0xAE							;"IY"
-L07A2:		.DB		0x7F, 0x57							;“AF'"
-L07A4:		.DB		0xF6, 0xD3							;"BC'"
-L07A6:		.DB		0xFC, 0xD7							;"DE'"
-L07A8:		.DB		0x7E, 0xD2							;"HL'"
-L07AA:		.DB		0xA7, 0x4F							;"SP"
-L07AC:		.DB		0xFF								;(UNUSED)
+ORG     $0794
+L0794:      DB      0x4F, 0xC3                          ;"PC"
+L0796:      DB      0x6F, 0x47                          ;"AF"
+L0798:      DB      0xE6, 0xC3                          ;"BC"
+L079A:      DB      0xEC, 0xC7                          ;"DE"
+L079C:      DB      0x6E, 0xC2                          ;"HL"
+L079E:      DB      0x28, 0x6E                          ;"IX"
+L07A0:      DB      0x28, 0xAE                          ;"IY"
+L07A2:      DB      0x7F, 0x57                          ;“AF'"
+L07A4:      DB      0xF6, 0xD3                          ;"BC'"
+L07A6:      DB      0xFC, 0xD7                          ;"DE'"
+L07A8:      DB      0x7E, 0xD2                          ;"HL'"
+L07AA:      DB      0xA7, 0x4F                          ;"SP"
+L07AC:      DB      0xFF                                ;(UNUSED)
 
 ;START OF STAGGERED TABLE OF JMON MODE WORDS FOR LCD
-.ORG		$07AD
-L07AD:		.DB		0x44, 0x61, 0x74, 0x61				;"Data"
-L07B1:		.DB		0x41, 0x64, 0x64, 0x72				;"Addr"
+ORG     $07AD
+L07AD:      DB      0x44, 0x61, 0x74, 0x61              ;"Data"
+L07B1:      DB      0x41, 0x64, 0x64, 0x72              ;"Addr"
 
 ;LCD INITIALIZATION CODES
-.ORG		$07B5
-L07B5:		.DB		0x38, 0x01, 0x06, 0x0C
+ORG     $07B5
+L07B5:      DB      0x38, 0x01, 0x06, 0x0C
 
 ;THE REST OF THE JMON MODE WORD TABLE FOR LCD
-.ORG		$07B9
-L07B9:		.DB		0x46, 0x73, 0x2D					;"Fs-"
-			.DB		0xFF
+ORG     $07B9
+L07B9:      DB      0x46, 0x73, 0x2D                    ;"Fs-"
+            DB      0xFF
 
 ;ADDRESS TABLE OF THE LCD PROMPT LOCATIONS.
-.ORG		$07BD
-L07BD:		.DB		0x84, 0x87, 0x8A, 0x8D, 0xC4, 0xC7, 0xCA, 0xCD, 0x80
+ORG     $07BD
+L07BD:      DB      0x84, 0x87, 0x8A, 0x8D, 0xC4, 0xC7, 0xCA, 0xCD, 0x80
 
 ;TAPE'S PERIMETER HANDLER DATA DISPLAYS
-.ORG		$07C6
-L07C6:		.DB		0x04, 0x47							;"-F"
-			.DB		0x04, 0xA7							;"-S"
-			.DB		0x04, 0xC7							;u_Ett
-			.DB		0x04, 0xE3
-			.DB		0xFF, 0xFF							;(UNUSED)
+ORG     $07C6
+L07C6:      DB      0x04, 0x47                          ;"-F"
+            DB      0x04, 0xA7                          ;"-S"
+            DB      0x04, 0xC7                          ;u_Ett
+            DB      0x04, 0xE3
+            DB      0xFF, 0xFF                          ;(UNUSED)
 
 ;BELOW ARE THE DISPLAY CODE EQUIVALENTS OF THE HEX DIGITS 0 TO F LISTED IN ASCENDING ORDER.
-.ORG		$07D0
-L07D0:		.DB		0xEB, 0x28, 0xCD, 0xAD, 0x2E, 0xA7, 0xE7, 0x29, 0xEF, 0x2F, 0x6F, 0xE6, 0xC3, 0xEC
-L07DE:		.DB		0xC7, 0x47						;MJ: Split out to allow for a Label that is used
+ORG     $07D0
+L07D0:      DB      0xEB, 0x28, 0xCD, 0xAD, 0x2E, 0xA7, 0xE7, 0x29, 0xEF, 0x2F, 0x6F, 0xE6, 0xC3, 0xEC
+L07DE:      DB      0xC7, 0x47                      ;MJ: Split out to allow for a Label that is used
 
 ;FINALLY AT 07E0 IS THE FUNCTION-1 AND SHIFT JUMP ADDRESSES.
-.ORG		$07E0
-L07E0:		.DB		0xD2, 0x03, 0xE3, 0x02, 0x5E, 0x00, 0xFF, 0xFF, 0xD3, 0x02, 0xAE, 0x00, 0xDE, 0x02, 0x41, 0x03
-			.DB		0xED, 0x02, 0xE8, 0x02, 0xF2, 0x02, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+ORG     $07E0
+L07E0:      DB      0xD2, 0x03, 0xE3, 0x02, 0x5E, 0x00, 0xFF, 0xFF, 0xD3, 0x02, 0xAE, 0x00, 0xDE, 0x02, 0x41, 0x03
+            DB      0xED, 0x02, 0xE8, 0x02, 0xF2, 0x02, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
 
