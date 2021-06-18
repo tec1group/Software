@@ -71,8 +71,3 @@ by Jim Robinson
 - A Tutorial Monitor that fits in a page (256 bytes)
 - Easy to understand with basic input/output
 - Fully commented source listing by Jim Roberton (PDF)
-
-## SMON Monitor
-by Scott Gregory
-
-- a 0.5K cut down to the essentials monitor
