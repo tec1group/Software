@@ -13,6 +13,7 @@
 ; #   MOD01-RAMTest         (Shift-0)  #
 ; #   MOD02-Serial Send     (Shift-1)  #
 ; #   MOD03-Serial Receive  (Shift-2)  #
+; #   MOD04-Memory Copy     (Shift-3)  #
 ; #   MOD10-Serial Loopback (Shift-F)  #
 ; #  --------------------------------  #
 ; #                                    #
@@ -53,6 +54,15 @@ M01PATTERN	.EQU	$08F4
 ;
 ; Begin MOD-02 assignments.
 ; End MOD-02 assignments.
+;
+; Begin MOD-03 assignments.
+; End MOD-03 assignments.
+;
+; Begin MOD-04 assignments.
+SRCRAM		.EQU	$08E0
+DESTRAM		.EQU	$08E2
+BLKSIZE		.EQU	$08E4
+; End MOD-04 assignments.
 ;
 ; Begin MOD-10 assignments.
 ; End MOD-10 assignments.
@@ -313,9 +323,15 @@ KEYL05:		CP		$22 ; Shift-2 key - MOD-03: Serial Receive
 			POP		af
 			JP		z,KEYLXX
 ;
-KEYL06:		CP		$23 ; Shift-3 key.
+KEYL06:		CP		$23 ; Shift-3 key - MOD-04: RAM Copy
+			JP		nz,KEYL07
+			PUSH	af
+			PUSH	hl
+			CALL	MOD04
+			POP		hl
+			POP		af
 			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+;
 KEYL07:		CP		$24 ; Shift-4 key.
 			JP		z,KEYLXX
 			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
@@ -599,6 +615,14 @@ M03MAIN:	IN		a,(SERSTATUS)
 			LD		b,e
 			JP		M03MAIN
 ; END MOD-03
+;
+; START MOD-04 - RAM Copy
+MOD04:		LD		hl,(SRCRAM)
+			LD		de,(DESTRAM)
+			LD		bc,(BLKSIZE)
+			LDIR
+			RET
+; END MOD-04
 ;
 ; START MOD-10 - Serial Echo
 MOD10:		IN		a,(SERSTATUS)

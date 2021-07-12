@@ -1,6 +1,6 @@
 ; ######################################
 ; #                                    #
-; #         uMON1 Version 1.00         #
+; #         uMON1 Version 1.03         #
 ; #  --------------------------------  #
 ; #   Special Key Sequences            #
 ; #  --------------------------------  #
@@ -19,7 +19,7 @@ ROMBASE		.EQU	$0000 ; Start of ROM.
 ROMTOP		.EQU	$07FF ; End of ROM.
 RAMBASE		.EQU	$0900 ; Start of user RAM.
 RAMTOP		.EQU	$FFFF ; End of user RAM.
-CATHDLY		.EQU	$20 ; Digit display delay.
+CATHDLY		.EQU	$40 ; Digit display delay.
 KEYPORT		.EQU	$00 ; Keypad port.
 CATHPORT	.EQU	$01 ; Display catchode port.
 SEGPORT		.EQU	$02 ; Display segment port.
@@ -63,7 +63,7 @@ RESET_30:	JP		SETUP
 RESET_38:	JP		SETUP
 ;
 			.ORG	$0040
-VERSION:	.TEXT	"uMON V1.00 by Scott Gregory"
+VERSION:	.TEXT	"uMON V1.03 by Scott Gregory"
 ;
 			.ORG	$0066
 NMISERVICE:	PUSH	af ; Keyboard service routine.
@@ -102,8 +102,7 @@ DISL00:		POP		hl
 DISL01:		DJNZ	DISL01
 			XOR		a
 			OUT		(CATHPORT),a
-			OUT		(SEGPORT),a
-			RR			c
+			RR		c
 			RLD
 			LD		ix,HEX2SEG
 			LD		d,$00
@@ -123,7 +122,6 @@ DISL02:		POP		hl
 DISL03:		DJNZ	DISL03
 			XOR		a
 			OUT		(CATHPORT),a
-			OUT		(SEGPORT),a
 			RR		c
 			LD		de,(ADDRESS)
 			LD		a,e
@@ -149,7 +147,6 @@ DISL04:		POP		hl
 DISL05:		DJNZ	DISL05
 			XOR		a
 			OUT		(CATHPORT),a
-			OUT		(SEGPORT),a
 			RR		c
 			RLD
 			LD		ix,HEX2SEG
@@ -169,7 +166,6 @@ DISL06:		POP		hl
 			LD		b,CATHDLY
 DISL07:		DJNZ	DISL07
 			XOR		a
-			OUT		(SEGPORT),a
 			OUT		(CATHPORT),a
 			RR		c
 			LD		hl,(ADDRESS)
@@ -195,7 +191,6 @@ DISL08:		POP		hl
 			LD		b,CATHDLY
 DISL09:		DJNZ	DISL09
 			XOR		a
-			OUT		(SEGPORT),a
 			OUT		(CATHPORT),a
 			RR		c
 			RLD
@@ -210,9 +205,9 @@ DISL09:		DJNZ	DISL09
 			JP		nz,DISL0A
 			OR		$10
 DISL0A:		POP		hl
-			OUT		($02),a
+			OUT		(SEGPORT),a
 			LD		a,c
-			OUT		($01),a
+			OUT		(CATHPORT),a
 			LD		b,CATHDLY
 DISL0B:		DJNZ	DISL0B
 			RET
@@ -273,34 +268,49 @@ KEYL02:		CP		$13 ; AD key.
 ;
 KEYL03:		CP		$20 ; Shift-0 key.
 			JP		z,KEYLXX
+			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 KEYL04:		CP		$21 ; Shift-1 key.
 			JP		z,KEYLXX
+			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 KEYL05:		CP		$22 ; Shift-2 key.
 			JP		z,KEYLXX
+			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 KEYL06:		CP		$23 ; Shift-3 key.
 			JP		z,KEYLXX
+			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 KEYL07:		CP		$24 ; Shift-4 key.
 			JP		z,KEYLXX
+			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 KEYL08:		CP		$25 ; Shift-5 key.
 			JP		z,KEYLXX
+			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 KEYL09:		CP		$26 ; Shift-6 key.
 			JP		z,KEYLXX
+			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 KEYL0A:		CP		$27 ; Shift-7 key.
 			JP		z,KEYLXX
+			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 KEYL0B:		CP		$28 ; Shift-8 key.
 			JP		z,KEYLXX
+			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 KEYL0C:		CP		$29 ; Shift-9 key.
 			JP		z,KEYLXX
+			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 KEYL0D:		CP		$2A ; Shift-A key.
 			JP		z,KEYLXX
+			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 KEYL0E:		CP		$2B ; Shift-B key.
 			JP		z,KEYLXX
+			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 KEYL0F:		CP		$2C ; Shift-C key.
 			JP		z,KEYLXX
+			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 KEYL10:		CP		$2D ; Shift-D key.
 			JP		z,KEYLXX
+			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 KEYL11:		CP		$2E ; Shift-E key.
 			JP		z,KEYLXX
+			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 KEYL12:		CP		$2F ; Shift-F key.
 			JP		z,KEYLXX
 ;

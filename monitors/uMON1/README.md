@@ -1,5 +1,5 @@
 # uMON1
-Micro Monitor 1 (uMON1) V1.00 for the Talking Electronics TEC-1 SBC.
+Micro Monitor 1 (uMON1) V1.03 for the Talking Electronics TEC-1 SBC.
 By Scott Gregory
 
 uMON1 Special Keys
@@ -67,7 +67,7 @@ Enter:
 	RESET
 	AD
 	08F0
-	00+00+ff+07+00+10
+	00+00+FF+07+00+10
 	SHIFT-0
 
 The results are stored as:
