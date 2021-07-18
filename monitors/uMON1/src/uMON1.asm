@@ -1,6 +1,6 @@
 ; ######################################
 ; #                                    #
-; #         uMON1 Version 1.03         #
+; #         uMON1 Version 1.04         #
 ; #  --------------------------------  #
 ; #   Special Key Sequences            #
 ; #  --------------------------------  #
@@ -8,10 +8,16 @@
 ; #   Shift-- - Delete byte.           #
 ; #                                    #
 ; #  --------------------------------  #
+; #   Included Modules                 #
+; #  --------------------------------  #
+; #                None                #
+; #  --------------------------------  #
 ; #                                    #
 ; #  by Scott Gregory                  #
 ; #  13/06/2021                        #
 ; #                                    #
+; #  Last update                       #
+; #  18/07/2021                        #
 ; ######################################
 ;
 STACKTOP	.EQU	$08C0 ; Stack position.
@@ -63,7 +69,7 @@ RESET_30:	JP		SETUP
 RESET_38:	JP		SETUP
 ;
 			.ORG	$0040
-VERSION:	.TEXT	"uMON V1.03 by Scott Gregory"
+VERSION:	.TEXT	"uMON V1.04 by Scott Gregory"
 ;
 			.ORG	$0066
 NMISERVICE:	PUSH	af ; Keyboard service routine.
@@ -267,52 +273,148 @@ KEYL02:		CP		$13 ; AD key.
 			JP		KEYLXX
 ;
 KEYL03:		CP		$20 ; Shift-0 key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL04
+			PUSH	af
+			PUSH	hl
+			CALL	MOD01
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL04:		CP		$21 ; Shift-1 key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL05
+			PUSH	af
+			PUSH	hl
+			CALL	MOD02
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL05:		CP		$22 ; Shift-2 key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL06
+			PUSH	af
+			PUSH	hl
+			CALL	MOD03
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL06:		CP		$23 ; Shift-3 key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL07
+			PUSH	af
+			PUSH	hl
+			CALL	MOD04
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL07:		CP		$24 ; Shift-4 key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL08
+			PUSH	af
+			PUSH	hl
+			CALL	MOD05
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL08:		CP		$25 ; Shift-5 key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL09
+			PUSH	af
+			PUSH	hl
+			CALL	MOD06
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL09:		CP		$26 ; Shift-6 key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL0A
+			PUSH	af
+			PUSH	hl
+			CALL	MOD07
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL0A:		CP		$27 ; Shift-7 key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL0B
+			PUSH	af
+			PUSH	hl
+			CALL	MOD08
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL0B:		CP		$28 ; Shift-8 key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL0C
+			PUSH	af
+			PUSH	hl
+			CALL	MOD09
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL0C:		CP		$29 ; Shift-9 key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL0D
+			PUSH	af
+			PUSH	hl
+			CALL	MOD0A
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL0D:		CP		$2A ; Shift-A key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL0E
+			PUSH	af
+			PUSH	hl
+			CALL	MOD0B
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL0E:		CP		$2B ; Shift-B key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL0F
+			PUSH	af
+			PUSH	hl
+			CALL	MOD0C
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL0F:		CP		$2C ; Shift-C key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL10
+			PUSH	af
+			PUSH	hl
+			CALL	MOD0D
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL10:		CP		$2D ; Shift-D key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL11
+			PUSH	af
+			PUSH	hl
+			CALL	MOD0E
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL11:		CP		$2E ; Shift-E key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL12
+			PUSH	af
+			PUSH	hl
+			CALL	MOD0F
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL12:		CP		$2F ; Shift-F key.
-			JP		z,KEYLXX
+			JP		nz,KEYL13
+			PUSH	af
+			PUSH	hl
+			CALL	MOD10
+			POP		hl
+			POP		af
+			JP		KEYLXX
 ;
 KEYL13:		CP		$30 ; Shift-+ key.
 			JP		nz,KEYL14
@@ -465,8 +567,69 @@ HEX2SEG:	.DB		$EB,$28,$CD,$AD,$2E,$A7,$E7,$29 ; HEX Byte to LED Segment conversi
 			.DB		$EF,$2F,$6F,$E6,$C3,$EC,$C7,$47
 ;
 ; BEGIN MODULES.
-; START MOD-xx - xxxxx.
-; END MOD-xx
+; START MOD-01 - xxxxx.
+MOD01:		RET
+; END MOD-01
+;
+; START MOD-02 - xxxxx.
+MOD02:		RET
+; END MOD-02
+;
+; START MOD-03 - xxxxx.
+MOD03:		RET
+; END MOD-03
+;
+; START MOD-04 - xxxxx.
+MOD04:		RET
+; END MOD-04
+;
+; START MOD-05 - xxxxx.
+MOD05:		RET
+; END MOD-05
+;
+; START MOD-06 - xxxxx.
+MOD06:		RET
+; END MOD-06
+;
+; START MOD-07 - xxxxx.
+MOD07:		RET
+; END MOD-07
+;
+; START MOD-08 - xxxxx.
+MOD08:		RET
+; END MOD-08
+;
+; START MOD-09 - xxxxx.
+MOD09:		RET
+; END MOD-09
+;
+; START MOD-0A - xxxxx.
+MOD0A:		RET
+; END MOD-0A
+;
+; START MOD-0B - xxxxx.
+MOD0B:		RET
+; END MOD-0B
+;
+; START MOD-0C - xxxxx.
+MOD0C:		RET
+; END MOD-0C
+;
+; START MOD-0D - xxxxx.
+MOD0D:		RET
+; END MOD-0D
+;
+; START MOD-0E - xxxxx.
+MOD0E:		RET
+; END MOD-0E
+;
+; START MOD-0F - xxxxx.
+MOD0F:		RET
+; END MOD-0F
+;
+; START MOD-10 - xxxxx.
+MOD10:		RET
+; END MOD-10
 ;
 ; END MODULES.
 ;

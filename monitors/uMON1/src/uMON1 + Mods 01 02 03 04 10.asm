@@ -1,6 +1,6 @@
 ; ######################################
 ; #                                    #
-; #         uMON1 Version 1.03         #
+; #         uMON1 Version 1.04         #
 ; #  --------------------------------  #
 ; #   Special Key Sequences            #
 ; #  --------------------------------  #
@@ -20,6 +20,8 @@
 ; #  by Scott Gregory                  #
 ; #  13/06/2021                        #
 ; #                                    #
+; #  Last update                       #
+; #  18/07/2021                        #
 ; ######################################
 ;
 STACKTOP	.EQU	$08C0 ; Stack position.
@@ -93,7 +95,7 @@ RESET_30:	JP		SETUP
 RESET_38:	JP		SETUP
 ;
 			.ORG	$0040
-VERSION:	.TEXT	"uMON V1.03 by Scott Gregory"
+VERSION:	.TEXT	"uMON V1.04 by Scott Gregory"
 ;
 			.ORG	$0066
 NMISERVICE:	PUSH	af ; Keyboard service routine.
@@ -321,7 +323,7 @@ KEYL05:		CP		$22 ; Shift-2 key - MOD-03: Serial Receive
 			CALL	MOD03
 			POP		hl
 			POP		af
-			JP		z,KEYLXX
+			JP		KEYLXX
 ;
 KEYL06:		CP		$23 ; Shift-3 key - MOD-04: RAM Copy
 			JP		nz,KEYL07
@@ -330,45 +332,115 @@ KEYL06:		CP		$23 ; Shift-3 key - MOD-04: RAM Copy
 			CALL	MOD04
 			POP		hl
 			POP		af
-			JP		z,KEYLXX
+			JP		KEYLXX
 ;
 KEYL07:		CP		$24 ; Shift-4 key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL08
+			PUSH	af
+			PUSH	hl
+			CALL	MOD05
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL08:		CP		$25 ; Shift-5 key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL09
+			PUSH	af
+			PUSH	hl
+			CALL	MOD06
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL09:		CP		$26 ; Shift-6 key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL0A
+			PUSH	af
+			PUSH	hl
+			CALL	MOD07
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL0A:		CP		$27 ; Shift-7 key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL0B
+			PUSH	af
+			PUSH	hl
+			CALL	MOD08
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL0B:		CP		$28 ; Shift-8 key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL0C
+			PUSH	af
+			PUSH	hl
+			CALL	MOD09
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL0C:		CP		$29 ; Shift-9 key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL0D
+			PUSH	af
+			PUSH	hl
+			CALL	MOD0A
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL0D:		CP		$2A ; Shift-A key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL0E
+			PUSH	af
+			PUSH	hl
+			CALL	MOD0B
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL0E:		CP		$2B ; Shift-B key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL0F
+			PUSH	af
+			PUSH	hl
+			CALL	MOD0C
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL0F:		CP		$2C ; Shift-C key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL10
+			PUSH	af
+			PUSH	hl
+			CALL	MOD0D
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL10:		CP		$2D ; Shift-D key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL11
+			PUSH	af
+			PUSH	hl
+			CALL	MOD0E
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL11:		CP		$2E ; Shift-E key.
-			JP		z,KEYLXX
-			.DB		$00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+			JP		nz,KEYL12
+			PUSH	af
+			PUSH	hl
+			CALL	MOD0F
+			POP		hl
+			POP		af
+			JP		KEYLXX
+;
 KEYL12:		CP		$2F ; Shift-F key - MOD-10: Serial Echo
 			JP		nz,KEYL13
-			JP		MOD10
-			.DB		$00, $00, $00, $00, $00, $00, $00
+			PUSH	af
+			PUSH	hl
+			CALL	MOD10
+			POP		hl
+			POP		af
+			JP		KEYLXX
 ;
 KEYL13:		CP		$30 ; Shift-+ key.
 			JP		nz,KEYL14
@@ -624,6 +696,50 @@ MOD04:		LD		hl,(SRCRAM)
 			RET
 ; END MOD-04
 ;
+; START MOD-05 - xxxxx.
+MOD05:		RET
+; END MOD-05
+;
+; START MOD-06 - xxxxx.
+MOD06:		RET
+; END MOD-06
+;
+; START MOD-07 - xxxxx.
+MOD07:		RET
+; END MOD-07
+;
+; START MOD-08 - xxxxx.
+MOD08:		RET
+; END MOD-08
+;
+; START MOD-09 - xxxxx.
+MOD09:		RET
+; END MOD-09
+;
+; START MOD-0A - xxxxx.
+MOD0A:		RET
+; END MOD-0A
+;
+; START MOD-0B - xxxxx.
+MOD0B:		RET
+; END MOD-0B
+;
+; START MOD-0C - xxxxx.
+MOD0C:		RET
+; END MOD-0C
+;
+; START MOD-0D - xxxxx.
+MOD0D:		RET
+; END MOD-0D
+;
+; START MOD-0E - xxxxx.
+MOD0E:		RET
+; END MOD-0E
+;
+; START MOD-0F - xxxxx.
+MOD0F:		RET
+; END MOD-0F
+;
 ; START MOD-10 - Serial Echo
 MOD10:		IN		a,(SERSTATUS)
 			BIT		1,a
@@ -643,6 +759,7 @@ M10XMIT:	IN		a,(SERSTATUS)
 			XOR		a
 			RET
 ; END MOD-10
+;
 ; END MODULES.
 ;
 			.END

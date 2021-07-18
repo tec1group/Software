@@ -1,5 +1,5 @@
 # uMON1
-Micro Monitor 1 (uMON1) V1.03 for the Talking Electronics TEC-1 SBC.
+Micro Monitor 1 (uMON1) V1.04 for the Talking Electronics TEC-1 SBC.
 By Scott Gregory
 
 uMON1 Special Keys
@@ -14,7 +14,7 @@ STACKTOP = $08C0 - Stack position.
   ROMTOP = $07FF - End of ROM.
  RAMBASE = $0900 - Start of user RAM.
   RAMTOP = $FFFF - End of user RAM.
- CATHDLY = $20 - Digit display delay.
+ CATHDLY = $40 - Digit display delay.
  KEYPORT = $00 - Keypad port.
 CATHPORT = $01 - Display catchode port.
  SEGPORT = $02 - Display segment port.
@@ -77,6 +77,22 @@ The results are stored as:
 		  = 2022 errors found
 
 ... because this is the TEC-1 ROM location.
+
+
+Memory Block Copy Module Setup - (MOD-04)
+------------------------------
+Enter the required parameters into the following addresses:
+	$08E0 - Source address LSB.
+	$08E1 - Source address MSB.
+	$08E2 - Destination address LSB.
+	$08E3 - Destination address MSB.
+	$08E4 - Block size LSB.
+	$08E5 - Block size MSB.
+
+Running The Copy
+----------------
+Enter:
+	SHIFT-3
 
 
 Serial Modules Setup
