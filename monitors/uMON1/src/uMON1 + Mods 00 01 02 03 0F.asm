@@ -47,6 +47,11 @@ SHIFTGO		.EQU	$08D8 ; 2 Bytes - Shift-GO destination address.
 ;
 ; Begin included modules.
 ; #DEFINE INCLUDE_MODXX
+#DEFINE INCLUDE_MOD00
+#DEFINE INCLUDE_MOD01
+#DEFINE INCLUDE_MOD02
+#DEFINE INCLUDE_MOD03
+#DEFINE INCLUDE_MOD0F
 ; End included modules.
 ;
 ; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

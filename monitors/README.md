@@ -79,7 +79,7 @@ A tiny modulariesed monitor.
 
 Included:
  - Source and binaries for the base uMON1.
- - Source and binaries for uMON1 + RAM Test and Serial Modules.
+ - Source and binaries for uMON1 + RAM Test, RAM Block Copy and Serial Modules.
  - Readme.
  - Licence.
 
