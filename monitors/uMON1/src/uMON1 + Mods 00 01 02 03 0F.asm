@@ -10,7 +10,11 @@
 ; #  --------------------------------  #
 ; #   Included Modules                 #
 ; #  --------------------------------  #
-; #                None                #
+; #  MOD00 - RAM Test       (Shift-0)  #
+; #  MOD01 - Serial Send    (Shift-1)  #
+; #  MOD02 - Serial Receive (Shift-2)  #
+; #  MOD03 - RAM Block Copy (Shift-3)  #
+; #  MOD0F - Serial Echo    (Shift-F)  #
 ; #  --------------------------------  #
 ; #                                    #
 ; #  by Scott Gregory                  #
