@@ -1,6 +1,6 @@
 0001   0000             ; ######################################
 0002   0000             ; #                                    #
-0003   0000             ; #         uMON1 Version 1.10         #
+0003   0000             ; #         uMON1 Version 1.11         #
 0004   0000             ; #  --------------------------------  #
 0005   0000             ; #   Special Key Sequences            #
 0006   0000             ; #  --------------------------------  #
@@ -17,7 +17,7 @@
 0017   0000             ; #  13/06/2021                        #
 0018   0000             ; #                                    #
 0019   0000             ; #  Last update                       #
-0020   0000             ; #  30/07/2021                        #
+0020   0000             ; #  11/08/2021                        #
 0021   0000             ; ######################################
 0022   0000             ;
 0023   0000             STACKTOP	.EQU	$08C0 ; Stack position.
@@ -566,532 +566,525 @@
 0056   07F8 00 00 00 00 
 0056   07FC 00 00 00 00 
 0057   0000             			.ORG	$0000
-0058   0000 F3          RESET_00:	DI
-0059   0001 C3 B8 02    			JP		SETUP
-0060   0004             ;
-0061   0008             			.ORG	$0008
-0062   0008 F3          RESET_08:	DI
-0063   0009 C3 B8 02    			JP		SETUP
-0064   000C             ;
-0065   0010             			.ORG	$0010
-0066   0010 F3          RESET_10:	DI
-0067   0011 C3 B8 02    			JP		SETUP
-0068   0014             ;
-0069   0018             			.ORG	$0018
-0070   0018 F3          RESET_18:	DI
-0071   0019 C3 B8 02    			JP		SETUP
-0072   001C             ;
-0073   0020             			.ORG	$0020
-0074   0020 F3          RESET_20:	DI
-0075   0021 C3 B8 02    			JP		SETUP
-0076   0024             ;
-0077   0028             			.ORG	$0028
-0078   0028 F3          RESET_28:	DI
-0079   0029 C3 B8 02    			JP		SETUP
-0080   002C             ;
-0081   0030             			.ORG	$0030
-0082   0030 F3          RESET_30:	DI
-0083   0031 C3 B8 02    			JP		SETUP
-0084   0034             ;
-0085   0038             			.ORG	$0038
-0086   0038 F3          RESET_38:	DI
-0087   0039 C3 B8 02    			JP		SETUP
-0088   003C             ;
-0089   0040             			.ORG	$0040
-0090   0040 75 4D 4F 4E VERSION:	.DB	"uMON V1.10 by Scott Gregory"
-0090   0044 20 56 31 2E 
-0090   0048 31 30 20 62 
-0090   004C 79 20 53 63 
-0090   0050 6F 74 74 20 
-0090   0054 47 72 65 67 
-0090   0058 6F 72 79 
-0091   005B             ;
-0092   0066             			.ORG	$0066
-0093   0066 F5          NMISERVICE:	PUSH	af ; Keyboard service routine.
-0094   0067 DB 00       			IN		a,(KEYPORT)
-0095   0069 E6 3F       			AND		$3F	; We're only interested in the first 6 bits.
-0096   006B EE 20       			XOR		$20	; Flip bit 5 because bit 5 is low when the Shift key is pressed.
-0097   006D 32 C6 08    			LD		(KEYDATA),a
-0098   0070 F1          			POP		af
-0099   0071 ED 45       			RETN
-0100   0073             ;
-0101   0080             			.ORG	$0080
-0102   0080 AF          DISPLAY:	XOR		a ; Display update routine.
-0103   0081 D3 01       			OUT		(CATHPORT),a ; Blank the display.
-0104   0083 D3 02       			OUT		(SEGPORT),a
-0105   0085 0E 20       			LD		c,$20 ; Set the last digit.
-0106   0087 2A C0 08    			LD		hl,(ADDRESS)
-0107   008A 7E          			LD		a,(hl)
-0108   008B EB          			EX		de,hl
-0109   008C 21 C2 08    			LD		hl,SCRATCH
-0110   008F 77          			LD		(hl),a ; Add the data from the current address to the scratchpad.
-0111   0090 23          			INC		hl
-0112   0091 73          			LD		(hl),e ; Add the current address LSB to the scratchpad.
-0113   0092 23          			INC		hl
-0114   0093 72          			LD		(hl),d ; Add the current address MSB to the scratchpad.
-0115   0094 11 EE 02    			LD		de,HEX2SEG
-0116   0097 3A C5 08    			LD		a,(MODE)
-0117   009A E6 10       			AND		$10
-0118   009C 47          			LD		b,a
-0119   009D CD B1 00    			CALL	DGTPAIR ; Decode and display digits 5 and 4.
-0120   00A0 2B          			DEC		hl
-0121   00A1 CD B1 00    			CALL	DGTPAIR ; Decode and display digits 3 and 2.
-0122   00A4 2B          			DEC		hl
-0123   00A5 3A C5 08    			LD		a,(MODE)
-0124   00A8 E6 10       			AND		$10
-0125   00AA EE 10       			XOR		$10
-0126   00AC 47          			LD		b,a
-0127   00AD CD B1 00    			CALL	DGTPAIR ; Decode and display digits 1 and 0.
-0128   00B0 C9          			RET
-0129   00B1             ;
-0130   00B1 AF          DGTPAIR:	XOR		a
-0131   00B2 ED 6F       			RLD
-0132   00B4 E5          			PUSH	hl
-0133   00B5 CD C2 00    			CALL	DECNSHOW
-0134   00B8 E1          			POP		hl
-0135   00B9 AF          			XOR		a
-0136   00BA ED 6F       			RLD
-0137   00BC E5          			PUSH	hl
-0138   00BD CD C2 00    			CALL	DECNSHOW
-0139   00C0 E1          			POP		hl
-0140   00C1 C9          			RET
-0141   00C2             ;
-0142   00C2 26 00       DECNSHOW:	LD		h,$00
-0143   00C4 6F          			LD		l,a
-0144   00C5 19          			ADD		hl,de
-0145   00C6 7E          			LD		a,(hl)
-0146   00C7 B0          			OR		b
-0147   00C8 C5          			PUSH	bc
-0148   00C9 47          			LD		b,a
-0149   00CA CD D2 00    			CALL	UPDATE
-0150   00CD C1          			POP		bc
-0151   00CE 79          			LD		a,c
-0152   00CF 1F          			RRA
-0153   00D0 4F          			LD		c,a
-0154   00D1 C9          			RET			
-0155   00D2             ;
-0156   00D2 78          UPDATE:		LD		a,b
-0157   00D3 D3 02       			OUT		(SEGPORT),a
-0158   00D5 79          			LD		a,c
-0159   00D6 D3 01       			OUT		(CATHPORT),a
-0160   00D8 06 40       			LD		b,CATHDLY
-0161   00DA 10 FE       HOLD:		DJNZ	HOLD
-0162   00DC AF          			XOR		a
-0163   00DD D3 01       			OUT		(CATHPORT),a
-0164   00DF C9          			RET
-0165   00E0             ;
-0166   00E0 E5          KEYBOARD:	PUSH	hl ; Key decoder routine.
-0167   00E1 F5          			PUSH	af
-0168   00E2 21 30 00    			LD		hl,$0030
-0169   00E5 22 C7 08    			LD		(BEEPLENGTH),hl
-0170   00E8 21 C9 08    			LD		hl,BEEPFREQ
-0171   00EB 36 30       			LD		(hl),$30
-0172   00ED 3A C6 08    			LD		a,(KEYDATA)
-0173   00F0 FE FF       			CP		$FF
-0174   00F2 CA F2 01    			JP		z,KEYDONE
-0175   00F5 CD 2A 02    			CALL	BEEP
-0176   00F8 CB 6F       			BIT		5,a ; Test for a shifted key.
-0177   00FA CA 05 01    			JP		z,TESTFUNC ; If no shift, do this jump.
-0178   00FD EE 20       			XOR		$20 ; Remove the shift bit.
-0179   00FF 11 02 02    			LD		de,SHIFTTBL ; Load the shifted key table.
-0180   0102 C3 6F 01    			JP		JUMP
-0181   0105             ;
-0182   0105 CB 67       TESTFUNC:	BIT		4,a ; Test for a function key press (+, -, GO, AD)
-0183   0107 C2 6A 01    			JP		nz,SETFUNC ; If it is a function key, do this jump.
-0184   010A             ;
-0185   010A 47          KEYS0TOF:	LD		b,a
-0186   010B 3A C5 08    			LD		a,(MODE)
-0187   010E FE 10       			CP		$10
-0188   0110 CA 44 01    			JP		z,ADDRENTRY ; Jump on first address mode entry.
-0189   0113 FE 11       			CP		$11
-0190   0115 CA 4E 01    			JP		z,NXTADNTRY ; Jump on subsequent address mode entries.
-0191   0118 FE 01       			CP		$01
-0192   011A C2 24 01    			JP		nz,NXTDATTST ; Jump on all but second data nibble entry to a location.
-0193   011D 3C          			INC		a ; Do this on the second data nibble entry to a location.
-0194   011E 32 C5 08    			LD		(MODE),a
-0195   0121 C3 3B 01    			JP		NXTDATNTR
-0196   0124             ;
-0197   0124 FE 02       NXTDATTST:	CP		$02
-0198   0126 C2 32 01    			JP		nz,FSTDATNTR ; Jump if this is the first data nibble entry to a location.
-0199   0129 2A C0 08    			LD		hl,(ADDRESS) ; Do this on the third data nibble entry to a location.
-0200   012C 23          			INC		hl
-0201   012D 22 C0 08    			LD		(ADDRESS),hl
-0202   0130 3E 00       			LD		a,$00
-0203   0132 3C          FSTDATNTR:	INC		a ; Do this on the first data nibble entry to a location.
-0204   0133 32 C5 08    			LD		(MODE),a
-0205   0136 2A C0 08    			LD		hl,(ADDRESS)
-0206   0139 36 00       			LD		(hl),$00
-0207   013B 2A C0 08    NXTDATNTR:	LD		hl,(ADDRESS)
-0208   013E 78          			LD		a,b
-0209   013F ED 6F       			RLD
-0210   0141 C3 F2 01    			JP		KEYDONE
-0211   0144             ;
-0212   0144 3C          ADDRENTRY:	INC		a ; do this on the first address nibble entry.
-0213   0145 32 C5 08    			LD		(MODE),a
-0214   0148 21 00 00    			LD		hl,$0000
-0215   014B 22 C0 08    			LD		(ADDRESS),hl
-0216   014E 78          NXTADNTRY:	LD		a,b ; Do this on first and subsequent address nibble entries.
-0217   014F 21 C0 08    			LD		hl,ADDRESS
-0218   0152 ED 6F       			RLD
-0219   0154 2A C0 08    			LD		hl,(ADDRESS)
-0220   0157 CB 24       			SLA		h
-0221   0159 CB 24       			SLA		h
-0222   015B CB 24       			SLA		h
-0223   015D CB 24       			SLA		h
-0224   015F 47          			LD		b,a
-0225   0160 AF          			XOR		a
-0226   0161 B4          			OR		h
-0227   0162 B0          			OR		b
-0228   0163 67          			LD		h,a
-0229   0164 22 C0 08    			LD		(ADDRESS),hl
-0230   0167 C3 F2 01    			JP		KEYDONE
-0231   016A             ;
-0232   016A EE 10       SETFUNC:	XOR		$10 ; Remove the function key bit.
-0233   016C 11 FA 01    			LD		de,FUNCTBL ; Load the function table.
-0234   016F 21 F2 01    JUMP:		LD		hl,KEYDONE ; Push where we go when we have finished onto the stack.
-0235   0172 E5          			PUSH	hl
-0236   0173 26 00       			LD		h,$00 ; Adjust the pointer in the selected table based on the key pressed.
-0237   0175 6F          			LD		l,a
-0238   0176 29          			ADD		hl,hl
-0239   0177 EB          			EX		de,hl
-0240   0178 19          			ADD		hl,de
-0241   0179 5E          			LD		e,(hl)
-0242   017A 23          			INC		hl
-0243   017B 56          			LD		d,(hl)
-0244   017C D5          			PUSH	de ; Push the new calculated function jump address onto the stack.
-0245   017D C9          			RET ; Jump to the calculated function.
-0246   017E             ;
-0247   017E 2A C0 08    KEYPL:		LD		hl,(ADDRESS) ; Incrament the current monitor address.
-0248   0181 23          			INC		hl
-0249   0182 22 C0 08    			LD		(ADDRESS),hl
-0250   0185 AF          			XOR		a ; Clear the Address / Data modes.
-0251   0186 32 C5 08    			LD		(MODE),a
-0252   0189 C9          			RET
-0253   018A             ;
-0254   018A 2A C0 08    KEYMN:		LD		hl,(ADDRESS) ; Decrement the current monitor address.
-0255   018D 2B          			DEC		hl
-0256   018E 22 C0 08    			LD		(ADDRESS),hl
-0257   0191 AF          			XOR		a ; Clear the Address / Data modes.
-0258   0192 32 C5 08    			LD		(MODE),a
-0259   0195 C9          			RET
-0260   0196             ;
-0261   0196 E5          KEYGO:		PUSH	hl
-0262   0197 F5          			PUSH	af
-0263   0198 21 A0 01    			LD		hl,RETURN ; Start executing from the current monitor address.
-0264   019B E5          			push	hl
-0265   019C 2A C0 08    			LD		hl,(ADDRESS)
-0266   019F E9          			JP		(hl)
-0267   01A0 F1          RETURN:		POP		af
-0268   01A1 E1          			POP		hl
-0269   01A2 C9          			RET
-0270   01A3             ;
-0271   01A3 3A C5 08    KEYAD:		LD		a,(MODE)
-0272   01A6 EE 10       			XOR		$10 ; Invert the address mode flag.
-0273   01A8 32 C5 08    			LD		(MODE),a
-0274   01AB C3 DF 01    			JP		CLRNBFLGS
-0275   01AE             ;
-0276   01AE 21 FF FF    SHFTPL:		LD		hl,RAMTOP ; Insert a byte at the current monitor address.
-0277   01B1 ED 5B C0 08 			LD		de,(ADDRESS)
-0278   01B5 ED 52       			SBC		hl,de
-0279   01B7 44          			LD		b,h
-0280   01B8 4D          			LD		c,l
-0281   01B9 21 FF FF    			LD		hl,RAMTOP
-0282   01BC 54          			LD		d,h
-0283   01BD 5D          			LD		e,l
-0284   01BE 2B          			DEC		hl
-0285   01BF ED B8       			LDDR
-0286   01C1 62          			LD		h,d
-0287   01C2 6B          			LD		l,e
-0288   01C3 36 00       			LD		(hl),$00
-0289   01C5 C3 DF 01    			JP		CLRNBFLGS
-0290   01C8             ;
-0291   01C8 21 FF FF    SHFTMN:		LD		hl,RAMTOP ; Delete a byte from the current monitor address.
-0292   01CB ED 5B C0 08 			LD		de,(ADDRESS)
-0293   01CF ED 52       			SBC		hl,de
-0294   01D1 44          			LD		b,h
-0295   01D2 4D          			LD		c,l
-0296   01D3 2A C0 08    			LD		hl,(ADDRESS)
-0297   01D6 54          			LD		d,h
-0298   01D7 5D          			LD		e,l
-0299   01D8 23          			INC		hl
-0300   01D9 ED B0       			LDIR
-0301   01DB 62          			LD		h,d
-0302   01DC 6B          			LD		l,e
-0303   01DD 36 00       			LD		(hl),$00
-0304   01DF 21 C5 08    CLRNBFLGS:	LD		hl,MODE ; Clear the nibble mode flags preserving the rest.
-0305   01E2 CB 86       			RES		0,(hl)
-0306   01E4 CB 8E       			RES		1,(hl)
-0307   01E6 C9          			RET
-0308   01E7             ;
-0309   01E7 E5          SHFTGO:		PUSH	hl
-0310   01E8 F5          			PUSH	af
-0311   01E9 21 A0 01    			LD		hl,RETURN ; Start executing from the current monitor address.
-0312   01EC E5          			push	hl
-0313   01ED 2A D8 08    			LD		hl,(SHIFTGO)
-0314   01F0 E9          			JP		(hl)
-0315   01F1             ;
-0316   01F1 C9          SHFTAD:		RET
-0317   01F2             ;
-0318   01F2 21 C6 08    KEYDONE:	LD		hl,KEYDATA ; Done with the key decoder.
-0319   01F5 36 FF       			LD		(hl),$FF
-0320   01F7 F1          			POP		af
-0321   01F8 E1          			POP		hl
-0322   01F9 C9          			RET
-0323   01FA             ;
-0324   01FA 7E 01 8A 01 FUNCTBL:	.dw		KEYPL, KEYMN, KEYGO, KEYAD
-0324   01FE 96 01 A3 01 
-0325   0202             ;
-0326   0202             SHIFTTBL:
-0327   0202~            #IFDEF INCLUDE_MOD00 ; SHIFT-0
-0328   0202~            			.dw		MOD00
-0329   0202             #ELSE
-0330   0202 FE 02       			.dw		NOMOD
-0331   0204             #ENDIF
-0332   0204~            #IFDEF INCLUDE_MOD01 ; SHIFT-1
-0333   0204~            			.dw		MOD01
-0334   0204             #ELSE
-0335   0204 FE 02       			.dw		NOMOD
-0336   0206             #ENDIF
-0337   0206~            #IFDEF INCLUDE_MOD02 ; SHIFT-2
-0338   0206~            			.dw		MOD02
-0339   0206             #ELSE
-0340   0206 FE 02       			.dw		NOMOD
-0341   0208             #ENDIF
-0342   0208~            #IFDEF INCLUDE_MOD03 ; SHIFT-3
-0343   0208~            			.dw		MOD03
-0344   0208             #ELSE
-0345   0208 FE 02       			.dw		NOMOD
-0346   020A             #ENDIF
-0347   020A~            #IFDEF INCLUDE_MOD04 ; SHIFT-4
-0348   020A~            			.dw		MOD04
-0349   020A             #ELSE
-0350   020A FE 02       			.dw		NOMOD
-0351   020C             #ENDIF
-0352   020C~            #IFDEF INCLUDE_MOD05 ; SHIFT-5
-0353   020C~            			.dw		MOD05
-0354   020C             #ELSE
-0355   020C FE 02       			.dw		NOMOD
-0356   020E             #ENDIF
-0357   020E~            #IFDEF INCLUDE_MOD06 ; SHIFT-6
-0358   020E~            			.dw		MOD06
-0359   020E             #ELSE
-0360   020E FE 02       			.dw		NOMOD
-0361   0210             #ENDIF
-0362   0210~            #IFDEF INCLUDE_MOD07 ; SHIFT-7
-0363   0210~            			.dw		MOD07
-0364   0210             #ELSE
-0365   0210 FE 02       			.dw		NOMOD
-0366   0212             #ENDIF
-0367   0212~            #IFDEF INCLUDE_MOD08 ; SHIFT-8
-0368   0212~            			.dw		MOD08
-0369   0212             #ELSE
-0370   0212 FE 02       			.dw		NOMOD
-0371   0214             #ENDIF
-0372   0214~            #IFDEF INCLUDE_MOD09 ; SHIFT-9
-0373   0214~            			.dw		MOD09
-0374   0214             #ELSE
-0375   0214 FE 02       			.dw		NOMOD
-0376   0216             #ENDIF
-0377   0216~            #IFDEF INCLUDE_MOD0A ; SHIFT-A
-0378   0216~            			.dw		MOD0A
-0379   0216             #ELSE
-0380   0216 FE 02       			.dw		NOMOD
-0381   0218             #ENDIF
-0382   0218~            #IFDEF INCLUDE_MOD0B ; SHIFT-B
-0383   0218~            			.dw		MOD0B
-0384   0218             #ELSE
-0385   0218 FE 02       			.dw		NOMOD
-0386   021A             #ENDIF
-0387   021A~            #IFDEF INCLUDE_MOD0C ; SHIFT-C
-0388   021A~            			.dw		MOD0C
-0389   021A             #ELSE
-0390   021A FE 02       			.dw		NOMOD
-0391   021C             #ENDIF
-0392   021C~            #IFDEF INCLUDE_MOD0D ; SHIFT-D
-0393   021C~            			.dw		MOD0D
-0394   021C             #ELSE
-0395   021C FE 02       			.dw		NOMOD
-0396   021E             #ENDIF
-0397   021E~            #IFDEF INCLUDE_MOD0E ; SHIFT-E
-0398   021E~            			.dw		MOD0E
-0399   021E             #ELSE
-0400   021E FE 02       			.dw		NOMOD
-0401   0220             #ENDIF
-0402   0220~            #IFDEF INCLUDE_MOD0F ; SHIFT-F
-0403   0220~            			.dw		MOD0F
-0404   0220             #ELSE
-0405   0220 FE 02       			.dw		NOMOD
-0406   0222             #ENDIF
-0407   0222             ;
-0408   0222 AE 01 C8 01 			.dw		SHFTPL, SHFTMN, SHFTGO, SHFTAD
-0408   0226 E7 01 F1 01 
-0409   022A             ;
-0410   022A E5          BEEP:		PUSH	hl
-0411   022B F5          			PUSH	af
-0412   022C 21 C9 08    			LD		hl,BEEPFREQ
-0413   022F 4E          			LD		c,(hl)
-0414   0230 2A C7 08    			LD		hl,(BEEPLENGTH)
-0415   0233 AF          			XOR		a
-0416   0234 57          			LD		d,a
-0417   0235 41          BEEPL01:	LD		b,c
-0418   0236 7A          			LD		a,d
-0419   0237 D3 01       			OUT		(CATHPORT),a
-0420   0239 10 FE       BEEPL02:	DJNZ	BEEPL02
-0421   023B EE 80       			XOR		$80
-0422   023D 2B          			DEC		hl
-0423   023E 57          			LD		d,a
-0424   023F 7C          			LD		a,h
-0425   0240 B5          			OR		l
-0426   0241 C2 35 02    			JP		nz,BEEPL01
-0427   0244 AF          			XOR		a
-0428   0245 D3 01       			OUT		(CATHPORT),a
-0429   0247 F1          			POP		af
-0430   0248 E1          			POP		hl
-0431   0249 C9          			RET
-0432   024A             ;
-0433   024A E5          STARTBEEP:	PUSH	hl
-0434   024B F5          			PUSH	af
-0435   024C 21 7F 00    			LD		hl,$007F
-0436   024F 22 C7 08    			LD		(BEEPLENGTH),hl
-0437   0252 21 C9 08    			LD		hl,BEEPFREQ
-0438   0255 36 35       			LD		(hl),$35
-0439   0257 CD 2A 02    			CALL	BEEP
-0440   025A 36 30       			LD		(hl),$30
-0441   025C CD 2A 02    			CALL	BEEP
-0442   025F 36 25       			LD		(hl),$25
-0443   0261 CD 2A 02    			CALL	BEEP
-0444   0264 36 20       			LD		(hl),$20
-0445   0266 CD 2A 02    			CALL	BEEP
-0446   0269 F1          			POP		af
-0447   026A E1          			POP		hl
-0448   026B C9          			RET
-0449   026C             ;
-0450   026C CD 7C 02    RAND:		CALL	RND
-0451   026F 4F          			LD		c,a
-0452   0270 CD 99 02    			CALL	UPDATESEED
-0453   0273 CD 7C 02    			CALL	RND
-0454   0276 47          			LD		b,a
-0455   0277 ED 43 CE 08 			LD		(RANDOM),bc
-0456   027B C9          			RET
-0457   027C             ;
-0458   027C 2A CA 08    RND:		LD		hl,(RNDSEEDA)
-0459   027F ED 5B CC 08 			LD		de,(RNDSEEDB)
-0460   0283 22 CC 08    			LD		(RNDSEEDB),hl
-0461   0286 7D          			LD		a,l
-0462   0287 87          			ADD		a,a
-0463   0288 87          			ADD		a,a
-0464   0289 87          			ADD		a,a
-0465   028A AD          			XOR		l
-0466   028B 6F          			LD		l,a
-0467   028C 7A          			LD		a,d
-0468   028D 87          			ADD		a,a
-0469   028E AA          			XOR		d
-0470   028F 67          			LD		h,a
-0471   0290 1F          			RRA
-0472   0291 AC          			XOR		h
-0473   0292 AD          			XOR		l
-0474   0293 63          			LD		h,e
-0475   0294 6F          			LD		l,a
-0476   0295 22 CA 08    			LD		(RNDSEEDA),hl
-0477   0298 C9          			RET
-0478   0299             ;
-0479   0299 ED 4B CA 08 UPDATESEED:	LD		bc,(RNDSEEDA)
-0480   029D ED 5B CC 08 			LD		de,(RNDSEEDB)
-0481   02A1 03          			INC		bc
-0482   02A2 1B          			DEC		de
-0483   02A3 79          			LD		a,c
-0484   02A4 AA          			XOR		d
-0485   02A5 4F          			LD		c,a
-0486   02A6 78          			LD		a,b
-0487   02A7 AB          			XOR		e
-0488   02A8 47          			LD		b,a
-0489   02A9 7B          			LD		a,e
-0490   02AA A9          			XOR		c
-0491   02AB 5F          			LD		e,a
-0492   02AC 7A          			LD		a,d
-0493   02AD A8          			XOR		b
-0494   02AE 57          			LD		d,a
-0495   02AF ED 43 CA 08 			LD		(RNDSEEDA),bc
-0496   02B3 ED 53 CC 08 			LD		(RNDSEEDB),de
-0497   02B7 C9          			RET
-0498   02B8             ;
-0499   02B8 31 C0 08    SETUP:		LD		sp,STACKTOP ; Post reset/power up setup.
-0500   02BB 21 00 09    			LD		hl,RAMBASE
-0501   02BE 22 C0 08    			LD		(ADDRESS),hl
-0502   02C1 AF          			XOR		a
-0503   02C2 32 C5 08    			LD		(MODE),a
-0504   02C5 3E FF       			LD		a,$FF
-0505   02C7 32 C6 08    			LD		(KEYDATA),a
-0506   02CA 21 21 DF    			LD		hl,$DF21
-0507   02CD 22 CA 08    			LD		(RNDSEEDA),hl
-0508   02D0 21 7B 63    			LD		hl,$637B
-0509   02D3 22 CC 08    			LD		(RNDSEEDB),hl
-0510   02D6 21 6C 02    			LD		hl,RAND
-0511   02D9 22 D8 08    			LD		(SHIFTGO),hl
-0512   02DC CD 4A 02    			CALL	STARTBEEP;
-0513   02DF CD 99 02    MAIN:		CALL	UPDATESEED
-0514   02E2 CD 80 00    			CALL	DISPLAY
-0515   02E5 CD 99 02    			CALL	UPDATESEED
-0516   02E8 CD E0 00    			CALL	KEYBOARD
-0517   02EB C3 DF 02    			JP		MAIN
-0518   02EE             ;
-0519   02EE EB 28 CD AD HEX2SEG:	.DB		$EB,$28,$CD,$AD,$2E,$A7,$E7,$29 ; HEX Byte to LED Segment conversion.
-0519   02F2 2E A7 E7 29 
-0520   02F6 EF 2F 6F E6 			.DB		$EF,$2F,$6F,$E6,$C3,$EC,$C7,$47
-0520   02FA C3 EC C7 47 
-0521   02FE             ;
-0522   02FE C9          NOMOD:		RET ; What to do when a mod isn't installed.
-0523   02FF             ;
-0524   02FF             ; BEGIN MODULES.
-0525   02FF~            #IFDEF INCLUDE_MOD00
-0526   02FF~            #INCLUDE "Modules/MOD00.asm"
-0527   02FF             #ENDIF
-0528   02FF~            #IFDEF INCLUDE_MOD01
-0529   02FF~            #INCLUDE "Modules/MOD01.asm"
-0530   02FF             #ENDIF
-0531   02FF~            #IFDEF INCLUDE_MOD02
-0532   02FF~            #INCLUDE "Modules/MOD02.asm"
-0533   02FF             #ENDIF
-0534   02FF~            #IFDEF INCLUDE_MOD03
-0535   02FF~            #INCLUDE "Modules/MOD03.asm"
-0536   02FF             #ENDIF
-0537   02FF~            #IFDEF INCLUDE_MOD04
-0538   02FF~            #INCLUDE "Modules/MOD04.asm"
-0539   02FF             #ENDIF
-0540   02FF~            #IFDEF INCLUDE_MOD05
-0541   02FF~            #INCLUDE "Modules/MOD05.asm"
-0542   02FF             #ENDIF
-0543   02FF~            #IFDEF INCLUDE_MOD06
-0544   02FF~            #INCLUDE "Modules/MOD06.asm"
-0545   02FF             #ENDIF
-0546   02FF~            #IFDEF INCLUDE_MOD07
-0547   02FF~            #INCLUDE "Modules/MOD07.asm"
-0548   02FF             #ENDIF
-0549   02FF~            #IFDEF INCLUDE_MOD08
-0550   02FF~            #INCLUDE "Modules/MOD08.asm"
-0551   02FF             #ENDIF
-0552   02FF~            #IFDEF INCLUDE_MOD09
-0553   02FF~            #INCLUDE "Modules/MOD09.asm"
-0554   02FF             #ENDIF
-0555   02FF~            #IFDEF INCLUDE_MOD0A
-0556   02FF~            #INCLUDE "Modules/MOD0A.asm"
-0557   02FF             #ENDIF
-0558   02FF~            #IFDEF INCLUDE_MOD0B
-0559   02FF~            #INCLUDE "Modules/MOD0B.asm"
-0560   02FF             #ENDIF
-0561   02FF~            #IFDEF INCLUDE_MOD0C
-0562   02FF~            #INCLUDE "Modules/MOD0C.asm"
-0563   02FF             #ENDIF
-0564   02FF~            #IFDEF INCLUDE_MOD0D
-0565   02FF~            #INCLUDE "Modules/MOD0D.asm"
-0566   02FF             #ENDIF
-0567   02FF~            #IFDEF INCLUDE_MOD0E
-0568   02FF~            #INCLUDE "Modules/MOD0E.asm"
-0569   02FF             #ENDIF
-0570   02FF~            #IFDEF INCLUDE_MOD0F
-0571   02FF~            #INCLUDE "Modules/MOD0F.asm"
-0572   02FF             #ENDIF
-0573   02FF             ; END MODULES.
-0574   02FF             ;
-0575   02FF             			.END
+0058   0000 C3 B8 02    RESET_00:	JP		SETUP
+0059   0003             ;
+0060   0008             			.ORG	$0008
+0061   0008 C3 B8 02    RESET_08:	JP		SETUP
+0062   000B             ;
+0063   0010             			.ORG	$0010
+0064   0010 C3 B8 02    RESET_10:	JP		SETUP
+0065   0013             ;
+0066   0018             			.ORG	$0018
+0067   0018 C3 B8 02    RESET_18:	JP		SETUP
+0068   001B             ;
+0069   0020             			.ORG	$0020
+0070   0020 C3 B8 02    RESET_20:	JP		SETUP
+0071   0023             ;
+0072   0028             			.ORG	$0028
+0073   0028 C3 B8 02    RESET_28:	JP		SETUP
+0074   002B             ;
+0075   0030             			.ORG	$0030
+0076   0030 C3 B8 02    RESET_30:	JP		SETUP
+0077   0033             ;
+0078   0038             			.ORG	$0038
+0079   0038 C3 B8 02    RESET_38:	JP		SETUP
+0080   003B             ;
+0081   0040             			.ORG	$0040
+0082   0040 75 4D 4F 4E VERSION:	.DB	"uMON V1.11 by Scott Gregory"
+0082   0044 20 56 31 2E 
+0082   0048 31 31 20 62 
+0082   004C 79 20 53 63 
+0082   0050 6F 74 74 20 
+0082   0054 47 72 65 67 
+0082   0058 6F 72 79 
+0083   005B             ;
+0084   0066             			.ORG	$0066
+0085   0066 F5          NMISERVICE:	PUSH	af ; Keyboard service routine.
+0086   0067 DB 00       			IN		a,(KEYPORT)
+0087   0069 E6 3F       			AND		$3F	; We're only interested in the first 6 bits.
+0088   006B EE 20       			XOR		$20	; Flip bit 5 because bit 5 is low when the Shift key is pressed.
+0089   006D 32 C6 08    			LD		(KEYDATA),a
+0090   0070 F1          			POP		af
+0091   0071 ED 45       			RETN
+0092   0073             ;
+0093   0080             			.ORG	$0080
+0094   0080 AF          DISPLAY:	XOR		a ; Display update routine.
+0095   0081 D3 01       			OUT		(CATHPORT),a ; Blank the display.
+0096   0083 D3 02       			OUT		(SEGPORT),a
+0097   0085 0E 20       			LD		c,$20 ; Set the last digit.
+0098   0087 2A C0 08    			LD		hl,(ADDRESS)
+0099   008A 7E          			LD		a,(hl)
+0100   008B EB          			EX		de,hl
+0101   008C 21 C2 08    			LD		hl,SCRATCH
+0102   008F 77          			LD		(hl),a ; Add the data from the current address to the scratchpad.
+0103   0090 23          			INC		hl
+0104   0091 73          			LD		(hl),e ; Add the current address LSB to the scratchpad.
+0105   0092 23          			INC		hl
+0106   0093 72          			LD		(hl),d ; Add the current address MSB to the scratchpad.
+0107   0094 11 EF 02    			LD		de,HEX2SEG
+0108   0097 3A C5 08    			LD		a,(MODE)
+0109   009A E6 10       			AND		$10
+0110   009C 47          			LD		b,a
+0111   009D CD B1 00    			CALL	DGTPAIR ; Decode and display digits 5 and 4.
+0112   00A0 2B          			DEC		hl
+0113   00A1 CD B1 00    			CALL	DGTPAIR ; Decode and display digits 3 and 2.
+0114   00A4 2B          			DEC		hl
+0115   00A5 3A C5 08    			LD		a,(MODE)
+0116   00A8 E6 10       			AND		$10
+0117   00AA EE 10       			XOR		$10
+0118   00AC 47          			LD		b,a
+0119   00AD CD B1 00    			CALL	DGTPAIR ; Decode and display digits 1 and 0.
+0120   00B0 C9          			RET
+0121   00B1             ;
+0122   00B1 AF          DGTPAIR:	XOR		a
+0123   00B2 ED 6F       			RLD
+0124   00B4 E5          			PUSH	hl
+0125   00B5 CD C2 00    			CALL	DECNSHOW
+0126   00B8 E1          			POP		hl
+0127   00B9 AF          			XOR		a
+0128   00BA ED 6F       			RLD
+0129   00BC E5          			PUSH	hl
+0130   00BD CD C2 00    			CALL	DECNSHOW
+0131   00C0 E1          			POP		hl
+0132   00C1 C9          			RET
+0133   00C2             ;
+0134   00C2 26 00       DECNSHOW:	LD		h,$00
+0135   00C4 6F          			LD		l,a
+0136   00C5 19          			ADD		hl,de
+0137   00C6 7E          			LD		a,(hl)
+0138   00C7 B0          			OR		b
+0139   00C8 C5          			PUSH	bc
+0140   00C9 47          			LD		b,a
+0141   00CA CD D2 00    			CALL	UPDATE
+0142   00CD C1          			POP		bc
+0143   00CE 79          			LD		a,c
+0144   00CF 1F          			RRA
+0145   00D0 4F          			LD		c,a
+0146   00D1 C9          			RET			
+0147   00D2             ;
+0148   00D2 78          UPDATE:		LD		a,b
+0149   00D3 D3 02       			OUT		(SEGPORT),a
+0150   00D5 79          			LD		a,c
+0151   00D6 D3 01       			OUT		(CATHPORT),a
+0152   00D8 06 40       			LD		b,CATHDLY
+0153   00DA 10 FE       HOLD:		DJNZ	HOLD
+0154   00DC AF          			XOR		a
+0155   00DD D3 01       			OUT		(CATHPORT),a
+0156   00DF C9          			RET
+0157   00E0             ;
+0158   00E0 E5          KEYBOARD:	PUSH	hl ; Key decoder routine.
+0159   00E1 F5          			PUSH	af
+0160   00E2 21 30 00    			LD		hl,$0030
+0161   00E5 22 C7 08    			LD		(BEEPLENGTH),hl
+0162   00E8 21 C9 08    			LD		hl,BEEPFREQ
+0163   00EB 36 30       			LD		(hl),$30
+0164   00ED 3A C6 08    			LD		a,(KEYDATA)
+0165   00F0 FE FF       			CP		$FF
+0166   00F2 CA F2 01    			JP		z,KEYDONE
+0167   00F5 CD 2A 02    			CALL	BEEP
+0168   00F8 CB 6F       			BIT		5,a ; Test for a shifted key.
+0169   00FA CA 05 01    			JP		z,TESTFUNC ; If no shift, do this jump.
+0170   00FD EE 20       			XOR		$20 ; Remove the shift bit.
+0171   00FF 11 02 02    			LD		de,SHIFTTBL ; Load the shifted key table.
+0172   0102 C3 6F 01    			JP		JUMP
+0173   0105             ;
+0174   0105 CB 67       TESTFUNC:	BIT		4,a ; Test for a function key press (+, -, GO, AD)
+0175   0107 C2 6A 01    			JP		nz,SETFUNC ; If it is a function key, do this jump.
+0176   010A             ;
+0177   010A 47          KEYS0TOF:	LD		b,a
+0178   010B 3A C5 08    			LD		a,(MODE)
+0179   010E FE 10       			CP		$10
+0180   0110 CA 44 01    			JP		z,ADDRENTRY ; Jump on first address mode entry.
+0181   0113 FE 11       			CP		$11
+0182   0115 CA 4E 01    			JP		z,NXTADNTRY ; Jump on subsequent address mode entries.
+0183   0118 FE 01       			CP		$01
+0184   011A C2 24 01    			JP		nz,NXTDATTST ; Jump on all but second data nibble entry to a location.
+0185   011D 3C          			INC		a ; Do this on the second data nibble entry to a location.
+0186   011E 32 C5 08    			LD		(MODE),a
+0187   0121 C3 3B 01    			JP		NXTDATNTR
+0188   0124             ;
+0189   0124 FE 02       NXTDATTST:	CP		$02
+0190   0126 C2 32 01    			JP		nz,FSTDATNTR ; Jump if this is the first data nibble entry to a location.
+0191   0129 2A C0 08    			LD		hl,(ADDRESS) ; Do this on the third data nibble entry to a location.
+0192   012C 23          			INC		hl
+0193   012D 22 C0 08    			LD		(ADDRESS),hl
+0194   0130 3E 00       			LD		a,$00
+0195   0132 3C          FSTDATNTR:	INC		a ; Do this on the first data nibble entry to a location.
+0196   0133 32 C5 08    			LD		(MODE),a
+0197   0136 2A C0 08    			LD		hl,(ADDRESS)
+0198   0139 36 00       			LD		(hl),$00
+0199   013B 2A C0 08    NXTDATNTR:	LD		hl,(ADDRESS)
+0200   013E 78          			LD		a,b
+0201   013F ED 6F       			RLD
+0202   0141 C3 F2 01    			JP		KEYDONE
+0203   0144             ;
+0204   0144 3C          ADDRENTRY:	INC		a ; do this on the first address nibble entry.
+0205   0145 32 C5 08    			LD		(MODE),a
+0206   0148 21 00 00    			LD		hl,$0000
+0207   014B 22 C0 08    			LD		(ADDRESS),hl
+0208   014E 78          NXTADNTRY:	LD		a,b ; Do this on first and subsequent address nibble entries.
+0209   014F 21 C0 08    			LD		hl,ADDRESS
+0210   0152 ED 6F       			RLD
+0211   0154 2A C0 08    			LD		hl,(ADDRESS)
+0212   0157 CB 24       			SLA		h
+0213   0159 CB 24       			SLA		h
+0214   015B CB 24       			SLA		h
+0215   015D CB 24       			SLA		h
+0216   015F 47          			LD		b,a
+0217   0160 AF          			XOR		a
+0218   0161 B4          			OR		h
+0219   0162 B0          			OR		b
+0220   0163 67          			LD		h,a
+0221   0164 22 C0 08    			LD		(ADDRESS),hl
+0222   0167 C3 F2 01    			JP		KEYDONE
+0223   016A             ;
+0224   016A EE 10       SETFUNC:	XOR		$10 ; Remove the function key bit.
+0225   016C 11 FA 01    			LD		de,FUNCTBL ; Load the function table.
+0226   016F 21 F2 01    JUMP:		LD		hl,KEYDONE ; Push where we go when we have finished onto the stack.
+0227   0172 E5          			PUSH	hl
+0228   0173 26 00       			LD		h,$00 ; Adjust the pointer in the selected table based on the key pressed.
+0229   0175 6F          			LD		l,a
+0230   0176 29          			ADD		hl,hl
+0231   0177 EB          			EX		de,hl
+0232   0178 19          			ADD		hl,de
+0233   0179 5E          			LD		e,(hl)
+0234   017A 23          			INC		hl
+0235   017B 56          			LD		d,(hl)
+0236   017C D5          			PUSH	de ; Push the new calculated function jump address onto the stack.
+0237   017D C9          			RET ; Jump to the calculated function.
+0238   017E             ;
+0239   017E 2A C0 08    KEYPL:		LD		hl,(ADDRESS) ; Incrament the current monitor address.
+0240   0181 23          			INC		hl
+0241   0182 22 C0 08    			LD		(ADDRESS),hl
+0242   0185 AF          			XOR		a ; Clear the Address / Data modes.
+0243   0186 32 C5 08    			LD		(MODE),a
+0244   0189 C9          			RET
+0245   018A             ;
+0246   018A 2A C0 08    KEYMN:		LD		hl,(ADDRESS) ; Decrement the current monitor address.
+0247   018D 2B          			DEC		hl
+0248   018E 22 C0 08    			LD		(ADDRESS),hl
+0249   0191 AF          			XOR		a ; Clear the Address / Data modes.
+0250   0192 32 C5 08    			LD		(MODE),a
+0251   0195 C9          			RET
+0252   0196             ;
+0253   0196 E5          KEYGO:		PUSH	hl
+0254   0197 F5          			PUSH	af
+0255   0198 21 A0 01    			LD		hl,RETURN ; Start executing from the current monitor address.
+0256   019B E5          			push	hl
+0257   019C 2A C0 08    			LD		hl,(ADDRESS)
+0258   019F E9          			JP		(hl)
+0259   01A0 F1          RETURN:		POP		af
+0260   01A1 E1          			POP		hl
+0261   01A2 C9          			RET
+0262   01A3             ;
+0263   01A3 3A C5 08    KEYAD:		LD		a,(MODE)
+0264   01A6 EE 10       			XOR		$10 ; Invert the address mode flag.
+0265   01A8 32 C5 08    			LD		(MODE),a
+0266   01AB C3 DF 01    			JP		CLRNBFLGS
+0267   01AE             ;
+0268   01AE 21 FF FF    SHFTPL:		LD		hl,RAMTOP ; Insert a byte at the current monitor address.
+0269   01B1 ED 5B C0 08 			LD		de,(ADDRESS)
+0270   01B5 ED 52       			SBC		hl,de
+0271   01B7 44          			LD		b,h
+0272   01B8 4D          			LD		c,l
+0273   01B9 21 FF FF    			LD		hl,RAMTOP
+0274   01BC 54          			LD		d,h
+0275   01BD 5D          			LD		e,l
+0276   01BE 2B          			DEC		hl
+0277   01BF ED B8       			LDDR
+0278   01C1 62          			LD		h,d
+0279   01C2 6B          			LD		l,e
+0280   01C3 36 00       			LD		(hl),$00
+0281   01C5 C3 DF 01    			JP		CLRNBFLGS
+0282   01C8             ;
+0283   01C8 21 FF FF    SHFTMN:		LD		hl,RAMTOP ; Delete a byte from the current monitor address.
+0284   01CB ED 5B C0 08 			LD		de,(ADDRESS)
+0285   01CF ED 52       			SBC		hl,de
+0286   01D1 44          			LD		b,h
+0287   01D2 4D          			LD		c,l
+0288   01D3 2A C0 08    			LD		hl,(ADDRESS)
+0289   01D6 54          			LD		d,h
+0290   01D7 5D          			LD		e,l
+0291   01D8 23          			INC		hl
+0292   01D9 ED B0       			LDIR
+0293   01DB 62          			LD		h,d
+0294   01DC 6B          			LD		l,e
+0295   01DD 36 00       			LD		(hl),$00
+0296   01DF 21 C5 08    CLRNBFLGS:	LD		hl,MODE ; Clear the nibble mode flags preserving the rest.
+0297   01E2 CB 86       			RES		0,(hl)
+0298   01E4 CB 8E       			RES		1,(hl)
+0299   01E6 C9          			RET
+0300   01E7             ;
+0301   01E7 E5          SHFTGO:		PUSH	hl
+0302   01E8 F5          			PUSH	af
+0303   01E9 21 A0 01    			LD		hl,RETURN ; Start executing from the address stored in SHIFTGO.
+0304   01EC E5          			push	hl
+0305   01ED 2A D8 08    			LD		hl,(SHIFTGO)
+0306   01F0 E9          			JP		(hl)
+0307   01F1             ;
+0308   01F1 C9          SHFTAD:		RET
+0309   01F2             ;
+0310   01F2 21 C6 08    KEYDONE:	LD		hl,KEYDATA ; Done with the key decoder.
+0311   01F5 36 FF       			LD		(hl),$FF
+0312   01F7 F1          			POP		af
+0313   01F8 E1          			POP		hl
+0314   01F9 C9          			RET
+0315   01FA             ;
+0316   01FA 7E 01 8A 01 FUNCTBL:	.dw		KEYPL, KEYMN, KEYGO, KEYAD
+0316   01FE 96 01 A3 01 
+0317   0202             ;
+0318   0202             SHIFTTBL:
+0319   0202~            #IFDEF INCLUDE_MOD00 ; SHIFT-0
+0320   0202~            			.dw		MOD00
+0321   0202             #ELSE
+0322   0202 FF 02       			.dw		NOMOD
+0323   0204             #ENDIF
+0324   0204~            #IFDEF INCLUDE_MOD01 ; SHIFT-1
+0325   0204~            			.dw		MOD01
+0326   0204             #ELSE
+0327   0204 FF 02       			.dw		NOMOD
+0328   0206             #ENDIF
+0329   0206~            #IFDEF INCLUDE_MOD02 ; SHIFT-2
+0330   0206~            			.dw		MOD02
+0331   0206             #ELSE
+0332   0206 FF 02       			.dw		NOMOD
+0333   0208             #ENDIF
+0334   0208~            #IFDEF INCLUDE_MOD03 ; SHIFT-3
+0335   0208~            			.dw		MOD03
+0336   0208             #ELSE
+0337   0208 FF 02       			.dw		NOMOD
+0338   020A             #ENDIF
+0339   020A~            #IFDEF INCLUDE_MOD04 ; SHIFT-4
+0340   020A~            			.dw		MOD04
+0341   020A             #ELSE
+0342   020A FF 02       			.dw		NOMOD
+0343   020C             #ENDIF
+0344   020C~            #IFDEF INCLUDE_MOD05 ; SHIFT-5
+0345   020C~            			.dw		MOD05
+0346   020C             #ELSE
+0347   020C FF 02       			.dw		NOMOD
+0348   020E             #ENDIF
+0349   020E~            #IFDEF INCLUDE_MOD06 ; SHIFT-6
+0350   020E~            			.dw		MOD06
+0351   020E             #ELSE
+0352   020E FF 02       			.dw		NOMOD
+0353   0210             #ENDIF
+0354   0210~            #IFDEF INCLUDE_MOD07 ; SHIFT-7
+0355   0210~            			.dw		MOD07
+0356   0210             #ELSE
+0357   0210 FF 02       			.dw		NOMOD
+0358   0212             #ENDIF
+0359   0212~            #IFDEF INCLUDE_MOD08 ; SHIFT-8
+0360   0212~            			.dw		MOD08
+0361   0212             #ELSE
+0362   0212 FF 02       			.dw		NOMOD
+0363   0214             #ENDIF
+0364   0214~            #IFDEF INCLUDE_MOD09 ; SHIFT-9
+0365   0214~            			.dw		MOD09
+0366   0214             #ELSE
+0367   0214 FF 02       			.dw		NOMOD
+0368   0216             #ENDIF
+0369   0216~            #IFDEF INCLUDE_MOD0A ; SHIFT-A
+0370   0216~            			.dw		MOD0A
+0371   0216             #ELSE
+0372   0216 FF 02       			.dw		NOMOD
+0373   0218             #ENDIF
+0374   0218~            #IFDEF INCLUDE_MOD0B ; SHIFT-B
+0375   0218~            			.dw		MOD0B
+0376   0218             #ELSE
+0377   0218 FF 02       			.dw		NOMOD
+0378   021A             #ENDIF
+0379   021A~            #IFDEF INCLUDE_MOD0C ; SHIFT-C
+0380   021A~            			.dw		MOD0C
+0381   021A             #ELSE
+0382   021A FF 02       			.dw		NOMOD
+0383   021C             #ENDIF
+0384   021C~            #IFDEF INCLUDE_MOD0D ; SHIFT-D
+0385   021C~            			.dw		MOD0D
+0386   021C             #ELSE
+0387   021C FF 02       			.dw		NOMOD
+0388   021E             #ENDIF
+0389   021E~            #IFDEF INCLUDE_MOD0E ; SHIFT-E
+0390   021E~            			.dw		MOD0E
+0391   021E             #ELSE
+0392   021E FF 02       			.dw		NOMOD
+0393   0220             #ENDIF
+0394   0220~            #IFDEF INCLUDE_MOD0F ; SHIFT-F
+0395   0220~            			.dw		MOD0F
+0396   0220             #ELSE
+0397   0220 FF 02       			.dw		NOMOD
+0398   0222             #ENDIF
+0399   0222             ;
+0400   0222 AE 01 C8 01 			.dw		SHFTPL, SHFTMN, SHFTGO, SHFTAD
+0400   0226 E7 01 F1 01 
+0401   022A             ;
+0402   022A E5          BEEP:		PUSH	hl
+0403   022B F5          			PUSH	af
+0404   022C 21 C9 08    			LD		hl,BEEPFREQ
+0405   022F 4E          			LD		c,(hl)
+0406   0230 2A C7 08    			LD		hl,(BEEPLENGTH)
+0407   0233 AF          			XOR		a
+0408   0234 57          			LD		d,a
+0409   0235 41          BEEPL01:	LD		b,c
+0410   0236 7A          			LD		a,d
+0411   0237 D3 01       			OUT		(CATHPORT),a
+0412   0239 10 FE       BEEPL02:	DJNZ	BEEPL02
+0413   023B EE 80       			XOR		$80
+0414   023D 2B          			DEC		hl
+0415   023E 57          			LD		d,a
+0416   023F 7C          			LD		a,h
+0417   0240 B5          			OR		l
+0418   0241 C2 35 02    			JP		nz,BEEPL01
+0419   0244 AF          			XOR		a
+0420   0245 D3 01       			OUT		(CATHPORT),a
+0421   0247 F1          			POP		af
+0422   0248 E1          			POP		hl
+0423   0249 C9          			RET
+0424   024A             ;
+0425   024A E5          STARTBEEP:	PUSH	hl
+0426   024B F5          			PUSH	af
+0427   024C 21 7F 00    			LD		hl,$007F
+0428   024F 22 C7 08    			LD		(BEEPLENGTH),hl
+0429   0252 21 C9 08    			LD		hl,BEEPFREQ
+0430   0255 36 35       			LD		(hl),$35
+0431   0257 CD 2A 02    			CALL	BEEP
+0432   025A 36 30       			LD		(hl),$30
+0433   025C CD 2A 02    			CALL	BEEP
+0434   025F 36 25       			LD		(hl),$25
+0435   0261 CD 2A 02    			CALL	BEEP
+0436   0264 36 20       			LD		(hl),$20
+0437   0266 CD 2A 02    			CALL	BEEP
+0438   0269 F1          			POP		af
+0439   026A E1          			POP		hl
+0440   026B C9          			RET
+0441   026C             ;
+0442   026C CD 7C 02    RAND:		CALL	RND
+0443   026F 4F          			LD		c,a
+0444   0270 CD 99 02    			CALL	UPDATESEED
+0445   0273 CD 7C 02    			CALL	RND
+0446   0276 47          			LD		b,a
+0447   0277 ED 43 CE 08 			LD		(RANDOM),bc
+0448   027B C9          			RET
+0449   027C             ;
+0450   027C 2A CA 08    RND:		LD		hl,(RNDSEEDA)
+0451   027F ED 5B CC 08 			LD		de,(RNDSEEDB)
+0452   0283 22 CC 08    			LD		(RNDSEEDB),hl
+0453   0286 7D          			LD		a,l
+0454   0287 87          			ADD		a,a
+0455   0288 87          			ADD		a,a
+0456   0289 87          			ADD		a,a
+0457   028A AD          			XOR		l
+0458   028B 6F          			LD		l,a
+0459   028C 7A          			LD		a,d
+0460   028D 87          			ADD		a,a
+0461   028E AA          			XOR		d
+0462   028F 67          			LD		h,a
+0463   0290 1F          			RRA
+0464   0291 AC          			XOR		h
+0465   0292 AD          			XOR		l
+0466   0293 63          			LD		h,e
+0467   0294 6F          			LD		l,a
+0468   0295 22 CA 08    			LD		(RNDSEEDA),hl
+0469   0298 C9          			RET
+0470   0299             ;
+0471   0299 ED 4B CA 08 UPDATESEED:	LD		bc,(RNDSEEDA)
+0472   029D ED 5B CC 08 			LD		de,(RNDSEEDB)
+0473   02A1 03          			INC		bc
+0474   02A2 1B          			DEC		de
+0475   02A3 79          			LD		a,c
+0476   02A4 AA          			XOR		d
+0477   02A5 4F          			LD		c,a
+0478   02A6 78          			LD		a,b
+0479   02A7 AB          			XOR		e
+0480   02A8 47          			LD		b,a
+0481   02A9 7B          			LD		a,e
+0482   02AA A9          			XOR		c
+0483   02AB 5F          			LD		e,a
+0484   02AC 7A          			LD		a,d
+0485   02AD A8          			XOR		b
+0486   02AE 57          			LD		d,a
+0487   02AF ED 43 CA 08 			LD		(RNDSEEDA),bc
+0488   02B3 ED 53 CC 08 			LD		(RNDSEEDB),de
+0489   02B7 C9          			RET
+0490   02B8             ;
+0491   02B8 F3          SETUP:		DI
+0492   02B9 31 C0 08    			LD		sp,STACKTOP ; Post reset/power up setup.
+0493   02BC 21 00 09    			LD		hl,RAMBASE
+0494   02BF 22 C0 08    			LD		(ADDRESS),hl
+0495   02C2 AF          			XOR		a
+0496   02C3 32 C5 08    			LD		(MODE),a
+0497   02C6 3E FF       			LD		a,$FF
+0498   02C8 32 C6 08    			LD		(KEYDATA),a
+0499   02CB 21 21 DF    			LD		hl,$DF21
+0500   02CE 22 CA 08    			LD		(RNDSEEDA),hl
+0501   02D1 21 7B 63    			LD		hl,$637B
+0502   02D4 22 CC 08    			LD		(RNDSEEDB),hl
+0503   02D7 21 6C 02    			LD		hl,RAND
+0504   02DA 22 D8 08    			LD		(SHIFTGO),hl
+0505   02DD CD 4A 02    			CALL	STARTBEEP;
+0506   02E0 CD 99 02    MAIN:		CALL	UPDATESEED
+0507   02E3 CD 80 00    			CALL	DISPLAY
+0508   02E6 CD 99 02    			CALL	UPDATESEED
+0509   02E9 CD E0 00    			CALL	KEYBOARD
+0510   02EC C3 E0 02    			JP		MAIN
+0511   02EF             ;
+0512   02EF EB 28 CD AD HEX2SEG:	.DB		$EB,$28,$CD,$AD,$2E,$A7,$E7,$29 ; HEX Byte to LED Segment conversion.
+0512   02F3 2E A7 E7 29 
+0513   02F7 EF 2F 6F E6 			.DB		$EF,$2F,$6F,$E6,$C3,$EC,$C7,$47
+0513   02FB C3 EC C7 47 
+0514   02FF             ;
+0515   02FF C9          NOMOD:		RET ; What to do when a mod isn't installed.
+0516   0300             ;
+0517   0300             ; BEGIN MODULES.
+0518   0300~            #IFDEF INCLUDE_MOD00
+0519   0300~            #INCLUDE "Modules/MOD00.asm"
+0520   0300             #ENDIF
+0521   0300~            #IFDEF INCLUDE_MOD01
+0522   0300~            #INCLUDE "Modules/MOD01.asm"
+0523   0300             #ENDIF
+0524   0300~            #IFDEF INCLUDE_MOD02
+0525   0300~            #INCLUDE "Modules/MOD02.asm"
+0526   0300             #ENDIF
+0527   0300~            #IFDEF INCLUDE_MOD03
+0528   0300~            #INCLUDE "Modules/MOD03.asm"
+0529   0300             #ENDIF
+0530   0300~            #IFDEF INCLUDE_MOD04
+0531   0300~            #INCLUDE "Modules/MOD04.asm"
+0532   0300             #ENDIF
+0533   0300~            #IFDEF INCLUDE_MOD05
+0534   0300~            #INCLUDE "Modules/MOD05.asm"
+0535   0300             #ENDIF
+0536   0300~            #IFDEF INCLUDE_MOD06
+0537   0300~            #INCLUDE "Modules/MOD06.asm"
+0538   0300             #ENDIF
+0539   0300~            #IFDEF INCLUDE_MOD07
+0540   0300~            #INCLUDE "Modules/MOD07.asm"
+0541   0300             #ENDIF
+0542   0300~            #IFDEF INCLUDE_MOD08
+0543   0300~            #INCLUDE "Modules/MOD08.asm"
+0544   0300             #ENDIF
+0545   0300~            #IFDEF INCLUDE_MOD09
+0546   0300~            #INCLUDE "Modules/MOD09.asm"
+0547   0300             #ENDIF
+0548   0300~            #IFDEF INCLUDE_MOD0A
+0549   0300~            #INCLUDE "Modules/MOD0A.asm"
+0550   0300             #ENDIF
+0551   0300~            #IFDEF INCLUDE_MOD0B
+0552   0300~            #INCLUDE "Modules/MOD0B.asm"
+0553   0300             #ENDIF
+0554   0300~            #IFDEF INCLUDE_MOD0C
+0555   0300~            #INCLUDE "Modules/MOD0C.asm"
+0556   0300             #ENDIF
+0557   0300~            #IFDEF INCLUDE_MOD0D
+0558   0300~            #INCLUDE "Modules/MOD0D.asm"
+0559   0300             #ENDIF
+0560   0300~            #IFDEF INCLUDE_MOD0E
+0561   0300~            #INCLUDE "Modules/MOD0E.asm"
+0562   0300             #ENDIF
+0563   0300~            #IFDEF INCLUDE_MOD0F
+0564   0300~            #INCLUDE "Modules/MOD0F.asm"
+0565   0300             #ENDIF
+0566   0300             ; END MODULES.
+0567   0300             ;
+0568   0300             			.END
 tasm: Number of errors = 0

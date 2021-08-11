@@ -1,6 +1,6 @@
 ; ######################################
 ; #                                    #
-; #         uMON1 Version 1.10         #
+; #         uMON1 Version 1.11         #
 ; #  --------------------------------  #
 ; #   Special Key Sequences            #
 ; #  --------------------------------  #
@@ -17,7 +17,7 @@
 ; #  13/06/2021                        #
 ; #                                    #
 ; #  Last update                       #
-; #  30/07/2021                        #
+; #  11/08/2021                        #
 ; ######################################
 ;
 STACKTOP	.EQU	$08C0 ; Stack position.
@@ -55,39 +55,31 @@ SHIFTGO		.EQU	$08D8 ; 2 Bytes - Shift-GO destination address.
 ; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 			.FILL	(ROMTOP - ROMBASE) + 1, $00
 			.ORG	$0000
-RESET_00:	DI
-			JP		SETUP
+RESET_00:	JP		SETUP
 ;
 			.ORG	$0008
-RESET_08:	DI
-			JP		SETUP
+RESET_08:	JP		SETUP
 ;
 			.ORG	$0010
-RESET_10:	DI
-			JP		SETUP
+RESET_10:	JP		SETUP
 ;
 			.ORG	$0018
-RESET_18:	DI
-			JP		SETUP
+RESET_18:	JP		SETUP
 ;
 			.ORG	$0020
-RESET_20:	DI
-			JP		SETUP
+RESET_20:	JP		SETUP
 ;
 			.ORG	$0028
-RESET_28:	DI
-			JP		SETUP
+RESET_28:	JP		SETUP
 ;
 			.ORG	$0030
-RESET_30:	DI
-			JP		SETUP
+RESET_30:	JP		SETUP
 ;
 			.ORG	$0038
-RESET_38:	DI
-			JP		SETUP
+RESET_38:	JP		SETUP
 ;
 			.ORG	$0040
-VERSION:	.DB	"uMON V1.10 by Scott Gregory"
+VERSION:	.DB	"uMON V1.11 by Scott Gregory"
 ;
 			.ORG	$0066
 NMISERVICE:	PUSH	af ; Keyboard service routine.
@@ -308,7 +300,7 @@ CLRNBFLGS:	LD		hl,MODE ; Clear the nibble mode flags preserving the rest.
 ;
 SHFTGO:		PUSH	hl
 			PUSH	af
-			LD		hl,RETURN ; Start executing from the current monitor address.
+			LD		hl,RETURN ; Start executing from the address stored in SHIFTGO.
 			push	hl
 			LD		hl,(SHIFTGO)
 			JP		(hl)
@@ -496,7 +488,8 @@ UPDATESEED:	LD		bc,(RNDSEEDA)
 			LD		(RNDSEEDB),de
 			RET
 ;
-SETUP:		LD		sp,STACKTOP ; Post reset/power up setup.
+SETUP:		DI
+			LD		sp,STACKTOP ; Post reset/power up setup.
 			LD		hl,RAMBASE
 			LD		(ADDRESS),hl
 			XOR		a
