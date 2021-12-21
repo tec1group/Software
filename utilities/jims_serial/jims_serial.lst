@@ -1,0 +1,162 @@
+# File /Users/slarti/Documents/TEC1D/TEC-1D-Stuff/code/utilities/jims_serial.z80
+0000			;Jim's Serial Routines 
+0000			;--------------------- 
+0000			 
+0000			;Published in TEC Times March 1990 
+0000			;The last known publication for the TEC 
+0000			;-------------------------------------- 
+0000			 
+0000			;RECEIVER 
+0000			;This is the routine I use when I wish to download a file from the IBM. It's a simple 
+0000			;routine that converts a serial stream into bytes and stores them in RAM starting at 
+0000			;the address provided at 0898. The routine also has an end address to allow a maximum 
+0000			;file length. This is in case something goes wrong with the data transfer. Anything 
+0000			;important can be protected by placing it above the end address. 
+0000			;No hand-shaking is needed as the TEC can cope with the speed of the data stream. 
+0000			;It is up to you to ensure the TEC is ready before you send the data. The serial 
+0000			;input is bit 0 of PORT 3. The DAT BOARD has provision for 2 diodes and a resistor 
+0000			;at this input to clip an incoming RS232 signal. In the RS232 format, a logic 1 
+0000			;is represented by a negative voltage while a logic 0 is a positive voltage. The 
+0000			;clipper on the DAT BOARD changes an RS232 logic 0 (positive voltage) into a digital 
+0000			;logic 1 while an RS232 logic l is clipped to zero volts and becomes a digital logic 0. 
+0000			;This means that the inputted data must be inverted back into its true form. This is 
+0000			;done with the CPL instruction at 092C. The format of the data is as follows:  
+0000			;  2400 BAUD, NO PARITY, 8 BITS, STOP BITS OPTIONAL, TEC SPEED: 3.58 Mhz / 2 
+0000			 
+0000			;SERIAL OUTPUT ROUTINE 
+0000			;This is the complement routine of the serial receiver. It will send serial data through  
+0000			;the TEC speaker bit. The data is taken from the latch side of the base resistor of the 
+0000			;transistor inverter and inputted directly to an RS232 Rx input or the DAT BOARD serial 
+0000			;input.  Strictly speaking the data stream is not RS232 compatible but in practice it 
+0000			;works ok, although the occasional error may creep in. 
+0000			;Oh yes, before sending data, the key press beep must be turned off. To do this, 
+0000			;place FF at 0822 and put AA at 08FF. 
+0000			;The serial sender uses the same start and end buffers as the receive described above 
+0000			;with the same speed etc. Two stop bits are sent as this provides compatibility with 
+0000			;all serial systems. 
+0000			 
+0000			;IBM SOFTWARE 
+0000			;The software I used for receiving the serial is PROCOMM. It is a public domain program 
+0000			;and can be purchased from the Talking Electronics Shop. Cat S-449. 
+0000			;The protocol to use is ASCII. 
+0000			;The sending software poses a few difficul- ties. One big problem is that some packages 
+0000			;won't send the IA character. Actually, I believe the problem is in the DOS serial 
+0000			;interrupt and if the software uses it then it won't send the IA character. 
+0000			;It is rare that I send anything back to the TEC and when I do, it's with a serial 
+0000			;routine Craig wrote and probably won't work with all computers as it directly  
+0000			;manipulates the hardware; not a recommended practice. 
+0000			;It is up to you to experiment around and find something that works. 
+0000			 
+0000			;I would like to hear from anyone who has found or written a good sending routine that 
+0000			;doesn't have the IA character problem. Hardware wise, the CTS must be taken high before 
+0000			;the IBM will send the data. This means that the IBM to TEC link consists of three 
+0000			;wires: the ground, the serial data line and +5v. 
+0000			;Only ground and the serial data are required for the TEC to IBM link. 
+0000			 
+0000			;Constants 
+0000			START_ADR:  EQU     0898H          ;Start address 
+0000			END_ADR:    EQU     089AH          ;End address 
+0000			IN_PORT:    EQU     03H            ;Input port 
+0000			OUT_PORT:   EQU     03H            ;Output port 
+0000			 
+0000			            ORG     0900H    
+0900			 
+0900			; -------------------- 
+0900			; Serial Input Routine  
+0900			; -------------------- 
+0900			; Transmit bit is BIT 7 on the selected port 
+0900			INPUT: 
+0900			            ;Start of routine 
+0900 2a 98 08		            LD      HL,(START_ADR) ;Load HL with start address 
+0903			RECLOOP:    ;Get a byte and increase HL until HL=BC 
+0903 cd 12 09		            CALL    GET_BYTE       ;Call Get Byte routine 
+0906 ed 4b 9a 08	            LD      BC,(END_ADR)   ;Load BC with end address 
+090a b7			            OR      A              ;Clear carry flag 
+090b e5			            PUSH    HL             ;Save start address 
+090c ed 42		            SBC     HL,BC          ;Get length of transfer 
+090e e1			            POP     HL             ;Restore HL 
+090f 38 f2		            JR      C,RECLOOP      ;More data to receive 
+0911 c7			            RST     00H            ;End 
+0912			 
+0912			GET_BYTE: 
+0912			            ;Receive a byte from serial port 
+0912 db 03		            IN      A,(IN_PORT)    ;Check bit 7 on input port 
+0914 07			            RLCA                   ;Move into carry 
+0915 30 fb		            JR      NC,GET_BYTE    ;Not sent, keep looking 
+0917 06 40		            LD      B,40H          ;Load B with half baud delay 
+0919 10 fe		L1:         DJNZ    L1             ;Delay 
+091b 1e 00		            LD      E,00H          ;Load E with 0, the receive byte 
+091d 0e 08		            LD      C,08H          ;Eight bits to receive 
+091f			GET_BITS: 
+091f db 03		            IN      A,(IN_PORT)    ;Get bit 7 on input port 
+0921 07			            RLCA                   ;Move into carry 
+0922 cb 1b		            RR      E              ;Rotate Carry bit into E from the right 
+0924 06 39		            LD      B,39H          ;Load B with  half baud delay 
+0926 10 fe		L2:         DJNZ    L2             ;Delay 
+0928 0d			            DEC     C              ;Decrease next bit counter 
+0929 20 f4		            JR      NZ,GET_BITS    ;Still more bits 
+092b 7b			            LD      A,E            ;Save received byte in A 
+092c 2f			            CPL                    ;Invert bits 
+092d 77			            LD      (HL),A         ;Store in memory 
+092e 23			            INC     HL             ;Move HL to next address 
+092f c9			            RET                    ;Exit 
+0930			 
+0930			 
+0930			OUTPUT: 
+0930			            ;Start of routine 
+0930 2a 98 08		            LD      HL,(START_ADR) ;Load HL with start address 
+0933			SENDLOOP:   ;Send a byte and increase HL until HL=BC 
+0933 cd 42 09		            CALL    SEND_BYTE      ;Call Send Byte routine 
+0936 ed 4b 9a 08	            LD      BC,(END_ADR)   ;Load BC with end address 
+093a b7			            OR      A              ;Clear carry flag 
+093b e5			            PUSH    HL             ;Save start address 
+093c ed 42		            SBC     HL,BC          ;Get length of transfer 
+093e e1			            POP     HL             ;Restore HL 
+093f 38 f2		            JR      C,SENDLOOP     ;More data to receive 
+0941 c7			            RST     00H            ;End 
+0942			 
+0942			SEND_BYTE: 
+0942			            ;Send a byte to serial port 
+0942 3e 80		            LD      A,80H          ;Send start bit 
+0944 d3 03		            OUT     (OUT_PORT),A   ;Output to port 
+0946 cd 5d 09		            CALL    DELAY          ;Delay for baud rate 
+0949 7e			            LD      A,(HL)         ;Get byte from memory 
+094a 23			            INC     HL             ;Move to next byte 
+094b 06 08		            LD      B,08H          ;Load B with bits to send 
+094d			SEND_BITS: 
+094d 0f			            RRCA                   ;Put bit in bit 7 
+094e ee 80		            XOR     80H            ;Flip bit 
+0950 d3 03		            OUT     (OUT_PORT),A   ;Output to port 
+0952 cd 5d 09		            CALL    DELAY          ;Delay for baud rate 
+0955 10 f6		            DJNZ    SEND_BITS      ;Send next bit 
+0957 af			            XOR     A              ;Zero A 
+0958 d3 03		            OUT     (OUT_PORT),A   ;Send Stop bit x 2 
+095a cd 5d 09		            CALL    DELAY          ;Call first delay 
+095d			DELAY: 
+095d			            ;Delay for baud rate 
+095d c5			            PUSH    BC             ;Save BC 
+095e 06 36		            LD      B,36H          ;Load B with delay 
+0960 10 fe		L3:         DJNZ    L3             ;Delay 
+0962 c1			            POP     BC             ;Restore BC 
+0963 c9			            RET                    ;Exit 
+0964			 
+0964			 
+0964			 
+0964 01 fe 15		        LD      BC,0x15FE 
+0967 11 18 09		        LD      DE,0x0918 
+096a c5			        PUSH    BC 
+096b d5			        PUSH    DE 
+096c cd 71 09		        CALL    GET_KEY 
+096f d1			        POP     DE 
+0970 c1			        POP     BC 
+0971			 
+0971			GET_KEY: 
+0971 06 ff		        LD      B,0xFF 
+0973 db 00		        IN      A,(0x00) 
+0975 c9			        RET 
+0976			 
+0976			 
+0976			 
+0976			 
+# End of file /Users/slarti/Documents/TEC1D/TEC-1D-Stuff/code/utilities/jims_serial.z80
+0976

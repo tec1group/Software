@@ -1,0 +1,145 @@
+;Jim's Serial Routines
+;---------------------
+
+;Published in TEC Times March 1990
+;The last known publication for the TEC
+;--------------------------------------
+
+;RECEIVER
+;This is the routine I use when I wish to download a file from the IBM. It's a simple
+;routine that converts a serial stream into bytes and stores them in RAM starting at
+;the address provided at 0898. The routine also has an end address to allow a maximum
+;file length. This is in case something goes wrong with the data transfer. Anything
+;important can be protected by placing it above the end address.
+;No hand-shaking is needed as the TEC can cope with the speed of the data stream.
+;It is up to you to ensure the TEC is ready before you send the data. The serial
+;input is bit 0 of PORT 3. The DAT BOARD has provision for 2 diodes and a resistor
+;at this input to clip an incoming RS232 signal. In the RS232 format, a logic 1
+;is represented by a negative voltage while a logic 0 is a positive voltage. The
+;clipper on the DAT BOARD changes an RS232 logic 0 (positive voltage) into a digital
+;logic 1 while an RS232 logic l is clipped to zero volts and becomes a digital logic 0.
+;This means that the inputted data must be inverted back into its true form. This is
+;done with the CPL instruction at 092C. The format of the data is as follows: 
+;  2400 BAUD, NO PARITY, 8 BITS, STOP BITS OPTIONAL, TEC SPEED: 3.58 Mhz / 2
+
+;SERIAL OUTPUT ROUTINE
+;This is the complement routine of the serial receiver. It will send serial data through 
+;the TEC speaker bit. The data is taken from the latch side of the base resistor of the
+;transistor inverter and inputted directly to an RS232 Rx input or the DAT BOARD serial
+;input.  Strictly speaking the data stream is not RS232 compatible but in practice it
+;works ok, although the occasional error may creep in.
+;Oh yes, before sending data, the key press beep must be turned off. To do this,
+;place FF at 0822 and put AA at 08FF.
+;The serial sender uses the same start and end buffers as the receive described above
+;with the same speed etc. Two stop bits are sent as this provides compatibility with
+;all serial systems.
+
+;IBM SOFTWARE
+;The software I used for receiving the serial is PROCOMM. It is a public domain program
+;and can be purchased from the Talking Electronics Shop. Cat S-449.
+;The protocol to use is ASCII.
+;The sending software poses a few difficul- ties. One big problem is that some packages
+;won't send the IA character. Actually, I believe the problem is in the DOS serial
+;interrupt and if the software uses it then it won't send the IA character.
+;It is rare that I send anything back to the TEC and when I do, it's with a serial
+;routine Craig wrote and probably won't work with all computers as it directly 
+;manipulates the hardware; not a recommended practice.
+;It is up to you to experiment around and find something that works.
+
+;I would like to hear from anyone who has found or written a good sending routine that
+;doesn't have the IA character problem. Hardware wise, the CTS must be taken high before
+;the IBM will send the data. This means that the IBM to TEC link consists of three
+;wires: the ground, the serial data line and +5v.
+;Only ground and the serial data are required for the TEC to IBM link.
+
+;Constants
+START_ADR:  EQU     0898H          ;Start address
+END_ADR:    EQU     089AH          ;End address
+IN_PORT:    EQU     03H            ;Input port
+OUT_PORT:   EQU     03H            ;Output port
+
+            ORG     0900H   
+
+; --------------------
+; Serial Input Routine 
+; --------------------
+; Transmit bit is BIT 7 on the selected port
+INPUT:
+            ;Start of routine
+            LD      HL,(START_ADR) ;Load HL with start address
+RECLOOP:    ;Get a byte and increase HL until HL=BC
+            CALL    GET_BYTE       ;Call Get Byte routine
+            LD      BC,(END_ADR)   ;Load BC with end address
+            OR      A              ;Clear carry flag
+            PUSH    HL             ;Save start address
+            SBC     HL,BC          ;Get length of transfer
+            POP     HL             ;Restore HL
+            JR      C,RECLOOP      ;More data to receive
+            RST     00H            ;End
+
+GET_BYTE:
+            ;Receive a byte from serial port
+            IN      A,(IN_PORT)    ;Check bit 7 on input port
+            RLCA                   ;Move into carry
+            JR      NC,GET_BYTE    ;Not sent, keep looking
+            LD      B,40H          ;Load B with half baud delay
+L1:         DJNZ    L1             ;Delay
+            LD      E,00H          ;Load E with 0, the receive byte
+            LD      C,08H          ;Eight bits to receive
+GET_BITS:
+            IN      A,(IN_PORT)    ;Get bit 7 on input port
+            RLCA                   ;Move into carry
+            RR      E              ;Rotate Carry bit into E from the right
+            LD      B,39H          ;Load B with  half baud delay
+L2:         DJNZ    L2             ;Delay
+            DEC     C              ;Decrease next bit counter
+            JR      NZ,GET_BITS    ;Still more bits
+            LD      A,E            ;Save received byte in A
+            CPL                    ;Invert bits
+            LD      (HL),A         ;Store in memory
+            INC     HL             ;Move HL to next address
+            RET                    ;Exit
+
+
+OUTPUT:
+            ;Start of routine
+            LD      HL,(START_ADR) ;Load HL with start address
+SENDLOOP:   ;Send a byte and increase HL until HL=BC
+            CALL    SEND_BYTE      ;Call Send Byte routine
+            LD      BC,(END_ADR)   ;Load BC with end address
+            OR      A              ;Clear carry flag
+            PUSH    HL             ;Save start address
+            SBC     HL,BC          ;Get length of transfer
+            POP     HL             ;Restore HL
+            JR      C,SENDLOOP     ;More data to receive
+            RST     00H            ;End
+
+SEND_BYTE:
+            ;Send a byte to serial port
+            LD      A,80H          ;Send start bit
+            OUT     (OUT_PORT),A   ;Output to port
+            CALL    DELAY          ;Delay for baud rate
+            LD      A,(HL)         ;Get byte from memory
+            INC     HL             ;Move to next byte
+            LD      B,08H          ;Load B with bits to send
+SEND_BITS:
+            RRCA                   ;Put bit in bit 7
+            XOR     80H            ;Flip bit
+            OUT     (OUT_PORT),A   ;Output to port
+            CALL    DELAY          ;Delay for baud rate
+            DJNZ    SEND_BITS      ;Send next bit
+            XOR     A              ;Zero A
+            OUT     (OUT_PORT),A   ;Send Stop bit x 2
+            CALL    DELAY          ;Call first delay
+DELAY:
+            ;Delay for baud rate
+            PUSH    BC             ;Save BC
+            LD      B,36H          ;Load B with delay
+L3:         DJNZ    L3             ;Delay
+            POP     BC             ;Restore BC
+            RET                    ;Exit
+
+
+
+
+
