@@ -84,3 +84,10 @@ Included:
  - Licence.
 
 Licensed under Attribution-NonCommercial-ShareAlike 4.0 International.
+
+## CMON-01
+By Craig Jones
+
+Craig's Monitor
+
+- Cut down version of Southern Cross Monitor.
