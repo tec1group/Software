@@ -1,4 +1,4 @@
-# File /Users/slarti/Documents/TEC1D/TEC-1D-Stuff/code/from_magazine/TEC_magazine_collection.z80
+# File TEC_magazine_collection.z80
 0000			; TEC Magazine Master ROM 
 0000			; ----------------------- 
 0000			; 
@@ -58,7 +58,7 @@
 0000			            ORG    1000H  
 1000			START: 
 1000			            ; Copy Menu Data to JMON location 
-1000 21 e3 16		            LD      HL,M_DATA ; Menu data 
+1000 21 e4 16		            LD      HL,M_DATA ; Menu data 
 1003 11 8d 08		            LD      DE,088DH ; Destination for menu/perimiter to use 
 1006 01 0b 00		            LD      BC,000BH ; Number of bytes to copy 
 1009 ed b0		            LDIR     ; Copy it 
@@ -996,7 +996,7 @@
 15ac 10 db		            DJNZ    CLK3  
 15ae c3 bd 15		            JP      TIMEDELAY  ;More delay for one second display 
 15b1			TBLLOOKUP:                     ;Convert Hex to Seven Segment 
-15b1 11 d8 16		            LD      DE,HEX2SEG  
+15b1 11 d9 16		            LD      DE,HEX2SEG  
 15b4 f5			            PUSH    AF  
 15b5 7b			            LD      A,E  
 15b6 80			            ADD     A,B  
@@ -1020,7 +1020,7 @@
 15c4			COUNT1:     	 
 15c4 3e 01		            LD     A,01H 
 15c6 d3 01		            OUT    (01),A 
-15c8 21 d8 16		            LD     HL,HEX2SEG   ;Look at TEC Clock 
+15c8 21 d9 16		            LD     HL,HEX2SEG   ;Look at TEC Clock 
 15cb 06 0a		            LD     B,0AH        ;Ten Numbers 
 15cd			CNT11: 
 15cd 7e			            LD     A,(HL) 
@@ -1041,9 +1041,9 @@
 15dd			;Use '4' key to increment. Uses HL for Ones and DE for Tens.   
 15dd			COUNT2:     	 
 15dd af			            XOR    A 
-15de 11 d8 16		            LD     DE,HEX2SEG 
+15de 11 d9 16		            LD     DE,HEX2SEG 
 15e1			CNT21: 
-15e1 21 d8 16		            LD     HL,HEX2SEG 
+15e1 21 d9 16		            LD     HL,HEX2SEG 
 15e4			CNT2PLEX: 
 15e4 af			            XOR    A      ;Output HL (Ones) to first segment 
 15e5 d3 01		            OUT    (01),A 
@@ -1150,7 +1150,7 @@
 1674 c9			            RET 
 1675			NIBBLE: 
 1675 e6 0f		            AND    0FH 
-1677 21 d8 16		            LD     HL,HEX2SEG 
+1677 21 d9 16		            LD     HL,HEX2SEG 
 167a 85			            ADD    A,L 
 167b 6f			            LD     L,A 
 167c 7e			            LD     A,(HL) 
@@ -1226,150 +1226,151 @@
 16bf f5			            PUSH    AF 
 16c0 db 03		            IN      A,(03)   ;Check for key pressed 
 16c2 cb 77		            BIT     6,A 
-16c4 20 10		            JR      NZ,CHKS1 ;Exit if no key pressed 
+16c4 20 11		            JR      NZ,CHKS1 ;Exit if no key pressed 
 16c6 db 00		            IN      A,(00)   ;Get actual key 
 16c8 cb 6f		            BIT     5,A      ;Has shift been pressed? 
-16ca 20 0a		            JR      NZ,CHKS1 ;Exit if shift not pressed 
+16ca 20 0b		            JR      NZ,CHKS1 ;Exit if shift not pressed 
 16cc e6 1f		            AND     1FH      ;Mask unwanted bits 
 16ce fe 12		            CP      12H      ;"GO" pressed 
-16d0 20 04		            JR      NZ,CHKS1        
-16d2 c1			            POP     BC       ;Fake POP to remove PC as we aren't returning 
-16d3 c3 0b 10		            JP      MENU     ;GOTO Menu 
-16d6			CHKS1: 
-16d6 f1			            POP     AF 
-16d7 c9			            RET 
-16d8			 
-16d8			;Hex to Seven Segment Lookup table that converts 0x00-0x09 its Visual equivilant  
-16d8			HEX2SEG:    ;0-9 in seven segments 
-16d8 eb 28 cd ad 2e a7 e7 29 ef af	            DB      0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,0AFH 
-16e2 ff			            DB      0FFH ;This is only used for Counter #2 (Because it's inefficient!)  
-16e3			 
-16e3			;Menu Command String 
-16e3			M_DATA: 
-16e3 ff ff		            DB      0xFF,0xFF ; Blank 
-16e5 00 1d		            DB      0x00,0x1D ; First menu item and number of menu items, = 30 
-16e7 ee 16		            DW      MENU_JP_TBL ; Jump table for menu items 
-16e9 48 17		            DW      MENU_AD_TBL ; Menu Address LED display table 
-16eb c0 17		            DW      MENU_DA_TBL ; Menu Data LED display table 
-16ed c9			            DB      0xC9 ; return (unused) 
-16ee			 
-16ee			MENU_JP_TBL:        ; Menu Jump table 
-16ee			                    ; Seven Segment Routines  
-16ee c3 0e 10		            JP      SEGMOV  ; Segment Move 
-16f1 c3 1d 10		            JP      SEGCYC  ; Segment Cycle 
-16f4 c3 2e 10		            JP      SEGFLH  ; Segment Flash 
-16f7 c3 44 10		            JP      SEGRND1 ; Segment Around #1 
-16fa c3 9c 10		            JP      SEGRND2 ; Segment Around #2 
-16fd c3 d3 10		            JP      SEGRND3 ; Segment Around #3 
-1700 c3 00 11		            JP      SEGBAF  ; Segment B & F 
-1703 c3 20 11		            JP      SEGKBD  ; Segment Keyboard Move 
-1706 c3 3c 11		            JP      SEGKBR  ; Segment Keyboard Move with Run 
-1709 c3 61 11		            JP      SEGTWO  ; Segment display two 
-170c c3 b4 11		            JP      SEGBOX  ; Segment Box animation 
-170f c3 5c 12		            JP      SEGBRG  ; Segment Boomerang  
-1712			 
-1712			                    ; 8x8 LED Routines  
-1712 c3 97 12		            JP      LEDRND  ; 8x8 LED Around 
-1715 c3 e9 12		            JP      LEDBAF  ; 8x8 LED B & F 
-1718 c3 11 13		            JP      LEDFN1  ; 8x8 LED Fanout #1 
-171b c3 23 13		            JP      LEDFN2  ; 8x8 LED Fanout #2 
-171e c3 45 13		            JP      LEDFN3  ; 8x8 LED Fanout #3 
-1721 c3 66 13		            JP      LEDMYS  ; 8x8 LED Mystery Effect 
-1724 c3 b3 13		            JP      LEDKBD  ; 8x8 LED Keyboard Move 
-1727 c3 e6 13		            JP      LEDBBL  ; 8x8 LED Ball Bounce 
-172a c3 16 14		            JP      LEDANI  ; 8x8 LED Animation 
-172d			 
-172d			                    ; Sound Routines 
-172d c3 5f 14		            JP      ETATTC  ; Aliens Attack Sound 
-1730 c3 97 14		            JP      OSCLAT  ; Oscilate the Speaker 
-1733 c3 ad 14		            JP      FREQSP  ; Frequency Sweep 
-1736 c3 d9 14		            JP      SPCINV  ; Space Invaders 
-1739			 
-1739			                    ; Other Routines 
-1739 c3 03 15		            JP      QKDRAW  ; Quick Draw 
-173c c3 2e 15		            JP      TECCLK  ; TEC Clock 
-173f c3 c4 15		            JP      COUNT1  ; Counter 0-9 
-1742 c3 dd 15		            JP      COUNT2  ; Counter 00-99 
-1745 c3 1a 16		            JP      COUNT3  ; Counter 000-999 
-1748			 
-1748			MENU_AD_TBL:        ; Menu Display for ADDRESS LEDs 
-1748			                    ; Seven Segment Routines  
-1748 a7 c7 e3 a7	            DB      0xA7,0xC7,0xE3,0xA7 ; "SEGS" 
-174c a7 c7 e3 c3	            DB      0xA7,0xC7,0xE3,0xC3 ; "SEGC" 
-1750 a7 c7 e3 47	            DB      0xA7,0xC7,0xE3,0x47 ; "SEGF" 
-1754 a7 c7 e3 44	            DB      0xA7,0xC7,0xE3,0x44 ; "SEGr" 
-1758 a7 c7 e3 44	            DB      0xA7,0xC7,0xE3,0x44 ; "SEGr" 
-175c a7 c7 e3 44	            DB      0xA7,0xC7,0xE3,0x44 ; "SEGr" 
-1760 a7 c7 e3 e6	            DB      0xA7,0xC7,0xE3,0xE6 ; "SEGb" 
-1764 a7 c7 e3 67	            DB      0xA7,0xC7,0xE3,0x67 ; "SEGK" 
-1768 a7 c7 e3 67	            DB      0xA7,0xC7,0xE3,0x67 ; "SEGK" 
-176c a7 c7 e3 c6	            DB      0xA7,0xC7,0xE3,0xC6 ; "SEGt" 
-1770 a7 c7 e3 e6	            DB      0xA7,0xC7,0xE3,0xE6 ; "SEGb" 
-1774 a7 c7 e3 e6	            DB      0xA7,0xC7,0xE3,0xE6 ; "SEGb" 
-1778			 
-1778			                    ; 8x8 LED Routines  
-1778 c2 c7 ec 44	            DB      0xC2,0xC7,0xEC,0x44 ; "LEdr" 
-177c c2 c7 ec e6	            DB      0xC2,0xC7,0xEC,0xE6 ; "LEdb" 
-1780 c2 c7 ec 47	            DB      0xC2,0xC7,0xEC,0x47 ; "LEdF" 
-1784 c2 c7 ec 47	            DB      0xC2,0xC7,0xEC,0x47 ; "LEdF" 
-1788 c2 c7 ec 47	            DB      0xC2,0xC7,0xEC,0x47 ; "LEdF" 
-178c c2 c7 ec c7	            DB      0xC2,0xC7,0xEC,0xC7 ; "LEdE" 
-1790 c2 c7 ec 67	            DB      0xC2,0xC7,0xEC,0x67 ; "LEdK" 
-1794 c2 c7 ec e6	            DB      0xC2,0xC7,0xEC,0xE6 ; "LEdb" 
-1798 c2 c7 ec 6f	            DB      0xC2,0xC7,0xEC,0x6F ; "LEdA" 
-179c			 
-179c			                    ; Sound Routines 
-179c c7 c6 6f c6	            DB      0xC7,0xC6,0x6F,0xC6 ; "EtAt" 
-17a0 eb a7 c3 c2	            DB      0xEB,0xA7,0xC3,0xC2 ; "OSCL" 
-17a4 47 44 c7 3f	            DB      0x47,0x44,0xC7,0x3F ; "FREq" 
-17a8 a7 4f c3 28	            DB      0xA7,0x4F,0xC3,0x28 ; "SPCI" 
-17ac			 
-17ac			                    ; Other Routines 
-17ac 3f ea ec 44	            DB      0x3F,0xEA,0xEC,0x44 ; "qUdr" 
-17b0 c6 c7 c3 c3	            DB      0xC6,0xC7,0xC3,0xC3 ; "tECC" 
-17b4 c3 eb ea 6b	            DB      0xC3,0xEB,0xEA,0x6B ; "COUn" 
-17b8 c3 eb ea 6b	            DB      0xC3,0xEB,0xEA,0x6B ; "COUn" 
-17bc c3 eb ea 6b	            DB      0xC3,0xEB,0xEA,0x6B ; "COUn" 
-17c0			 
-17c0			MENU_DA_TBL:        ; Menu Display for DATA LEDs 
-17c0			                    ; Seven Segment Routines  
-17c0 47 c6		            DB      0x47,0xC6 ; "Ft" 
-17c2 ae c3		            DB      0xAE,0xC3 ; "yC" 
-17c4 c2 6e		            DB      0xC2,0x6E ; "LH" 
-17c6 ec 28		            DB      0xEC,0x28 ; "d1" 
-17c8 ec cd		            DB      0xEC,0xCD ; "d2" 
-17ca ec ad		            DB      0xEC,0xAD ; "d3" 
-17cc 6f 47		            DB      0x6F,0x47 ; "AF" 
-17ce e6 ec		            DB      0xE6,0xEC ; "bd" 
-17d0 e6 44		            DB      0xE6,0x44 ; "br" 
-17d2 e1 eb		            DB      0xE1,0xEB ; "wO" 
-17d4 eb 26		            DB      0xEB,0x26 ; "OX" 
-17d6 44 e3		            DB      0x44,0xE3 ; "rX" 
-17d8			 
-17d8			                    ; 8x8 LED Routines  
-17d8 6b ec		            DB      0x6B,0xEC ; "nd" 
-17da 6f 47		            DB      0x6F,0x47 ; "AF" 
-17dc 6b 28		            DB      0x6B,0x28 ; "n1" 
-17de 6b cd		            DB      0x6B,0xCD ; "n2" 
-17e0 6b ad		            DB      0x6B,0xAD ; "n3" 
-17e2 47 47		            DB      0x47,0x47 ; "FF" 
-17e4 e6 ec		            DB      0xE6,0xEC ; "bd" 
-17e6 e6 c2		            DB      0xE6,0xC2 ; "bL" 
-17e8 6b 28		            DB      0x6B,0x28 ; "nI" 
-17ea			 
-17ea			                    ; Sound Routines  
-17ea c6 c3		            DB      0xC6,0xC3 ; "tC" 
-17ec 6f c6		            DB      0x6F,0xC6 ; "At" 
-17ee a7 4f		            DB      0xA7,0x4F ; "SP" 
-17f0 6b e0		            DB      0x6B,0xE0 ; "nv" 
-17f2			 
-17f2			                    ; Other Routines  
-17f2 6f e1		            DB      0x6F,0xE1 ; "Aw" 
-17f4 c2 67		            DB      0xC2,0x67 ; "Lk" 
-17f6 c6 28		            DB      0xC6,0x28 ; "t1" 
-17f8 c6 cd		            DB      0xC6,0xCD ; "t2" 
-17fa c6 ad		            DB      0xC6,0xAD ; "t3" 
-17fc			 
-17fc ff ff ff ff	            DB      0xFF,0xFF,0xFF,0xFF   ;EOF Buffer to make 2K 
-# End of file /Users/slarti/Documents/TEC1D/TEC-1D-Stuff/code/from_magazine/TEC_magazine_collection.z80
+16d0 20 05		            JR      NZ,CHKS1 
+16d2 f1			            POP     AF       ;Restore Stack 
+16d3 c1			            POP     BC       ;Fake POP to remove PC as we aren't returning 
+16d4 c3 0b 10		            JP      MENU     ;GOTO Menu 
+16d7			CHKS1: 
+16d7 f1			            POP     AF 
+16d8 c9			            RET 
+16d9			 
+16d9			;Hex to Seven Segment Lookup table that converts 0x00-0x09 its Visual equivilant  
+16d9			HEX2SEG:    ;0-9 in seven segments 
+16d9 eb 28 cd ad 2e a7 e7 29 ef af	            DB      0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,0AFH 
+16e3 ff			            DB      0FFH ;This is only used for Counter #2 (Because it's inefficient!)  
+16e4			 
+16e4			;Menu Command String 
+16e4			M_DATA: 
+16e4 ff ff		            DB      0xFF,0xFF ; Blank 
+16e6 00 1d		            DB      0x00,0x1D ; First menu item and number of menu items, = 30 
+16e8 ef 16		            DW      MENU_JP_TBL ; Jump table for menu items 
+16ea 49 17		            DW      MENU_AD_TBL ; Menu Address LED display table 
+16ec c1 17		            DW      MENU_DA_TBL ; Menu Data LED display table 
+16ee c9			            DB      0xC9 ; return (unused) 
+16ef			 
+16ef			MENU_JP_TBL:        ; Menu Jump table 
+16ef			                    ; Seven Segment Routines  
+16ef c3 0e 10		            JP      SEGMOV  ; Segment Move 
+16f2 c3 1d 10		            JP      SEGCYC  ; Segment Cycle 
+16f5 c3 2e 10		            JP      SEGFLH  ; Segment Flash 
+16f8 c3 44 10		            JP      SEGRND1 ; Segment Around #1 
+16fb c3 9c 10		            JP      SEGRND2 ; Segment Around #2 
+16fe c3 d3 10		            JP      SEGRND3 ; Segment Around #3 
+1701 c3 00 11		            JP      SEGBAF  ; Segment B & F 
+1704 c3 20 11		            JP      SEGKBD  ; Segment Keyboard Move 
+1707 c3 3c 11		            JP      SEGKBR  ; Segment Keyboard Move with Run 
+170a c3 61 11		            JP      SEGTWO  ; Segment display two 
+170d c3 b4 11		            JP      SEGBOX  ; Segment Box animation 
+1710 c3 5c 12		            JP      SEGBRG  ; Segment Boomerang  
+1713			 
+1713			                    ; 8x8 LED Routines  
+1713 c3 97 12		            JP      LEDRND  ; 8x8 LED Around 
+1716 c3 e9 12		            JP      LEDBAF  ; 8x8 LED B & F 
+1719 c3 11 13		            JP      LEDFN1  ; 8x8 LED Fanout #1 
+171c c3 23 13		            JP      LEDFN2  ; 8x8 LED Fanout #2 
+171f c3 45 13		            JP      LEDFN3  ; 8x8 LED Fanout #3 
+1722 c3 66 13		            JP      LEDMYS  ; 8x8 LED Mystery Effect 
+1725 c3 b3 13		            JP      LEDKBD  ; 8x8 LED Keyboard Move 
+1728 c3 e6 13		            JP      LEDBBL  ; 8x8 LED Ball Bounce 
+172b c3 16 14		            JP      LEDANI  ; 8x8 LED Animation 
+172e			 
+172e			                    ; Sound Routines 
+172e c3 5f 14		            JP      ETATTC  ; Aliens Attack Sound 
+1731 c3 97 14		            JP      OSCLAT  ; Oscilate the Speaker 
+1734 c3 ad 14		            JP      FREQSP  ; Frequency Sweep 
+1737 c3 d9 14		            JP      SPCINV  ; Space Invaders 
+173a			 
+173a			                    ; Other Routines 
+173a c3 03 15		            JP      QKDRAW  ; Quick Draw 
+173d c3 2e 15		            JP      TECCLK  ; TEC Clock 
+1740 c3 c4 15		            JP      COUNT1  ; Counter 0-9 
+1743 c3 dd 15		            JP      COUNT2  ; Counter 00-99 
+1746 c3 1a 16		            JP      COUNT3  ; Counter 000-999 
+1749			 
+1749			MENU_AD_TBL:        ; Menu Display for ADDRESS LEDs 
+1749			                    ; Seven Segment Routines  
+1749 a7 c7 e3 a7	            DB      0xA7,0xC7,0xE3,0xA7 ; "SEGS" 
+174d a7 c7 e3 c3	            DB      0xA7,0xC7,0xE3,0xC3 ; "SEGC" 
+1751 a7 c7 e3 47	            DB      0xA7,0xC7,0xE3,0x47 ; "SEGF" 
+1755 a7 c7 e3 44	            DB      0xA7,0xC7,0xE3,0x44 ; "SEGr" 
+1759 a7 c7 e3 44	            DB      0xA7,0xC7,0xE3,0x44 ; "SEGr" 
+175d a7 c7 e3 44	            DB      0xA7,0xC7,0xE3,0x44 ; "SEGr" 
+1761 a7 c7 e3 e6	            DB      0xA7,0xC7,0xE3,0xE6 ; "SEGb" 
+1765 a7 c7 e3 67	            DB      0xA7,0xC7,0xE3,0x67 ; "SEGK" 
+1769 a7 c7 e3 67	            DB      0xA7,0xC7,0xE3,0x67 ; "SEGK" 
+176d a7 c7 e3 c6	            DB      0xA7,0xC7,0xE3,0xC6 ; "SEGt" 
+1771 a7 c7 e3 e6	            DB      0xA7,0xC7,0xE3,0xE6 ; "SEGb" 
+1775 a7 c7 e3 e6	            DB      0xA7,0xC7,0xE3,0xE6 ; "SEGb" 
+1779			 
+1779			                    ; 8x8 LED Routines  
+1779 c2 c7 ec 44	            DB      0xC2,0xC7,0xEC,0x44 ; "LEdr" 
+177d c2 c7 ec e6	            DB      0xC2,0xC7,0xEC,0xE6 ; "LEdb" 
+1781 c2 c7 ec 47	            DB      0xC2,0xC7,0xEC,0x47 ; "LEdF" 
+1785 c2 c7 ec 47	            DB      0xC2,0xC7,0xEC,0x47 ; "LEdF" 
+1789 c2 c7 ec 47	            DB      0xC2,0xC7,0xEC,0x47 ; "LEdF" 
+178d c2 c7 ec c7	            DB      0xC2,0xC7,0xEC,0xC7 ; "LEdE" 
+1791 c2 c7 ec 67	            DB      0xC2,0xC7,0xEC,0x67 ; "LEdK" 
+1795 c2 c7 ec e6	            DB      0xC2,0xC7,0xEC,0xE6 ; "LEdb" 
+1799 c2 c7 ec 6f	            DB      0xC2,0xC7,0xEC,0x6F ; "LEdA" 
+179d			 
+179d			                    ; Sound Routines 
+179d c7 c6 6f c6	            DB      0xC7,0xC6,0x6F,0xC6 ; "EtAt" 
+17a1 eb a7 c3 c2	            DB      0xEB,0xA7,0xC3,0xC2 ; "OSCL" 
+17a5 47 44 c7 3f	            DB      0x47,0x44,0xC7,0x3F ; "FREq" 
+17a9 a7 4f c3 28	            DB      0xA7,0x4F,0xC3,0x28 ; "SPCI" 
+17ad			 
+17ad			                    ; Other Routines 
+17ad 3f ea ec 44	            DB      0x3F,0xEA,0xEC,0x44 ; "qUdr" 
+17b1 c6 c7 c3 c3	            DB      0xC6,0xC7,0xC3,0xC3 ; "tECC" 
+17b5 c3 eb ea 6b	            DB      0xC3,0xEB,0xEA,0x6B ; "COUn" 
+17b9 c3 eb ea 6b	            DB      0xC3,0xEB,0xEA,0x6B ; "COUn" 
+17bd c3 eb ea 6b	            DB      0xC3,0xEB,0xEA,0x6B ; "COUn" 
+17c1			 
+17c1			MENU_DA_TBL:        ; Menu Display for DATA LEDs 
+17c1			                    ; Seven Segment Routines  
+17c1 47 c6		            DB      0x47,0xC6 ; "Ft" 
+17c3 ae c3		            DB      0xAE,0xC3 ; "yC" 
+17c5 c2 6e		            DB      0xC2,0x6E ; "LH" 
+17c7 ec 28		            DB      0xEC,0x28 ; "d1" 
+17c9 ec cd		            DB      0xEC,0xCD ; "d2" 
+17cb ec ad		            DB      0xEC,0xAD ; "d3" 
+17cd 6f 47		            DB      0x6F,0x47 ; "AF" 
+17cf e6 ec		            DB      0xE6,0xEC ; "bd" 
+17d1 e6 44		            DB      0xE6,0x44 ; "br" 
+17d3 e1 eb		            DB      0xE1,0xEB ; "wO" 
+17d5 eb 26		            DB      0xEB,0x26 ; "OX" 
+17d7 44 e3		            DB      0x44,0xE3 ; "rX" 
+17d9			 
+17d9			                    ; 8x8 LED Routines  
+17d9 6b ec		            DB      0x6B,0xEC ; "nd" 
+17db 6f 47		            DB      0x6F,0x47 ; "AF" 
+17dd 6b 28		            DB      0x6B,0x28 ; "n1" 
+17df 6b cd		            DB      0x6B,0xCD ; "n2" 
+17e1 6b ad		            DB      0x6B,0xAD ; "n3" 
+17e3 47 47		            DB      0x47,0x47 ; "FF" 
+17e5 e6 ec		            DB      0xE6,0xEC ; "bd" 
+17e7 e6 c2		            DB      0xE6,0xC2 ; "bL" 
+17e9 6b 28		            DB      0x6B,0x28 ; "nI" 
+17eb			 
+17eb			                    ; Sound Routines  
+17eb c6 c3		            DB      0xC6,0xC3 ; "tC" 
+17ed 6f c6		            DB      0x6F,0xC6 ; "At" 
+17ef a7 4f		            DB      0xA7,0x4F ; "SP" 
+17f1 6b e0		            DB      0x6B,0xE0 ; "nv" 
+17f3			 
+17f3			                    ; Other Routines  
+17f3 6f e1		            DB      0x6F,0xE1 ; "Aw" 
+17f5 c2 67		            DB      0xC2,0x67 ; "Lk" 
+17f7 c6 28		            DB      0xC6,0x28 ; "t1" 
+17f9 c6 cd		            DB      0xC6,0xCD ; "t2" 
+17fb c6 ad		            DB      0xC6,0xAD ; "t3" 
+17fd			 
+17fd ff ff ff		            DB      0xFF,0xFF,0xFF   ;EOF Buffer to make 2K 
+# End of file TEC_magazine_collection.z80
 1800
