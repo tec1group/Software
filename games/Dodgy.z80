@@ -1,0 +1,211 @@
+; Dodgy
+; -----
+;
+; Game Written by Brian Chiha for the TEC 
+; brian.chiha@gmail.com  -- June 2022
+; based off My Geeky Hobby's game https://www.youtube.com/shorts/8qC-zWvlHO8
+;
+; The aim of the game is to dodgy obsticles that are flying in from the right 
+; of the LED Segments.  The Player is on the left of the screen as a '-' char
+; To dodge, use Button '7' to go up and Button '4' to go down.  If you hit an
+; obsticle, the game is over and your distance travelled is displayed.  Press
+; 'GO', to restart the game. The movement gets faster the longer you play the
+; game.  How far can you GO!
+;
+
+;Memory Locations
+SCREEN:     EQU    0D00H 	        ;Game Screen Data 6 Bytes
+SCREND:     EQU    SCREEN+5         ;End of Screen
+DISTVL:     EQU    0D06H            ;Distance Travelled 2 Bytes
+PLAYPOS:    EQU    0D08H            ;Player Position 1 Byte
+KEYPRE:     EQU    0D09H            ;Key press flag 1 Byte
+SPEED:      EQU    0D0AH            ;Speed of update
+;Constants
+KEY_UP:     EQU    07H              ;Up Key Constant
+KEY_DN:     EQU    04H              ;Down Key Constant
+
+            ORG    0900H            ;Start Location of Code
+START:
+            LD      BC,0AH          ;Do 10 times
+            LD      HL,SCREEN       ;Set HL to First RAM location
+            XOR     A               ;Zero A
+DO1:
+            LD      (HL),A          ;Clear  Data
+            INC     HL
+            DJNZ    DO1             ;Repeat
+GAME:
+;SHIFT TERRAIN
+            DEC     C               ;Decrease Delay and if
+            JR      NZ, DO6         ;Zero shift terrain else just scan displays
+            LD      B, 05H          ;Shift down 5 times
+            LD      IX, SCREEN      ;Point IX to Screen
+DO2:
+            LD      A,(IX+1)        ;Get value to the right
+            LD      (IX+0), A       ;Place to the left
+            INC     IX              ;Move to next Segment
+            DJNZ    DO2             ;Repeat all five
+            LD      D, (IX-5)       ;Save first position for later
+;ADD OBSTICLE ON SECOND SHIFT
+            LD      A, (SCREND)     ;Get previous segment
+            OR      A               ;Is it Blank?
+            JR      Z, DO3          ;Yes, Add Obsticle
+            XOR     A               ;Make it Blank
+            JR      DO5
+DO3:
+            LD      A,R             ;Get Random Value
+            AND     03H             ;Get the last two bits
+            CP      03H             ;Is it Three?
+            JR      Z, DO3          ;No, index is okay
+DO4:
+            LD      HL, OBSTICLES   ;Link HL to obsticle table
+            ADD     A, L            ;Get the index
+            LD      L, A            ;Save the index
+            LD      A, (HL)         ;Get Obsticle 
+DO5:
+            LD      (SCREND), A     ;Add Obsticle/Blank
+;ADD PLAYER
+            LD      A, (PLAYPOS)    ;Get the player position
+            LD      HL, PLAYER      ;Link HL to player table
+            ADD     A, L            ;Get the index
+            LD      L, A            ;Save the index
+            LD      A, (HL)         ;Get Player Segment
+;CHECK FOR COLLISION
+            OR      D               ;Compare player verses obsticle
+            CP      D               ;Is it the same as obsticle,
+            JR      Z, DO13         ;Yes, Its a Hit, Game Over
+            LD      (SCREEN), A     ;Add Player to Screen.
+;UPDATE DISTANCE TRAVELLED
+            LD      HL, DISTVL      ;Load HL with the TEN's of distance
+            LD      A, (HL)         ;Get its value
+            INC     A               ;Increase it by one
+            DAA                     ;Convert to BCD
+            LD      (HL),A          ;Save it back
+            INC     HL              ;Load HL with the Hundreds's of dist
+            LD      A,00H           ;Set A to zero (maintain carry)
+            ADC     A,(HL)          ;Add Hundreds with Carry
+            DAA                     ;Convert to BCD
+            LD      (HL),A          ;Save it back
+
+            LD      A, (SPEED)
+            DEC     A
+            LD      C, A
+            LD      (SPEED), A
+
+;MULTIPLEX THE DISPLAY
+DO6:
+            CALL    DOSCAN          ;Display the screen
+;MOVE PLAYER
+                                    ;Replace RST 20/NOP to LD A,I if JMON isn't used
+            RST     20H             ;JMON No Wait Key handler 
+            NOP                     ;Pad out for JMON only
+;            LD      A, I            ;Get Key (non JMON - Remove RST 20H and NOP)
+            LD      B, A
+            CP      0FFH            ;If FF then no key hit, so Return
+            JR      NZ, DO10        ;Continue with game
+            XOR     A               ;Zero A
+            LD      (KEYPRE), A     ;Save in keypress as a no hit
+DO9:
+            JR      GAME            ;Start Game loop
+DO10:
+            LD      A,(KEYPRE)      ;Get keypress flag
+            OR      A               ;Is it zero
+            JR      NZ, DO9         ;No, key needs to be released
+            DEC     A               ;Set A to FF
+            LD      (KEYPRE), A     ;Store in keypress flag
+            LD      A, B            ;Restore Key Pressed
+            CP      KEY_UP          ;Is key 'UP'
+            JR      NZ, DO11        ;No, Check Down Key
+            LD      A, (PLAYPOS)    ;Get Player Position
+            OR      A               ;Is it at the top already?
+            JR      Z, DO9          ;Ignore Key hit
+            DEC     A               ;Move down one
+            JR      DO12            ;Save Move and continue with game
+DO11:
+            CP      KEY_DN          ;Is key 'DN'
+            JR      NZ, DO9         ;No, Continue with game
+            LD      A, (PLAYPOS)    ;Get Player Position
+            CP      02H             ;Is it at the bottom already?
+            JR      Z, DO9          ;Ignore Key hit
+            INC     A               ;Move down one
+DO12:
+            LD      (PLAYPOS), A    ;Save new position
+            JR      DO9             ;Continue with game
+
+;GAME OVER
+DO13:
+            LD      HL,(DISTVL)     ;Get Distanced Travelled
+            CALL    DOCON_HL        ;Convert to BCD and Display
+DO14:
+            LD      C,20H           ;Sound Routine
+            LD      L, C
+            XOR     A
+FS3:
+            OUT     (01),A
+            LD      B,C
+FS4:        DJNZ    FS4
+            XOR     80H
+            DEC     L
+            JR      NZ,FS3
+
+            CALL    DOSCAN          ;Display the screen
+                                    ;Replace RST 20/NOP to LD A,I if JMON isn't used
+            RST     20H             ;JMON No Wait Key handler 
+            NOP                     ;Pad out for JMON only
+;            LD      A, I            ;Get Key (non JMON - Remove RST 20H and NOP)
+            CP      12H             ;GO Key
+            JR      NZ, DO14        ;Not GO, repeat Scan
+            JP      START
+
+;Hex to Seven Segment lookup table
+DOSEGTBL:     
+            DB      0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,2FH
+
+OBSTICLES:
+            DB      0E4H, 0FH, 81H   ;Rock Low, Rock High and Gap
+PLAYER:
+            DB      01H, 04H, 80H    ;Dash High, Medium and Low
+            
+DOSCAN:
+            LD      B, 20H          ;Segment Reference
+            LD      HL, SCREEN      ;Set HL to Display Buffer
+DO7:
+            LD      A, (HL)         ;Get Segment Value at HL
+            OUT     (02), A         ;Set on Segment
+            LD      A, B            ;Get Segment reference
+            OUT     (01), A         ;Activate segment
+            LD      B, 80H          ;Segment delay
+DO8:        DJNZ    DO8
+            INC     HL              ;Move to next location
+            LD      B, A            ;Save Segment reference
+            XOR     A               ;Clear A
+            OUT     (01), A         ;Deactivate Segment
+            RRC     B               ;Move Segment Reference on to the Right
+            JR      NC, DO7         ;Scan next segment if more to do
+            OUT     (02), A         ;Clear port 2
+            RET
+
+;Convert HL and A to Seven Segment Display
+DOCON_HL:
+            LD      BC,SCREEN           ;Location of display buffer
+            LD      A,H                 ;Get high byte of Address
+            CALL    DOCON_A               ;Convert A to Segment Hex
+            LD      A,L                 ;Get low byte of Address
+DOCON_A:
+            PUSH    AF                  ;Save A to keep original value
+            RLCA                        ;Shift upper nibble to lower for masking
+            RLCA
+            RLCA
+            RLCA
+            CALL    DOCON_NIBBLE          ;Convert Lower nibble to segment hex
+            POP     AF                  ;Restore A
+
+DOCON_NIBBLE:
+            AND     0FH                 ;Only look at lower nibble for indexing
+            LD      DE,DOSEGTBL         ;Reference Segment convert table
+            ADD     A,E                 ;Index table with A
+            LD      E,A                 ;Update DE with index
+            LD      A,(DE)              ;Look up table
+            LD      (BC),A              ;Save it to display buffer
+            INC     BC                  ;Increment buffer location
+            RET
+

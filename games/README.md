@@ -113,3 +113,7 @@ Try to avoid obstacles by jumping over them as they get near.  Press the '**4**'
 How far can you make it!.
 
 **Note**: I've included a 512 byte version if you just want the game minus start screen.  *PS: The code includes a secret flag that does something special....*
+
+
+## Dodgy
+A game of skill, try to dodge past obsticles.  The Player is on the left hand side of the Seven Segments.  You are a '-' character.  Coming towards you are three types of obsticles.  You wil need to dodge them to survive.  Use the '7' key to move up and the '4' key to move down.  The longer you survive the faster the obsticles come.  When you die (you will die!), your distance travelled will be displayed.  Press 'GO' to start the dodgy game again!.

@@ -1,0 +1,214 @@
+# File Dodgy.z80
+0000			; Dodgy 
+0000			; ----- 
+0000			; 
+0000			; Game Written by Brian Chiha for the TEC  
+0000			; brian.chiha@gmail.com  -- June 2022 
+0000			; based off My Geeky Hobby's game https://www.youtube.com/shorts/8qC-zWvlHO8 
+0000			; 
+0000			; The aim of the game is to dodgy obsticles that are flying in from the right  
+0000			; of the LED Segments.  The Player is on the left of the screen as a '-' char 
+0000			; To dodge, use Button '7' to go up and Button '4' to go down.  If you hit an 
+0000			; obsticle, the game is over and your distance travelled is displayed.  Press 
+0000			; 'GO', to restart the game. The movement gets faster the longer you play the 
+0000			; game.  How far can you GO! 
+0000			; 
+0000			 
+0000			;Memory Locations 
+0000			SCREEN:     EQU    0D00H 	        ;Game Screen Data 6 Bytes 
+0000			SCREND:     EQU    SCREEN+5         ;End of Screen 
+0000			DISTVL:     EQU    0D06H            ;Distance Travelled 2 Bytes 
+0000			PLAYPOS:    EQU    0D08H            ;Player Position 1 Byte 
+0000			KEYPRE:     EQU    0D09H            ;Key press flag 1 Byte 
+0000			SPEED:      EQU    0D0AH            ;Speed of update 
+0000			;Constants 
+0000			KEY_UP:     EQU    07H              ;Up Key Constant 
+0000			KEY_DN:     EQU    04H              ;Down Key Constant 
+0000			 
+0000			            ORG    0900H            ;Start Location of Code 
+0900			START: 
+0900 01 0a 00		            LD      BC,0AH          ;Do 10 times 
+0903 21 00 0d		            LD      HL,SCREEN       ;Set HL to First RAM location 
+0906 af			            XOR     A               ;Zero A 
+0907			DO1: 
+0907 77			            LD      (HL),A          ;Clear  Data 
+0908 23			            INC     HL 
+0909 10 fc		            DJNZ    DO1             ;Repeat 
+090b			GAME: 
+090b			;SHIFT TERRAIN 
+090b 0d			            DEC     C               ;Decrease Delay and if 
+090c 20 52		            JR      NZ, DO6         ;Zero shift terrain else just scan displays 
+090e 06 05		            LD      B, 05H          ;Shift down 5 times 
+0910 dd 21 00 0d	            LD      IX, SCREEN      ;Point IX to Screen 
+0914			DO2: 
+0914 dd 7e 01		            LD      A,(IX+1)        ;Get value to the right 
+0917 dd 77 00		            LD      (IX+0), A       ;Place to the left 
+091a dd 23		            INC     IX              ;Move to next Segment 
+091c 10 f6		            DJNZ    DO2             ;Repeat all five 
+091e dd 56 fb		            LD      D, (IX-5)       ;Save first position for later 
+0921			;ADD OBSTICLE ON SECOND SHIFT 
+0921 3a 05 0d		            LD      A, (SCREND)     ;Get previous segment 
+0924 b7			            OR      A               ;Is it Blank? 
+0925 28 03		            JR      Z, DO3          ;Yes, Add Obsticle 
+0927 af			            XOR     A               ;Make it Blank 
+0928 18 0e		            JR      DO5 
+092a			DO3: 
+092a ed 5f		            LD      A,R             ;Get Random Value 
+092c e6 03		            AND     03H             ;Get the last two bits 
+092e fe 03		            CP      03H             ;Is it Three? 
+0930 28 f8		            JR      Z, DO3          ;No, index is okay 
+0932			DO4: 
+0932 21 c3 09		            LD      HL, OBSTICLES   ;Link HL to obsticle table 
+0935 85			            ADD     A, L            ;Get the index 
+0936 6f			            LD      L, A            ;Save the index 
+0937 7e			            LD      A, (HL)         ;Get Obsticle  
+0938			DO5: 
+0938 32 05 0d		            LD      (SCREND), A     ;Add Obsticle/Blank 
+093b			;ADD PLAYER 
+093b 3a 08 0d		            LD      A, (PLAYPOS)    ;Get the player position 
+093e 21 c6 09		            LD      HL, PLAYER      ;Link HL to player table 
+0941 85			            ADD     A, L            ;Get the index 
+0942 6f			            LD      L, A            ;Save the index 
+0943 7e			            LD      A, (HL)         ;Get Player Segment 
+0944			;CHECK FOR COLLISION 
+0944 b2			            OR      D               ;Compare player verses obsticle 
+0945 ba			            CP      D               ;Is it the same as obsticle, 
+0946 28 51		            JR      Z, DO13         ;Yes, Its a Hit, Game Over 
+0948 32 00 0d		            LD      (SCREEN), A     ;Add Player to Screen. 
+094b			;UPDATE DISTANCE TRAVELLED 
+094b 21 06 0d		            LD      HL, DISTVL      ;Load HL with the TEN's of distance 
+094e 7e			            LD      A, (HL)         ;Get its value 
+094f 3c			            INC     A               ;Increase it by one 
+0950 27			            DAA                     ;Convert to BCD 
+0951 77			            LD      (HL),A          ;Save it back 
+0952 23			            INC     HL              ;Load HL with the Hundreds's of dist 
+0953 3e 00		            LD      A,00H           ;Set A to zero (maintain carry) 
+0955 8e			            ADC     A,(HL)          ;Add Hundreds with Carry 
+0956 27			            DAA                     ;Convert to BCD 
+0957 77			            LD      (HL),A          ;Save it back 
+0958			 
+0958 3a 0a 0d		            LD      A, (SPEED) 
+095b 3d			            DEC     A 
+095c 4f			            LD      C, A 
+095d 32 0a 0d		            LD      (SPEED), A 
+0960			 
+0960			;MULTIPLEX THE DISPLAY 
+0960			DO6: 
+0960 cd c9 09		            CALL    DOSCAN          ;Display the screen 
+0963			;MOVE PLAYER 
+0963			                                    ;Replace RST 20/NOP to LD A,I if JMON isn't used 
+0963 e7			            RST     20H             ;JMON No Wait Key handler  
+0964 00			            NOP                     ;Pad out for JMON only 
+0965			;            LD      A, I            ;Get Key (non JMON - Remove RST 20H and NOP) 
+0965 47			            LD      B, A 
+0966 fe ff		            CP      0FFH            ;If FF then no key hit, so Return 
+0968 20 06		            JR      NZ, DO10        ;Continue with game 
+096a af			            XOR     A               ;Zero A 
+096b 32 09 0d		            LD      (KEYPRE), A     ;Save in keypress as a no hit 
+096e			DO9: 
+096e 18 9b		            JR      GAME            ;Start Game loop 
+0970			DO10: 
+0970 3a 09 0d		            LD      A,(KEYPRE)      ;Get keypress flag 
+0973 b7			            OR      A               ;Is it zero 
+0974 20 f8		            JR      NZ, DO9         ;No, key needs to be released 
+0976 3d			            DEC     A               ;Set A to FF 
+0977 32 09 0d		            LD      (KEYPRE), A     ;Store in keypress flag 
+097a 78			            LD      A, B            ;Restore Key Pressed 
+097b fe 07		            CP      KEY_UP          ;Is key 'UP' 
+097d 20 09		            JR      NZ, DO11        ;No, Check Down Key 
+097f 3a 08 0d		            LD      A, (PLAYPOS)    ;Get Player Position 
+0982 b7			            OR      A               ;Is it at the top already? 
+0983 28 e9		            JR      Z, DO9          ;Ignore Key hit 
+0985 3d			            DEC     A               ;Move down one 
+0986 18 0c		            JR      DO12            ;Save Move and continue with game 
+0988			DO11: 
+0988 fe 04		            CP      KEY_DN          ;Is key 'DN' 
+098a 20 e2		            JR      NZ, DO9         ;No, Continue with game 
+098c 3a 08 0d		            LD      A, (PLAYPOS)    ;Get Player Position 
+098f fe 02		            CP      02H             ;Is it at the bottom already? 
+0991 28 db		            JR      Z, DO9          ;Ignore Key hit 
+0993 3c			            INC     A               ;Move down one 
+0994			DO12: 
+0994 32 08 0d		            LD      (PLAYPOS), A    ;Save new position 
+0997 18 d5		            JR      DO9             ;Continue with game 
+0999			 
+0999			;GAME OVER 
+0999			DO13: 
+0999 2a 06 0d		            LD      HL,(DISTVL)     ;Get Distanced Travelled 
+099c cd e4 09		            CALL    DOCON_HL        ;Convert to BCD and Display 
+099f			DO14: 
+099f 0e 20		            LD      C,20H           ;Sound Routine 
+09a1 69			            LD      L, C 
+09a2 af			            XOR     A 
+09a3			FS3: 
+09a3 d3 01		            OUT     (01),A 
+09a5 41			            LD      B,C 
+09a6 10 fe		FS4:        DJNZ    FS4 
+09a8 ee 80		            XOR     80H 
+09aa 2d			            DEC     L 
+09ab 20 f6		            JR      NZ,FS3 
+09ad			 
+09ad cd c9 09		            CALL    DOSCAN          ;Display the screen 
+09b0			                                    ;Replace RST 20/NOP to LD A,I if JMON isn't used 
+09b0 e7			            RST     20H             ;JMON No Wait Key handler  
+09b1 00			            NOP                     ;Pad out for JMON only 
+09b2			;            LD      A, I            ;Get Key (non JMON - Remove RST 20H and NOP) 
+09b2 fe 12		            CP      12H             ;GO Key 
+09b4 20 e9		            JR      NZ, DO14        ;Not GO, repeat Scan 
+09b6 c3 00 09		            JP      START 
+09b9			 
+09b9			;Hex to Seven Segment lookup table 
+09b9			DOSEGTBL:      
+09b9 eb 28 cd ad 2e a7 e7 29 ef 2f	            DB      0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,2FH 
+09c3			 
+09c3			OBSTICLES: 
+09c3 e4 0f 81		            DB      0E4H, 0FH, 81H   ;Rock Low, Rock High and Gap 
+09c6			PLAYER: 
+09c6 01 04 80		            DB      01H, 04H, 80H    ;Dash High, Medium and Low 
+09c9			             
+09c9			DOSCAN: 
+09c9 06 20		            LD      B, 20H          ;Segment Reference 
+09cb 21 00 0d		            LD      HL, SCREEN      ;Set HL to Display Buffer 
+09ce			DO7: 
+09ce 7e			            LD      A, (HL)         ;Get Segment Value at HL 
+09cf d3 02		            OUT     (02), A         ;Set on Segment 
+09d1 78			            LD      A, B            ;Get Segment reference 
+09d2 d3 01		            OUT     (01), A         ;Activate segment 
+09d4 06 80		            LD      B, 80H          ;Segment delay 
+09d6 10 fe		DO8:        DJNZ    DO8 
+09d8 23			            INC     HL              ;Move to next location 
+09d9 47			            LD      B, A            ;Save Segment reference 
+09da af			            XOR     A               ;Clear A 
+09db d3 01		            OUT     (01), A         ;Deactivate Segment 
+09dd cb 08		            RRC     B               ;Move Segment Reference on to the Right 
+09df 30 ed		            JR      NC, DO7         ;Scan next segment if more to do 
+09e1 d3 02		            OUT     (02), A         ;Clear port 2 
+09e3 c9			            RET 
+09e4			 
+09e4			;Convert HL and A to Seven Segment Display 
+09e4			DOCON_HL: 
+09e4 01 00 0d		            LD      BC,SCREEN           ;Location of display buffer 
+09e7 7c			            LD      A,H                 ;Get high byte of Address 
+09e8 cd ec 09		            CALL    DOCON_A               ;Convert A to Segment Hex 
+09eb 7d			            LD      A,L                 ;Get low byte of Address 
+09ec			DOCON_A: 
+09ec f5			            PUSH    AF                  ;Save A to keep original value 
+09ed 07			            RLCA                        ;Shift upper nibble to lower for masking 
+09ee 07			            RLCA 
+09ef 07			            RLCA 
+09f0 07			            RLCA 
+09f1 cd f5 09		            CALL    DOCON_NIBBLE          ;Convert Lower nibble to segment hex 
+09f4 f1			            POP     AF                  ;Restore A 
+09f5			 
+09f5			DOCON_NIBBLE: 
+09f5 e6 0f		            AND     0FH                 ;Only look at lower nibble for indexing 
+09f7 11 b9 09		            LD      DE,DOSEGTBL         ;Reference Segment convert table 
+09fa 83			            ADD     A,E                 ;Index table with A 
+09fb 5f			            LD      E,A                 ;Update DE with index 
+09fc 1a			            LD      A,(DE)              ;Look up table 
+09fd 02			            LD      (BC),A              ;Save it to display buffer 
+09fe 03			            INC     BC                  ;Increment buffer location 
+09ff c9			            RET 
+0a00			 
+# End of file Dodgy.z80
+0a00
