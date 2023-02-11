@@ -48,4 +48,4 @@ Folders in this repository may contain the author's software license, please rea
 * included contributions from bchiha in /magazine_code and /games 
 * Updated with Jim Robertson's enhanced and comprehensive JMON monitor ROM
 and also the Utilities / Disassembler ROM also written by Jim in collaboration with Mike Donaghy
-* Mentioned direct GitHub link for managines
+* Mentioned direct GitHub link for magazines
