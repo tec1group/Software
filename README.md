@@ -15,13 +15,15 @@ https://github.com/tec1group/TE-Magazines
 - http://www.talkingelectronics.com/TE-1-15_pdfs/TE-Issue14.pdf
 - http://www.talkingelectronics.com/TE-1-15_pdfs/TE-Issue15.pdf
 
-After that you should sharpen your Z80 skills. Zaks has been already mentioned. There are plenty of good books that are available for free online although a physical paper book is still better to read. Here is the book I learned on https://archive.org/.../The_Z80_microcomputer_handbook...? (need more on books and resources)
+After that you should sharpen your Z80 skills. "Programming the Z80 by Rodney Zaks" is one of the better general references http://www.z80.info/zip/zaks_book.pdf
 
-You need a ready reference of Z80 instructions.
+There are in fact plenty of good books that are available for free online although a physical paper book is still better to read. http://www.z80.info/ is a good place to start.
+
+You will need a ready reference of Z80 instructions.
 http://www.z80.info/z80inst.txt (need more on useful Z80 resources)
 
 You need access to an assembler because hand assembly is too much work. Here is an online one which I use a lot
-https://www.asm80.com/ (need more on TASM and other popular assemblers and tools)
+https://www.asm80.com/ (need more on TASM and other popular assemblers and tools). 
 
 You need an actual TEC-1 kit running a monitor program. There are a few versions: Mon 1, Mon 2 (written by Ken Stone) and JMon (written. by Jim Robertson). Mon 1 is the ROM used by the early magazine articles, it has a few games and tunes. Mon 2 fixes some of the issues with Mon 1 and adds some useful functions for inserting code etc. JMon is the most comprehensive and contains additional features for debugging code. (links to binaries for ROMs, or add to this repo)
 
