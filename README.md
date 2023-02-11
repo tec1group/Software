@@ -6,6 +6,8 @@ A repository for programs written for the TEC-1 and links to other TEC-1 softwar
 
 The best place to start is to read the original magazine articles that accompanied the kit in 1983. Talking Electronics was a magazine which Ken Stone and John Hardy designed the TEC-1 for publication in, the coverage starts in volume 10 and has stuff about the TEC for 6 issues.
 
+https://github.com/tec1group/TE-Magazines
+
 - http://www.talkingelectronics.com/TE-1-15_pdfs/TE-Issue10.pdf
 - http://www.talkingelectronics.com/TE-1-15_pdfs/TE-Issue11.pdf
 - http://www.talkingelectronics.com/TE-1-15_pdfs/TE-Issue12.pdf
@@ -44,4 +46,4 @@ Folders in this repository may contain the author's software license, please rea
 * included contributions from bchiha in /magazine_code and /games 
 * Updated with Jim Robertson's enhanced and comprehensive JMON monitor ROM
 and also the Utilities / Disassembler ROM also written by Jim in collaboration with Mike Donaghy
-
+* Mentioned direct GitHub link for managines
