@@ -3,15 +3,19 @@
 
 ; Note: This file was updated so I can place it in any memory location.  This is for the BMON project.
 ; For Full annotation please look at the PDF "disassembler_listing.pdf"
+;
+; Edits by Craig Hart: removed junk code
+; fixed two remaining fixed memory references; code can now run anywhere in address apce
+; Update to add IN (xx),A and OUT (xx),A brackets
+; Update to add "," in CALL/JP/JR <flag> opcodes
+; Optimze by removing code such as JP => JP => dest.
+; 
 
 ; Local Variables
 DISFROM:    EQU     08C0H ;Dis String Start
 DISMID:     EQU     08D2H ;Dis Second Line
 DISEND:     EQU     08A0H ;Dis String End
 DISFLAG:    EQU     08A2H ;Dis Flag for HL,IX,IY
-
-TBL_PAGE:   EQU     0x37  ;Page of code where lookup tables start.  Change this to the last MSB of
-                          ;the binary file.  IE: if ORG is 3000H, make this 0x37
 
 ; JMON Perimeter Varables
 PERMJMP:    EQU     0044H ;Perimeter Entry Call
@@ -34,7 +38,12 @@ DIS_START:
             CALL    L0x318A 
             LD      B,0x20 
             CALL    L0x31B9 
-            LD      A,0xC5 
+            
+            LD      HL,DISFROM                ; patch to FIX absoute memory addressing
+            LD      BC,5
+            ADD     HL,BC
+            LD      A,L              
+            
             LD      (DISEND),A 
             POP     HL 
             LD      A,(HL) 
@@ -47,8 +56,11 @@ DIS_START:
             LD      C,(HL) 
             LD      A,(HL) 
             CALL    NC,L0x340E 
-L0x302E:             
-            JP      L0x359E 
+L0x302E:             				; why JP to this code; just do it here?
+	    LD	    HL,(PERFROM)
+	    INC	    HL
+	    LD	    (PERFROM),HL
+	    RET
 L0x3031:             
             CP      0x40 
             JR      C,L0x304D 
@@ -98,7 +110,7 @@ L0x3073:
             ADD     A,C 
             ADD     A,C 
             ADD     A,C 
-            CALL    L0x3207 
+            CALL    L0x3153 
             CALL    L0x3086 
             JR      L0x3092 
 L0x3086:             
@@ -125,7 +137,7 @@ L0x30A4:
             ADD     A,C 
             ADD     A,C 
             ADD     A,C 
-            CALL    L0x3207 
+            CALL    L0x3153 
             POP     AF 
             LD      C,A 
             JR      L0x3106 
@@ -141,7 +153,7 @@ L0x30B0:
             LD      B,0xB9 
 L0x30C1:             
             LD      A,B 
-            CALL    L0x3207 
+            CALL    L0x3153 
             POP     AF 
             AND     0x3F 
             CALL    L0x31AC 
@@ -233,10 +245,11 @@ L0x3145:
             SCF      
             RET      
 L0x3153:             
-            LD      H,TBL_PAGE
-            LD      L,A 
-            LD      DE,0xFE9E 
-            ADD     HL,DE 
+            LD      HL,TBL_OPS                         ; patch to FIX absolute memory addressing
+            SUB     82h
+            LD      E,A
+            LD      D,0
+            ADD     HL,DE
             EX      DE,HL 
             JR      L0x3169 
 L0x315D:             
@@ -353,8 +366,7 @@ L0x31FF:
             CALL    L0x31C6 
             JP      L0x315D 
 L0x3205:             
-            LD      A,0x83    
-L0x3207:             
+            LD      A,0x83
             JP      L0x3153    
 L0x320A:             
             LD      A,C 
@@ -475,7 +487,7 @@ L0x32E3:
             CALL    L0x3055 
             LD      A,0xBC 
 L0x32E8:             
-            JP      L0x3207 
+            JP      L0x3153 
 L0x32EB:             
             CP      0x0B 
             JR      NZ,L0x32FB 
@@ -521,16 +533,8 @@ L0x3332:
             LD      B,0x02 
             CALL    L0x31FF 
             POP     AF 
-            CALL    L0x3207 
-            JP      L0x35F3 
-            INC     HL 
-            LD      (DISEND),HL 
-            RET      
-            LD      (HL),0x41 
-            INC     HL 
-            LD      (HL),0x46 
-            INC     HL 
-            RET      
+            CALL    L0x3153 
+            JP      L0x35F3   
 L0x334B:             
             CP      0x18 
             JR      NZ,L0x3353 
@@ -546,10 +550,28 @@ L0x3353:
             LD      B,0x02 
             CALL    L0x31FF 
             LD      A,0xD5 
-            CALL    L0x3207 
+            CALL    L0x3153 
             POP     AF 
             CALL    L0x336C 
-            JP      L0x35F3 
+	    CALL    fixcomma
+            JP      L0x35F3
+	    
+fixcomma:					; comma fix for JP/JR <flag>, xxx
+	push hl
+	push af
+	ld hl,(DISEND)
+	dec hl
+	LD a,02ch				; ","
+	ld (hl),a
+	inc hl
+	LD a,020h				; " "
+	ld (hl),a
+	inc hl
+	ld (DISEND),hl
+	pop af
+	pop hl
+	ret	    
+ 
 L0x336C:             
             AND     0x18 
 L0x336E:             
@@ -558,17 +580,14 @@ L0x336E:
             RRA      
             ADD     A,A 
             ADD     A,0xDD 
-            JP      L0x3207 
+            JP      L0x3153 
 L0x3377:             
             LD      A,C 
             CP      0xC3 
             JR      Z,L0x3391 
             CP      0xCD 
             JR      Z,L0x338D 
-            CP      0xC9 
-            JR      NZ,L0x33A7 
-            LD      A,0xE5 
-            JP      L0x3511 
+            JR      L0x33A7
 L0x3389:             
             AND     0x38 
             JR      L0x336E 
@@ -584,7 +603,7 @@ L0x3393:
             POP     AF 
             CP      0xA6 
             JR      NZ,L0x33A1 
-            JP      L0x3207 
+            JP      L0x3153 
 L0x33A1:             
             CALL    L0x32E8 
             JP      L0x3221 
@@ -616,7 +635,8 @@ L0x33C5:
 L0x33CE:             
             LD      B,0x03 
             CALL    L0x33B8 
-            JP      L0x3221 
+            CALL    fixcomma
+	    JP      L0x3221 
 L0x33D6:             
             CP      0xC2 
             JR      NZ,L0x33DE 
@@ -679,7 +699,7 @@ L0x3421:
             ADD     A,C 
             ADD     A,C 
             ADD     A,C 
-            CALL    L0x3207 
+            CALL    L0x3153 
 L0x3439:             
             CALL    L0x3086 
             POP     BC 
@@ -718,7 +738,7 @@ L0x3475:
             JR      NZ,L0x3496 
             PUSH    BC 
             LD      A,0xF0 
-            CALL    L0x3207 
+            CALL    L0x3153 
             POP     BC 
             LD      A,C 
             CALL    L0x31AC 
@@ -734,7 +754,7 @@ L0x3496:
             JR      NZ,L0x34AF 
             PUSH    BC 
             LD      A,0xED 
-            CALL    L0x3207 
+            CALL    L0x3153 
             CALL    L0x348E 
             CALL    L0x3164 
             POP     BC 
@@ -750,11 +770,11 @@ L0x34AF:
             BIT     3,A 
             JR      NZ,L0x34C0 
             LD      A,0x8F 
-            CALL    L0x3207 
+            CALL    L0x3153 
             JR      L0x34C5 
 L0x34C0:             
             LD      A,0x89 
-            CALL    L0x3207 
+            CALL    L0x3153 
 L0x34C5:             
             CALL    L0x32A4 
             CALL    L0x3164 
@@ -785,17 +805,26 @@ L0x34F7:
             LD      B,0x02 
             JR      L0x3513 
 L0x34FB:             
-            LD      HL,(PERFROM) 
-            LD      A,(HL) 
-            JP      L0x3191 
+	    ld hl,(DISEND)			; re-write to add () to IN/OUT (xx),A
+	    LD a,028h				; "("
+	    ld (hl),a
+	    inc hl
+	    ld (DISEND),hl
+	    call L0x324D
+	    ld hl,(DISEND)
+	    LD a,029h				; ")"
+	    ld (hl),a
+	    inc hl
+	    ld (DISEND),hl
+	    ret
 L0x3502:             
             CP      0xDB 
             JR      NZ,L0x354B 
             LD      A,0xF0 
             CALL    L0x34F7 
             LD      C,0x00 
-            PUSH    BC 
-            JP      L0x3439 
+            call L0x3086			; optimization, skips push/pop not needed
+	    jp L0x34FB
 L0x3511:             
             LD      B,0x01 
 L0x3513:             
@@ -803,7 +832,7 @@ L0x3513:
             CALL    L0x31FF 
             POP     AF 
             OR      A 
-            JP      NZ,L0x3207 
+            JP      NZ,L0x3153 
             RET      
 L0x351D:             
             LD      B,0x13 
@@ -888,11 +917,6 @@ L0x3593:
             DEC     HL 
             LD      (PERFROM),HL 
             CALL    L0x3106 
-L0x359E:             
-            LD      HL,(PERFROM) 
-            INC     HL 
-            LD      (PERFROM),HL 
-            RET      
 L0x35A6:             
             RRA      
             RRA      
@@ -1140,6 +1164,4 @@ TBL_PERM:
             DB      0xFF,0xFF 
             DB      0x04,0xA7 ; "-S" ;START ADDRESS
             DB      0x04,0xC7 ;"-E" ;END ADDRESS
-
-            DB      0xC9,0xC9,0x06,0x06,0xE6 
 
