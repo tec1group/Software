@@ -41,10 +41,9 @@ DIS_START:
             
             LD      HL,DISFROM                ; patch to FIX absoute memory addressing
             LD      BC,5
-            ADD     HL,BC
-            LD      A,L              
+            ADD     HL,BC       
             
-            LD      (DISEND),A 
+            LD      (DISEND),HL
             POP     HL 
             LD      A,(HL) 
             PUSH    HL 
