@@ -1,0 +1,201 @@
+MON 2 for TEC computers.
+Functions of the Keys.
+ADDRESS key changes between address input and data input modes. The mode is indicated by the dot positions on the display. If the TEC-1 is in the data mode the dots on the data displays will light. If it is in the address mode the dots on the address display will light.
+
+GO key runs the program from the address currently being displayed. It does NOT change from address mode to data mode as in the old MON-1 series.
+
+- key decrements the address currently being displayed. It also sets the display to DATA mode.
+
++ key increments the address currently being displayed. It also sets the display to DATA mode.
+
+Shift functions. See issue 13 of Talking Electronics.
+
+RESET saves the Z80 registers for review as follows:
+08E8 Stack pointer LSB
+08E9 Stack pointer MSB
+08EA
+08EB I
+08EC L'
+08ED H'
+08EE E'
+08EF D'
+08F0 C'
+38F1 B'
+08F2 F'
+08F3 A'
+08F4 IY LSB
+08F5 IY MSB
+08F6 IX LSB
+08F7 IX MSB
+08F8 L
+08F9 H
+08FA E
+08FB D
+08FC C
+38FD B
+08FE F
+08FF A
+
+RESTARTS
+C7 Resets computer.
+CF Jumps to the address held in RAM locations 08C0, 08C1
+D7 Jumps to the address held in RAM locations 08C2, 08C3
+DF Jumps to the address held in RAM locations 08C4, 08C5
+E7 Jumps to the address held in RAM locations 08C6, 08C7
+EF Jumps to the address held in RAM locations 08C8, 08C9
+F7 Jumps to the address held in RAM locations 08CA, 08CB
+FF Jumps to the address held in RAM locations 08CC, 08CD
+
+The FF RESTART is also used by the INT function. Memory pair 08CC, 08CD are cleared to 00,00 every time the computer is reset. If your program uses this RESTART, it will need to program this pair of memory locations each time it is run.
+
+The <Editor Address> is the location pointed to by the address displayed on the four left 7 segment displays.
+_________________
+
+TONE routine. 0170
+
+This routine produces a tone of a fixed duration when called. The frequency of the tone is dependant on the value in the Accumulator at the time the routine is called. The values are limited to 00 to 31 hex, where 00 Is a silence and 31 is the highest pitch. The tones are pitched at 1 semitone intervals over the lower two octaves, but become detuned over the rest of the range. This routine is transparent (registers are preserved).
+
+To use from within a program:
+-Load A with value (00 to 31)
+-Call 0170
+_________________
+
+MUSIC routine. 01A0
+
+This routine plays music stored in Memory. No limit to the length of the music is set, other than memory size. lt uses the 0170 routine. For notes longer than one count, use several tones end-to-end. This routine is transparent.
+The end of the tune is indicated by putting FF as the last byte in your music table.
+Alternately, if FE is put at the end of the table, the music will repeat. The only way to exit from the continuous loop is to reset the computer.
+
+To use:
+-The start location of the music table is placed in locations 08D6,08D7, low byte first.   (Check these locations with source) #########
+-Call 01A0
+_________________
+
+DISPLAY subroutine 02A0
+
+This program makes a single pass of the multiplexed display, using the data held In the display buffer as shown below. To maintain the display, this routine must be called repeatedly. While not of great use by itself, it can be repeatedly called while the program is waiting for an input, or it can be used as a delay element.
+For a subroutine that maintains the display for a longer period, see MULTIPASS DISPLAY subroutine 01D8
+
+          Editor  Adress                   Data
+------------------------------------    ------------------
+|       ||       ||       ||       |    |       ||       |
+|       ||       ||       ||       |    |       ||       |
+|       ||       ||       ||       |    |       ||       |
+------------------------------------    ------------------
+ 08D8 	08D9  	 08DA 	   08DB      	08DC 	08DD
+
+08DF contains Dot/DP position data:
+Bit 1 = Data mode
+Bit 2 = Address mode
+Bit 3 =  (hand written note lacks clarity)   ###################
+Bit 4 =  (hand written note lacks clarity)   ###################
+Clear the byte to remove the dots from the display.
+
+The routine takes the hex value from the display buffer and converts it to seven segment data using a subroutine at 0350. The display buffer can only be loaded via software as it is used by the monitor program. Any attempt to enter data in these locations via the keyboard will result in them immediately being overwritten.
+
+To use: Load 08D8 to 08DD with data values corresponding to the numbers or letters required then call 02A0. Some letters are strange because they cannot be represented correctly with only seven segments.
+
+For character assignment, please see the table below.
+
+_________________
+
+MULTIPASS DISPLAY subroutine 01D8
+
+This scans the LED display 128 (80h) times (about second at the fast variable clock speed). The subroutine is transparent. It makes use of the 02A0 DISPLAY subroutine, so all set-up programming is identical. To activate it, 01D8 Is called instead of 02A0 as used for a single pass of the display.
+_________________
+
+RUNNING WRITING 03D8
+This program in very similar to the music routine in the way it Is used. The pointer to the data to be displayed put at location pair 08D0, 08D1.
+Both end commands FE and FF have the same effect as in the MUSIC routine. The end of the block of text is indicated by putting FF as the last byte in your data table.
+Alternately, if FE is put at the end of the table, the text will repeat until the computer is reset.
+
+The over all effect Is very similar to the running writing in the old MON I. Try displaying the Data table at 00C0.
+
+Table of displayable characters and corresponding hex values (0 to F directly map to their hexadecimal equivalents):
+00 0
+01 1
+02 2
+03 3
+04 4
+05 5
+06 6
+07 7
+08 8
+09 9
+0A A
+0B B
+0C C
+0D D
+0E E
+0F F
+10 G
+11 H
+12 I
+13 J
+14 K
+15 L
+16 M
+17 N
+18 O
+19 P
+1A Q
+1B R
+1C S
+1D T
+1E U
+1F V
+20 W
+21 X
+22 Y
+23 Z
+24 .
+25 '
+26 !
+27-
+28 +
+29 [space]
+
+__________________________________
+
+The following subroutines are not "user" programs, but may be of some use to programmers who would like to extend the functionality of the monitor itself.
+
+
+
+Further information concerning DISPLAY subroutine 02A0
+
+          Editor  Adress                   Data
+----------------------------    --------------
+|       ||       ||       ||       |    |       ||       |
+|       ||       ||       ||       |    |       ||       |
+|       ||       ||       ||       |    |       ||       |
+----------------------------    --------------
+ 08D8 08D9  08DA 08DB      08DC 08DD
+
+For ease of displaying the Editor Address and Data values on the LED display, the hex values of the three bytes ( 2 for address, 1 for data ) are broken into six nibbles and put into the display buffer as shown above. This is the only place in the memory that the current Editor Address is stored.
+
+_________________
+GetEditorAddress  0289
+
+The address used by editor (Editor Address) and shown on the 7 segment display is stored in one location only, to prevent a situation where dislayed address and real address could differ. In a trade off in processing time, it was more efficient to store the address in the optimal form for the display routine. As such it needs converting to and from this format when used by the monitor program.
+The chosen location is the display buffer, where the address is broken into nibbles and spread across four bytes, 08D8, 08D9, 08DA, 08DB, MSN to LSN. GetEditorAddress is used to retrieve this address.
+The data held here is only valid while the monitor program is running. As soon as something else is written to the display it is lost. Resetting the computer restores it to the default 0900h.
+
+GetEditorAddress, when called, loads BC with the address currently held In the display buffer. It also loads A with the data held at the location addressed by BC.
+
+E.G. If the LED display shows 0900 CD, calling 0289 will load BC with 0900 (B is the MSB) and loads A with CD. This routine is not transparent. HL is destroyed. BC and A hold the results. If this routine is called during a user program that is not an extension to the monitor, the result will have no meaning.
+_________________
+
+GetAddressedData 0270
+GetAddressedData loads the last two bytes of the dusplay buffer (08DC 08DD), with the value of the data being pointed to by the current editor address.
+
+SetEditorAddress  0490
+SetEditorAddress is the opposite of the GetEditorAddress 0289 routine. It loads the display buffer with the value held in BC. This routine is transparent.
+
+Hex2SevenSeg 0350
+Hex2SevenSeg converts the Hex value (0 to29) into the corresponding seven-segment data. It is part of the display routine. HL is destroyed, DE is incremented, A is converted from the value to its 7 segment form.
+
+Keyboard routine differences between MON1x and MON2
+
+KeyData location 08E0
+In MON2, the data from the Keyboard is not held in the I register. The A register is also unaffected. This means that programs designed for MON1 that use the keyboard will require modification.
+In MON2, the key data is stored at address 08E0. An FF at the location will indicate that it has been cleared in preparation for the next keystroke. If a  user program is using the key function, it will need to set the location FF after reading it.  (definitely requires checking #################)
