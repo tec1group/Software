@@ -1,4 +1,4 @@
-# Moniter 3 for the TEC-1G
+# Monitor 3 for the TEC-1G
 
 Here are the latest binaries for Monitor 3 for the TEC-1G.  The binaries are labeled with the version number.  The latest version is v1.5
 
