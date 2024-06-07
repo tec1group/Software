@@ -1,0 +1,3529 @@
+; MONITOR 3 for the TEC-1G
+; ------------------------
+;  _______ ______ _____     __  _____   __  __  ____  _   _ ____
+; |__   __|  ____/ ____|   /_ |/ ____| |  \/  |/ __ \| \ | |___ \
+;    | |  | |__ | |   ______| | |  __  | \  / | |  | |  \| | __) |
+;    | |  |  __|| |  |______| | | |_ | | |\/| | |  | | . ` ||__ <
+;    | |  | |___| |____     | | |__| | | |  | | |__| | |\  |___) |
+;    |_|  |______\_____|    |_|\_____| |_|  |_|\____/|_| \_|____/
+;                 Coding by Brian Chiha, Oct-2023
+;
+; With help from Craig Hart, Mark Jelic, Ian McLean and James Elphick
+;
+; Constants
+; ---------
+; Ports
+KEYB:       .equ    00H         ;Keyboard
+DIGITS:     .equ    01H         ;Seven Segment Digits
+SEGS:       .equ    02H         ;Seven Segment Display
+SYS_INPUT:  .equ    03H         ;System Input
+LCD_INST:   .equ    04H         ;LCD Instruction
+LCD_DATA:   .equ    84H         ;LCD Data
+LED8X8H:    .equ    05H         ;LED 8x8 Horizontal
+LED8X8V:    .equ    06H         ;LED 8x8 Vertical
+GLCD_INST:  .equ    07H         ;Graphics LCD Instruction
+GLCD_DATA:  .equ    87H         ;Graphics LCD Data
+SDIO:       .equ    0FDH        ;SD Card IO
+MATRIX:     .equ    0FEH        ;QWERTY Keyboard Matrix
+SYS_CTRL:   .equ    0FFH        ;System Control
+
+; SYSCTRL  port bits
+SHADOW:     .equ    01H         ;Shadow ROM
+PROTECT:    .equ    02H         ;Memory Protect
+EXPAND:     .equ    04H         ;Expand
+CART:       .equ    10H         ;Cartridge
+CAPSLOCK:   .equ    80H         ;Caps lock for Keyboard
+
+; Monitor Control Bit
+;MCB = Bits 0,1 = Data Nibbles Entered
+;      Bit 2 = Address=H/Data=L mode
+;      Bit 3 = LCD=H/Segment=L mode
+;      Bit 4 = Disassembler View=H/Data Entry View=L mode (for segment mode only)
+;      Bit 5 = Menu=L/Parameter=H Format for Menu handler (for LCD mode only)
+;      Bit 6 = RTC Add-On Present=H
+;      Bit 7 = SD Card Add-On Present=H (not implemented yet)
+MCB_AD_DATA .equ    04H         ;Address=H/Data=L mode
+MCB_LCD_SEG .equ    08H         ;LCD=H/Segment=L mode
+MCB_DIS_DE  .equ    10H         ;Disassembler View=H/Data Entry View=L mode
+MCB_MEN_PAR .equ    20H         ;Menu=L/Parameter=H Format for Menu handler
+MCB_RTC     .equ    40H         ;RTC Add-On Present=H
+MCB_SD_CARD .equ    80H         ;SD Card Add-On Present=H
+
+; Serial Constants Delay
+BAUD:       .equ    1BH         ;BAUD 4800 Delay
+;BAUD:       .equ    0BH         ;BAUD 9600 Delay
+CR:         .equ    0DH         ;Carriage Return
+LF:         .equ    0AH         ;Line Feed
+SPACE:      .equ    " "         ;Space
+COLON:      .equ    ":"         ;Colon
+
+; Keyboard reference
+K_FN:       .equ    02H         ;Fn key on Keyboard Matrix
+K_PLUS:     .equ    10H         ;+ Key
+K_MINUS:    .equ    11H         ;- Key
+K_GO:       .equ    12H         ;GO Key
+K_ADDR:     .equ    13H         ;Address Key
+
+; Constants
+KEY_SPEED:  .equ    20H         ;Speed of auto repeat press (lower=faster)
+USER_ADDR:  .equ    4000H       ;User starting address
+BASE_ADDR:  .equ    0C000H      ;Start Address of monitor
+LCD_ROW1:   .equ    80H         ;LCD Row 1, Column 1
+LCD_ROW2:   .equ    0C0H        ;LCD Row 2, Column 1
+LCD_ROW3:   .equ    94H         ;LCD Row 3, Column 1
+LCD_ROW4:   .equ    0D4H        ;LCD Row 4, Column 1
+MENU_PTR:   .equ    7EH         ;LCD Right Arrow
+
+; RAM Locations
+MON_RAM:    .equ    0800H       ;Monitor RAM start
+STACK_SIZE: .equ    80H         ;128 Bytes
+STACK_TOP:  .equ    MON_RAM+STACK_SIZE
+TOP_RAM:    .equ    7FFFH       ;Highest RAM location (no expansion)
+
+ROMSIG:     .equ    MON_RAM         ;16 byte buffer holding the ROM signature; used for cold start detection
+
+; Monitor Configuration and display data
+DISP_BUFF:  .equ    STACK_TOP       ;Display Buffer for Segments
+DISP_DATA:  .equ    STACK_TOP+4     ;Display Buffer Data for Segments
+CEL:        .equ    STACK_TOP+6     ;Current Editing location
+MCB:        .equ    STACK_TOP+8     ;Monitor Control Byte
+KEY_BUFF:   .equ    STACK_TOP+9     ;Keypress Buffer
+KEY_PRESS:  .equ    STACK_TOP+10    ;Keypress Flag
+KEY_AUTO:   .equ    STACK_TOP+11    ;Key Auto Increment Flag
+KEY_REPEAT: .equ    STACK_TOP+12    ;Key Auto Repeat timer
+KEY_BEEP:   .equ    STACK_TOP+13    ;Keypress Beep flag
+KEY_SECOND: .equ    STACK_TOP+14    ;Matrix Keyboard second key Buffer
+GLCD_TERM:  .equ    STACK_TOP+15    ;GLCD Terminal Enable Flag
+DIS_ADDR:   .equ    STACK_TOP+16    ;Base Disassembler/Editing address
+USER_INT:   .equ    STACK_TOP+18    ;User defined INT routine
+USER_NMI:   .equ    STACK_TOP+20    ;User defined NMI routine
+MENU_POS:   .equ    STACK_TOP+22    ;Menu listing position
+MENU_SEL:   .equ    STACK_TOP+23    ;Menu pointer seletion
+MENU_CNT:   .equ    STACK_TOP+24    ;Menu listing count
+MENU_CFG:   .equ    STACK_TOP+25    ;Menu configuration address
+MENU_IDX:   .equ    STACK_TOP+27    ;Menu depth index
+CAPS_LOCK:  .equ    STACK_TOP+28    ;Caps Lock Flag
+SYS_MODE:   .equ    STACK_TOP+29    ;SYS_CTRL current monitor state
+PROT_MODE:  .equ    STACK_TOP+30    ;Use Protect at GO
+XPND_MODE:  .equ    STACK_TOP+31    ;Expand Mode
+
+; Free Monitor RAM area for specific functions (08A0H).  Areas can overlap
+MON_FRAM:   .equ    STACK_TOP+32    ;Free Monitor RAM Starts Here
+
+; Parameter Base Address.  All parameters are two bytes long from this address
+PARAM_DATA  .equ    MON_FRAM+32     ;Start of Parameter storage (08C0H)
+
+; ASCII string for data entry area  ;IE "4000: 23 34 45 56 78"
+DATA_BASE:  .equ    MON_FRAM        ;Base address for Data view (08A0H)
+DATA_ROW:   .equ    DATA_BASE+96    ;Start of ASCII data entry string (0900H)
+
+; Current Editing Location Quick Jump locations
+CEL_QJMP:   .equ    MON_FRAM+2      ;Location 1,2, and 3 (08A2H,08A4H,08A6H)
+
+; Menu depth pointers to remember nested menus
+MENU_CFG_D: .equ    MON_FRAM+8      ;Menu Config. depth (08A8H,08AAH,08ACH,08AEH) 
+
+; RNG Seed
+RNG_SEED:   .equ    MON_FRAM+16     ;Random Number Seed (08B0H)
+
+; RAM for Smart Copy
+COPY_START: .equ    PARAM_DATA      ;Start (08C0H)
+COPY_END:   .equ    COPY_START+2    ;End
+COPY_DEST:  .equ    COPY_START+4    ;Destination
+COPY_PTR:   .equ    COPY_START+6    ;Pointer
+COPY_EBLK:  .equ    COPY_START+8    ;End Block
+COPY_CORR:  .equ    COPY_START+10   ;Correction
+REST_START: .equ    COPY_START+12   ;Restore Start
+REST_END:   .equ    COPY_START+14   ;Restore End
+REST_DEST:  .equ    COPY_START+16   ;Restore Destination
+TEMP_START: .equ    COPY_START+18   ;Temporaly Start
+TEMP_END:   .equ    COPY_START+20   ;Temporaly End
+TEMP_DEST:  .equ    COPY_START+22   ;Temporaly Destination
+
+; RAM for To/From Addresses
+DATA_FROM:  .equ    PARAM_DATA      ;From (08C0H)
+DATA_TO:    .equ    DATA_FROM+2     ;To
+
+; Breakpoint regsiter save area.
+BP_BASE_SP: .equ    MON_FRAM+96     ;Start of Register save area (0900H)   
+BP_HL:      .equ    BP_BASE_SP+2    ;HL position in BP stack
+BP_REGS:    .equ    BP_BASE_SP+20   ;Top of Stack (Goes down towards MON_RAM)
+BP_PC:      .equ    BP_BASE_SP+20   ;Calling Program Counter
+BP_ORIG_SP: .equ    BP_BASE_SP+22   ;Original hardware stack pointer
+BP_LCD:     .equ    BP_BASE_SP+24   ;LCD Screen Buffer (20x4 or 80 bytes)
+
+; -----------------------------------------------------------------------------
+; CODE start here, with code running at 0000H
+; -----------------------------------------------------------------------------
+
+        .org BASE_ADDR
+boot:
+        jp preInit
+
+        .org BASE_ADDR+08H
+rst08:  ;Key Read and Wait for key release.  (Halt simulation)
+        ;Output: A = Key pressed
+        jp scanKeysWait     ;Wait and Scan key routine
+
+        .org BASE_ADDR+10H
+rst10:  ;API Call Entry
+        jp APICall-BASE_ADDR ;API Call routine
+
+        .org BASE_ADDR+18H
+rst18:  ;API Call 2 Entry
+        jp APICall2-BASE_ADDR ;API Call 2 routine
+
+        .org BASE_ADDR+20H
+rst20:  ;Scan Segments and Keyboard.  Must be called constantly
+        ;Input: DE = Pointer to LCD Segment code (Must be 6 bytes)
+        ;Output: A = Key pressed if Zero flag is set
+        call scanSegments   ;Multiplex the seven segments
+        call scanKeys       ;Scan for key press
+
+        .org BASE_ADDR+28H
+rst28:  ;LCD Busy
+        push af             ;save af
+busyLoop:
+        in a,(LCD_INST)     ;Read status bit on LCD
+        rlca                ;put bit 7 (status) in carry
+        jr c,busyLoop       ;loop if LCD is busy
+        pop af              ;restore af
+        ret
+
+        .org BASE_ADDR+30H
+rst30:  ;Breakpoint Entry
+        ex (sp), hl         ;get return address
+        ld (BP_PC),hl       ;save it
+        ex (sp), hl         ;fix stack
+        jp breakPoint
+
+        .org BASE_ADDR+38H
+rst38:
+        push hl             ;save HL
+        ld hl,(USER_INT)    ;get address at USER_INT
+        ex (sp),hl          ;restore HL and put INT routine on stack
+        ret
+
+        .org BASE_ADDR+40H
+;API Call Routine
+; Input:   A = Function index
+;          BC, DE, HL = Parameters if needed
+; Corrupt: IX
+APICall2:
+        cp API_COUNT2/2 ;Adjust for real count
+        jr c,APIGood2
+        jp displayError     ;exit with Error Message
+APIGood2:
+        push bc             ;save BC
+        push hl             ;save HL
+        ld hl,APITable2  ;API Funciton Table
+        add a,a             ;double it
+        ld c,a              ;store index in
+        ld b,0              ;bc
+        add hl,bc           ;index table
+        ld a,(hl)           ;store jump
+        inc hl              ;address
+        ld h,(hl)           ;back into
+        ld l,a              ;HL
+        push hl             ;IX = HL
+        pop ix
+        pop hl              ;restore HL
+        pop bc              ;restore BC
+        jp (ix)             ;Jump to API Routine
+
+        .org BASE_ADDR+66H
+NMI:
+        push hl             ;save HL
+        ld hl,(USER_NMI)    ;get address at USER_NMI
+        ex (sp),hl          ;restore HL and put INT routine on stack
+        ret
+
+        .org BASE_ADDR+70H
+;API Call Routine
+; Input:   C = Function index
+;          A, B, DE, HL = Parameters if needed
+; Corrupt: IX
+APICall:
+        push af             ;save AF
+        ld a,c              ;Check index is within range
+        cp API_COUNT/2      ;Adjust for real count
+        jr c,APIGood
+        pop af              ;restore AF
+        jp displayError     ;exit with Error Message
+APIGood:
+        push bc             ;save BC
+        push hl             ;save HL
+        ld hl,APITable      ;API Funciton Table
+        add a,a             ;double it
+        ld c,a              ;store index in
+        ld b,0              ;bc
+        add hl,bc           ;index table
+        ld a,(hl)           ;store jump
+        inc hl              ;address
+        ld h,(hl)           ;back into
+        ld l,a              ;HL
+        push hl             ;IX = HL
+        pop ix
+        pop hl              ;restore HL
+        pop bc              ;restore BC
+        pop af              ;restore AF
+        jp (ix)             ;Jump to API Routine
+
+; Restart Handler (temp)
+restartHandle:
+        ret
+
+;Interrupt Handler Stub (just return)
+INTHandler:
+        reti                ;Exit cleanly
+
+;NMI Handler Stub (just return)
+NMIHandler:
+        retn                ;Exit cleanly
+
+
+; -----------------------------------------------------------------------------
+; CODE running in ROM proper, at C000H upwards
+; -----------------------------------------------------------------------------
+
+        .org BASE_ADDR+100H
+
+preInit:
+        ld sp,STACK_TOP     ;Set the Hardware Stack to top of stack in RAM
+        ld hl,4000H         ;Long delay to ensure reset of latches are complete
+        call timeDelay
+        xor a               ;Blank the 8x8 display to prevent LED burnout
+        out (LED8X8H),a        
+        out (LED8X8V),a
+        ld a,05H            ;Set SD Card to Idle; turns off activity LED
+        out (SDIO),a
+        in a,(SYS_INPUT)    ;Check for CART presence
+        ld b,a
+        and CART            ;Check bit 4
+        jp nz,08000H        ;Launch CARTridge code if CART present
+        ld a,b              ;Honor PROTECT bit
+        and PROTECT
+        ld (PROT_MODE),a
+        ld a,(XPND_MODE)
+        and EXPAND
+        ld c,a
+        ld a,(CAPS_LOCK)
+        and CAPSLOCK
+        add a,c
+        ld b,SHADOW         ;Force Shadow mode OFF
+        add a,b
+        out (SYS_CTRL),a
+        ld (SYS_MODE),a     ;Update MONitors idea of the config
+        ld a,(SYS_MODE)     ;Is shadow disabled ? (should be yes it is)
+        and SHADOW
+        jr z,hardBoot       ;if enabled, skip memcopy
+        ld hl,0C000H        ;copy bottom 256 bytes of ROM to RAM at 0000
+        ld de,0000H         ;so RST vectors etc. are in RAM now
+        ld bc,0100H
+        ldir
+
+;Place initialisation routines here.  MemCheck, RAM defaults
+hardBoot:
+        call LCDinitialise  ;reset LCD Screen always on reset
+        ld hl,USER_ADDR     ;fixup edit location for startup
+        ld (CEL),hl
+        ld (DATA_BASE),hl   ;update base address
+        in a,(KEYB)         ;Check for Fn key press when RESET key is released
+        and 20H             ;Check bit 5
+        jr z,hardInit       ;Fn Key pressed, do a hard initialise
+        in a,(SYS_INPUT)    ;read simp buffer for keyboard input type
+        rrca                ;check bit 0
+        jr nc,skipMatrix    ;if set, matrix keyboard in use
+        call matrixScan
+        jr nz,$+7           ;no key pressed, skip hard init       
+        ld a,e              ;grab first key pressed
+        cp K_FN             ;is it the FN key?
+        jr z,hardInit       ;Fn Key pressed, do a hard initialise
+skipMatrix:
+        ;Look for hard reset flag
+        ld hl,SOFTWARE
+        ld de,ROMSIG
+        ld b,10H
+        call stringCompare
+        jp z,preSoftBoot     ;Yes, just softboot
+hardInit:
+        ;Honour Expand
+        in a,(SYS_INPUT)    ;read simp buffer for real expand bit
+        call setExpand      ;honor EXPAND bit
+        ;Set Capslock to OFF
+        xor a               ;A = 0
+        call setCaps        ;set caps lock flag
+        ;Copy ROMSTR into RAM - warm boot flag
+        ld hl,SOFTWARE
+        ld de,ROMSIG
+        ld bc,10H
+        ldir
+        ;Default monitor RAM variables
+        ld hl,defaults      ;Start from MCB
+        ld de,CEL           ;Set to CEL and onwards in RAM
+        ld bc,defaultsSize  ;Load defaultsSize bytes
+        ldir
+        ;Check if RTC Add-On is installed
+        call checkDS1302Present ;Carry set = No RTC
+        jr c,skipRTC        ;skip RTC config as no RTC Add-on found
+        ld hl,MCB           ;set MCB
+        set 6,(hl)          ;bit 6 RTC present
+        call checkRTCchecksum ;check if PRAM is not corrupt
+        jr z,$+5            ;all good, skip resetting PRAM
+        call resetRTCPRAM   ;reset RTC PRAM
+        call RTCFillRAM     ;fill RTC PRAM to Mon3 RAM
+        jr LCDbanners
+skipRTC:
+        ;Default CEL Jump Table
+        ld hl,USER_ADDR     ;default to intial CEL
+        ld (CEL_QJMP),hl
+        ld (CEL_QJMP+2),hl
+        ld (CEL_QJMP+4),hl
+LCDbanners:
+        ;Display Welcome Message
+        ld hl,hardResetMessage
+        call stringToLCD    ;print line to LCD
+        ;send a welcome message to the Serial Terminal if connected
+        ld hl,serialStartup
+        call stringToSerial
+        ;send a welcome banner to the GCLD (disabled for now)
+        ; call initLCD        ;Initialise the GLCD
+        ; ld c,0              ;first row
+        ; call printString    ;display text
+        ; .db 10H," Initialising ",11H,0
+        ; ld bc,0             ;set cursor to top left
+        ; call setCursor
+        ; ld hl,GLCD_BANNER   ;point to welcome banner
+        ; ld bc,8040H         ;full screen graphic
+        ; ld d,0
+        ; call drawGraphic    ;Draw to GLCD buffer
+        ; ld a,01H
+        ; out (GLCD_INST),a   ;clear text buffer
+        ; ld de,0140H         ;1.6 ms
+        ; call delayMS
+        ; call setGrMode      ;Set it for graphics mode
+        ; call plotToLCD      ;Display it
+        ;play a tone...
+        ld de,hardResetTune ;Set DE to tune data
+        call playTune
+        ;wait a bit
+        ld hl,0FEEEH        ;delay
+        call timeDelay
+        ;random number seed
+        ld a,r              ;get R value
+        ld (RNG_SEED),a     ;save it
+        ;TODO add more here...
+
+preSoftBoot:
+        ;get current GLCD Term status
+        call getGLCDTerm    ;get flag
+        call setGLCDTerm    ;set GLCD status
+        ;set up initial menu if RESET is pressed
+        ld hl,mainMenuCFG   ;set up 1G Menu
+        call menuReset      ;clear menu flags
+        ld a,0FFH           ;reset menu index
+        ld (MENU_IDX),a     ;save it
+        call menuInit
+
+;Soft Reset call and fallthrough for Hard Reset and GO return address
+softBoot:
+        ld sp,STACK_TOP     ;Set the Hardware Stack to top of stack in RAM
+        ld a,(SYS_MODE)     ;reset hardware to MONitor mode
+        out (SYS_CTRL),a
+        ;reset MCB
+        ld a,(MCB)          ;Get MCB
+resetMCB:
+        and 0D8H            ;Mask out params, nibble and mode bits
+updateMCB:
+        ld (MCB),a          ;Save MCB back
+
+        ;fill display buffer with current editing location
+setDispBuffer:
+        call beep           ;beep the speaker bit
+        ld de,(CEL)         ;load DE with current editing location
+        call CELToSeg       ;convert CEL and its value to display buffer
+        call setDots        ;set decimal point on segments
+        ;update LCD screen
+setLCD:
+        call updateLCD      ;Update LCD screen (and also DISP_BUFF if LCD)
+
+        ;main system loop
+mainLoop:
+        call scanDisplayBuff ;Multiplex the seven segments
+        call scanKeys       ;Scan for key press
+        ld hl,KEY_REPEAT    ;get the key repeat timer
+        jr z,keyDelay       ;key has been pressed
+        ld (hl),00H         ;reset delay counter
+        jr mainLoop         ;loop back to the main loop
+keyDelay:
+        jr c,keyFirst       ;new key press first detection
+        dec (hl)            ;key held, decrease timer
+        jr nz,mainLoop      ;loop back to the main loop if timer is not zero
+        ld (hl),KEY_SPEED   ;short timer set for subsequent presses
+keyFirst:
+        dec (hl)            ;set timer off
+        ;key has been detected handle it
+        ld hl,MCB           ;get the MCB
+        bit 3,(hl)          ;is bit 3 set? LCD/Segment
+        jp nz,keyProcessLCD ;yes, process key for LCD
+
+        ;process key press for segment data entry (A = key, HL = MCB)
+        ;set C=key pressed, B=MCB, HL=CEL
+keyProcessSegs:
+        ld c,a              ;store key pressed
+        res 5,c             ;reset Fn key bit if set
+        ld a,(HL)           ;get MCB
+        ld b,a              ;save in B
+        ld a,c              ;restore key pressed
+        ld hl,(CEL)         ;load Current Editing location in HL
+keyPlus:
+        cp K_PLUS           ;Plus key press
+        jr nz,keyMinus      ;no, Check Minus key
+        call checkFnKey     ;check for Function key
+        jp z,fnPlus         ;handle Fn+Plus key
+        inc hl              ;move to next CEL
+updateCEL:
+        ld (CEL),hl         ;save CEL
+        ld a,b              ;get MCB
+        jr resetMCB         ;reset MCB and jump to Main loop
+keyMinus:
+        cp K_MINUS          ;Minus key press
+        jr nz,keyAddress    ;no, Check Address key
+        call checkFnKey     ;check for Function key
+        jp z,fnMinus        ;handle Fn+Minus key
+        dec hl              ;move to previous address
+        jr updateCEL        ;update CEL and return
+keyAddress:
+        cp K_ADDR           ;Address key press
+        jr nz,keyGo         ;no, Check Go key
+        call checkFnKey     ;check for Function key
+        jp z,fnAd           ;handle Fn+AD key
+        ld a,b              ;get MCB
+        xor MCB_AD_DATA     ;flip Address/Data bit
+        and 0FCH            ;clear nibble counter
+        jr updateMCB        ;update MCB and jump to Main loop
+keyGo:
+        cp K_GO             ;Go key press
+        jr nz,keyHex        ;no, Must be Hex key
+        ld b,01H            ;clear LCD instruction
+        call commandToLCD   ;update LCD
+        jp lcdRunning       ;display Code running at on LCD
+runRoutine:
+        call beep           ;indicate key press
+        ld a,(SYS_MODE)     ;reset hardware to MONitor mode
+        ld b,a
+        ld a,(PROT_MODE)    ;enable PROTECT if configured
+        or b
+        out (SYS_CTRL),a
+        ld a,0FFH
+        ld (KEY_BUFF),a     ;remove GO from key Buffer to avoid GO held
+        ld de,softBoot      ;get return address
+        push de             ;put return address on stack
+        jp (hl)             ;jump to CEL and execute it
+keyHex:
+        ld a,b              ;get MCB
+        bit 2,a             ;check mode Address or Data
+        jr nz,updateAddress ;update address
+        call checkFnKey     ;check for Function key
+        jr z,keyFn          ;jump to Function key routine
+        ;update data and set nibble decimal point and auto address increment
+        ld a,b              ;get MCB
+        and 03H             ;mask out to nibble counter
+        cp 02H              ;is this the second nibble?
+        ld a,b              ;get orginal MCB
+        jr nz,enterNibble   ;no, just enter the nibble into (CEL)
+        push af             ;save MCB
+        ld a,(KEY_AUTO)     ;check for auto address increment flag
+        or a                ;is it zero?
+        jr nz,skipAutoInc   ;no, don't update CEL
+        inc hl              ;move to next CEL to enter nibble
+        ld (CEL),hl         ;store it
+skipAutoInc:
+        pop af              ;restore MCB
+        and 0FCH            ;clear nibble counter
+enterNibble:
+        inc a               ;add one to nibble conter
+        ld (MCB),a          ;store it
+        ld a,c              ;get key
+        rld                 ;shift key into CEL
+        jp setDispBuffer    ;jump back to main loop
+        ;update address
+updateAddress:
+        ld hl,CEL           ;set hl to address of CEL
+        ld a,c              ;load a with hex key pressed
+        rld                 ;shift key into lower byte of CEL
+        inc hl              ;move to upper byte
+        rld                 ;shift carry nibble into upper byte
+        call setDataBase    ;set the DATA_BASE variable
+        jp setDispBuffer    ;jump back to main loop
+        ;function key handler
+keyFn:
+        ld de,functionJumpTable ;reference jump table
+        ld a,c              ;load a with hex key pressed
+        add a,a             ;double it
+        ld l,a              ;store index in
+        ld h,0              ;hl
+        add hl,de           ;index DE with HL
+        ld a,(hl)           ;store jump
+        inc hl              ;address
+        ld h,(hl)           ;back into
+        ld l,a              ;HL
+        ld de,softBoot      ;get return address
+        push de             ;put return address on stack
+        jp (hl)             ;jump to HL and execute it
+        ;function + Plus handler
+fnPlus:
+        ;shift from CEL to High RAM 1 byte up, make CEL=0
+        ld de,(CEL)         ;get current CEL
+        ld hl,TOP_RAM       ;get high ram
+        or a                ;clear carry
+        sbc hl,de           ;get difference
+        jp m,setDispBuffer  ;high ram < cel, exit
+        ex de,hl            ;set hl to CEL
+        ld (COPY_START),hl  ;move from CEL
+        inc hl
+        ld (COPY_DEST),hl   ;save from CEL+1
+        ld hl,TOP_RAM       ;HL = 7FFEH
+        dec hl
+        ld (COPY_END),hl    ;save from TOP_RAM-1
+        call smartCopyDirect ;do the smart update
+        ld hl,(CEL)         ;get CEL
+        ld (hl),00H         ;put zero in CEL
+        jp setDispBuffer    ;jump back to main loop
+fnMinus:
+        ;shift from CEL to High RAM 1 byte down, make High RAM=0
+        ld de,(CEL)         ;get current CEL
+        ld hl,TOP_RAM       ;get high ram
+        or a                ;clear carry
+        sbc hl,de           ;get difference
+        jp m,setDispBuffer  ;high ram < cel, exit
+        ex de,hl            ;set hl to CEL
+        ld (COPY_DEST),hl   ;move to CEL
+        inc hl
+        ld (COPY_START),hl  ;save from CEL+1
+        ld hl,TOP_RAM       ;HL = 7FFFH
+        ld (COPY_END),hl    ;save from TOP_RAM
+        call smartCopyDirect ;do the smart update
+        ld hl,TOP_RAM       ;get High RAM
+        ld (hl),00H         ;put zero in High RAM
+        jp setDispBuffer    ;jump back to main loop
+fnAd:
+        ;display main menu
+        ld hl,mainMenuCFG   ;set up 1G Menu
+        call menuInit
+        call switchMode
+        jp setDispBuffer
+
+        ;process key press for segment data entry (A = key, HL = MCB)
+keyProcessLCD:
+        cp K_PLUS           ;is it the plus key
+        jr nz,keyMinusLCD   ;no, try -
+keyPlusLCD:
+        ld a,(MENU_CNT)     ;get menu count
+        dec a               ;adjust for 0
+        ld b,a              ;save it in B
+        ld a,(MENU_SEL)     ;get current menu selection
+        cp b                ;is count = selection?
+        jp z,mainLoop       ;yes, ignore and return to menu
+        inc a               ;move to next item
+        ld (MENU_SEL),a     ;save it
+        ld c,a              ;save for later
+        ld a,(MENU_POS)     ;get menu display position
+        add a,3             ;add 3
+        ld b,a              ;B = menu pos
+        ld a,c              ;A = menu sel
+        cp b                ;if b+3>a then no change
+        jp c,setDispBuffer  ;yes return to menu
+        ld a,(MENU_POS)     ;get menu display position
+        inc a               ;update it
+        ld (MENU_POS),a     ;save it
+        jp setDispBuffer    ;exit and update LCD
+keyMinusLCD: 
+        cp K_MINUS          ;is it the minus key
+        jr nz,keyGoLCD      ;no, try GO
+        ld a,(MENU_SEL)     ;get current menu selection
+        dec a               ;decrease it by 1
+        jp m,mainLoop       ;if negative exit
+        ld (MENU_SEL),a     ;save it
+        ld c,a              ;save for later
+        ld a,(MENU_POS)     ;get menu display position
+        ld b,a              ;B = menu pos
+        ld a,c              ;A = menu sel
+        cp b                ;if b<a then no change
+        jp nc,setDispBuffer ;return
+        ld (MENU_POS),a     ;save it
+        jp setDispBuffer    ;exit
+keyGoLCD:
+        cp K_GO             ;is it the GO key
+        jr nz,keyAddressLCD ;no, try AD
+        bit 5,(hl)          ;check MCB for Parameter Entry
+        jr z,menuGo         ;if Zero, it must be a menu
+        ;Parameter GO needs to pop menu and just return
+        jp menuPop          ;restore to the previous menu and return back
+menuGo:
+        ld a,(MENU_SEL)     ;get current menu selection
+        call menuIndex      ;set HL to menu config at index A
+        ld b,01H            ;clear LCD instruction
+        call commandToLCD   ;update LCD
+        call stringToLCD    ;Display Message on LCD
+        ;HL is now at address to jump to
+        ld a,(hl)           ;fix HL
+        inc hl              ;for executing
+        ld h,(hl)           ;and displaying
+        ld l,a
+lcdRunning:
+        push hl             ;save HL
+        ld b,0D6H           ;set cursor to Row 4,Col 3
+        call commandToLCD   ;update LCD
+        ld hl,menuGoText    ;display "  Running at: 1234  "
+        call stringToLCD    ;write text
+        pop hl              ;restore HL
+        call HLtoLCD        ;display HL as a string on LCD
+        jp runRoutine       ;execute it safely
+keyAddressLCD:
+        cp K_ADDR           ;is key AD?
+        jp nz, keyHexLCD    ;no, try Hex key
+        call menuPop        ;restore to previous menu
+        jp softBoot         ;and return
+keyHexLCD:
+        ;only applicable in Parameter mode
+        bit 5,(hl)          ;check MCB
+        jp z, mainLoop      ;in Menu Mode, ignore key
+        ld c,a              ;save key press
+        ld a,(MENU_SEL)     ;get current menu selection
+        call menuIndex      ;set HL to menu config at index A
+        ld a,(hl)           ;skip menu label
+        inc hl          
+        or a                ;is it zero
+        jr nz,$-3           ;repeat until zero found
+        ld a,(hl)           ;fix HL
+        inc hl              ;for updating
+        ld h,(hl)
+        ld l,a
+        ld a,c              ;restore key pressed
+        rld                 ;shift key into lower byte of CEL
+        inc hl              ;move to upper byte
+        rld                 ;shift carry nibble into upper byte
+        ;check if HL=COPY_START/END/DEST for RTC update
+        ld a,(MCB)          ;check if RTC installed
+        and MCB_RTC         ;is bit 6 set
+        jp z,setDispBuffer  ;no, just exit back
+        dec hl              ;move HL back to original address
+        ld a,08H
+        sub h               ;is address 08?
+        jp nz,setDispBuffer
+        ld a,l
+        sub 0C0H            ;is address C0-C4?
+        cp 05H              ;is it > 4
+        jp nc,setDispBuffer
+        ;all good to update RTC
+        add a,06H           ;index A for RTC slot
+        call RTCSetPRAM     ;save it 
+        jp setDispBuffer    ;exit
+
+; Check for Fn key pressed.
+; Output: Zero is set if Fn key is pressed
+checkFnKey:
+        in a,(SYS_INPUT)    ;read simp buffer
+        rrca                ;check bit 0
+        jr c,checkSecond    ;if set, matrix keyboard in use
+        in a,(KEYB)         ;check keyboard latch
+        and 20H             ;is bit 5 set
+        ret
+checkSecond:
+        ld a,(KEY_SECOND)   ;get second key if any
+        cp K_FN             ;is it the FN key?
+        ret
+
+; Update LCD screen.  Either show a menu if LCD mode or byte information if
+; segment mode
+updateLCD:
+        ld b,0CH            ;display on, cursor off
+        call commandToLCD   ;update LCD
+        ld b,01H            ;clear LCD instruction
+        call commandToLCD   ;update LCD
+        ld hl,MCB           ;get the MCB
+        bit 3,(hl)          ;is bit 3 set? LCD/Segment
+        jp nz,menuDraw      ;LCD menu mode is set, draw the menu and return
+        bit 4,(hl)          ;is bit 4 set? Disassembly / Data view
+        jp nz,LCDDisView    ;display Disassembly View
+LCDDataView:
+        call setDataBase    ;set the DATA_BASE variable
+        ld de,0FFFCH        ;set DE to -4
+        add hl,de           ;set HL = HL - 4
+        ld bc,0304H         ;three lines, four bytes
+        ld de,LCDBaseRows   ;set de to first row
+LCDDataRow:
+        push bc             ;save BC
+        ld a,(de)           ;get row value
+        inc de              ;move to next row
+        ld b,a              ;set B as LCD row
+        call commandToLCD   ;update LCD
+        ld b,c              ;load byte count in B
+        push de             ;save row table
+        ld de,DATA_ROW      ;point to Data Entry RAM
+        call genDataDump    ;fill DE with data dump line
+        push hl             ;save HL
+        ld hl,DATA_ROW      ;point to Data Entry RAM start
+        call stringToLCD    ;print line to LCD
+        pop hl              ;get current address
+        pop de              ;restore row table
+        pop bc              ;restore BC
+        djnz LCDDataRow     ;do for all three rows
+
+        ;draw disassembly line
+        ld a,(de)           ;get row value
+        ld b,a              ;set B as LCD row
+        call commandToLCD   ;update LCD
+        call calcDisAddress ;get actual dis address from CEL
+        ld hl,(DIS_ADDR)    ;set DE to DIS_ADDR
+        ld (DISFROM),hl     ;user DIS_ADDR as start address for disassembler
+        call drawDisRow     ;Draw the Disassembly line
+
+        ;draw state information
+        ld b,091H           ;move cursor
+        call commandToLCD   ;to top right
+        ld a,'|'
+        call charToLCD
+        ld a,(MCB)
+        ld c,a
+        ld a,'d'
+        ld b,05h            ;special flip bit xor 'a' <-> 'd'
+        bit 2,c             ;is in Data or Address mode?
+        jr z,$+3
+        xor b
+        call charToLCD      ;Display the byte
+        xor b               ;flip it back to a or d
+        call charToLCD      ;Display the byte
+
+        ld b,0D1H           ;move cursor
+        call commandToLCD   ;to far right
+        ld a,'|'
+        call charToLCD
+        ld a,' '
+        call charToLCD
+        ld hl,(CEL)         ;get current byte
+        ld a,(HL)           ;get byte
+        call charToLCD      ;Display the byte
+
+        ld b,0A5H           ;move cursor
+        call commandToLCD   ;to far right
+        ld a,'|'
+        call charToLCD
+        ld a,'n'
+        call charToLCD      ;Display the byte
+        ld a,c              ;mask out lower MCB
+        and 03H
+        add a,'0'           ;convert binary to ascii value
+        call charToLCD      ;display the byte count
+
+        ;set cursor
+        ld bc,(DATA_BASE)   ;load BC with DATA_BASE
+        or a                ;reset carry
+        sbc hl,bc           ;get difference between HL and BC
+        ld a,l              ;load difference in a
+        ld c,a              ;save to C
+        add a,a             ;double A
+        add a,c             ;add C
+        add a,LCD_ROW2+5    ;add 5 to set row 1, col 5
+        ld b,a              ;set LCD command
+        call commandToLCD   ;move cursor to correct position
+        ld a,MENU_PTR       ;display ->
+        jp charToLCD        ;update LCD
+
+; Work out valid Disassembly start based on where CEL is.
+LCDDisView:
+        call calcDisAddress ;work out Actual disassembly address from CEL
+        ;Display disassembly in 4 rows
+        ld (DISFROM),hl     ;Store it in the disassembler start address
+        ld b,4              ;four lines
+        ld de,LCDBaseRows   ;set DE to second row
+LCDDisRow:
+        push bc             ;save BC
+        ld a,(de)           ;get row value
+        inc de              ;move to next row
+        ld b,a              ;set B as LCD row
+        call commandToLCD   ;update LCD
+        call drawDisRow     ;Draw the Disassembly line
+        pop bc              ;restore BC
+        djnz LCDDisRow      ;do for all four rows
+        ret
+
+; Update LCD with Disassembly Line: 
+; Input: DISFROM is to be be set, IE , ld (DISFROM),hl
+; Output: On LCD as current cursor: IE: "4000: LD A,34"
+; Destroy: HL,A
+drawDisRow:
+        push de             ;save row table
+        call disStart       ;Generate disassembly from command after CEL
+        ld hl,DISLINE1      ;Point to first line
+        ld a,COLON          ;load A with colon
+        ld (DISLINE1+4),a   ;place colon after address
+        ld a,SPACE          ;load A with space
+        ld (DISLINE1+5),a   ;just display address
+        xor a               ;zero A
+        ld (DISLINE1+6),a   ;just display address
+        call stringToLCD    ;update LCD
+        ld hl,DISLINE2      ;Point to second line
+        call stringZeroSpace ;Place 0 at actual end of stirng
+        call stringToLCD    ;update LCD
+        pop de              ;restore row table
+        ret
+
+; Set the DATA_BASE varaible with the CEL rounded down to base hex value
+; Input: none
+; Output: DATA_BASE set
+; Destroy: HL
+setDataBase:
+        ld hl,(CEL)         ;get CEL
+        ld a,l              ;get lower byte
+        and 0FCH            ;mask out two lowest bits
+        ld l,a              ;store it back to get read base adderss
+        ld (DATA_BASE),hl   ;store new Base
+        ret
+
+; Monitor routines
+; ----------------
+
+; Product a short Beep from the speaker
+; Input: N/A
+; Destroys: A
+beep:
+        ld a,(KEY_BEEP)     ;check sound flag
+        or a                ;is it zero?
+        ret nz              ;exit if not zero
+beepAlways:
+        push bc             ;save BC
+        ld c,40H            ;Tone count
+        xor a               ;clear A
+beepLoop:
+        out (DIGITS),a      ;output to segment latch
+        ld b,40H            ;set delay
+        djnz $              ;delay
+        xor 80H             ;toggle speaker bit
+        dec c               ;decrease count
+        jr nz,beepLoop      ;repeat until c is zero
+        pop bc              ;restore BC
+        xor a               ;clear A
+        out (DIGITS),a      ;output to segment latch
+        ret
+
+; Move Current Editing Location in Display Buffer
+; Input: DE = current editing location
+; Destroys: HL, DE, BC
+CELToSeg:
+        ex de,hl            ;swap DE with HL
+        ld de,DISP_BUFF     ;point DE to display buffer
+        ld a,h              ;get high byte
+        call convAToSeg     ;convert A to segment
+        ld a,l              ;get low byte
+        call convAToSeg     ;convert A to segment
+        ld a,(hl)           ;get data value to convert
+
+; Convert register A to Seven Segment
+; Inputs: A = byte to convert, DE = address to store segment values (2 bytes)
+; Destroys: BC
+convAToSeg:
+        push af             ;save AF
+        rlca                ;move upper nibble to lower
+        rlca
+        rlca
+        rlca
+        call convNibToSeg   ;convert lower nibble to segment
+        pop af              ;restore AF
+convNibToSeg:
+        and 0FH             ;mask out upper nibble
+        ld bc,hexToSegmentTable ;point BC to segment table
+        add a,c             ;index table with A
+        ld c,a
+        ld a,(bc)           ;get segment data
+        ld (de),a           ;store segment data in DE
+        inc de              ;move to next DE address
+        ret
+
+; Sets the Segement decimal point depending on what mode the TEC is in.
+; Either Address edit or Data edit.  And nibble data entry
+; Destroys: A, B, HL
+setDots:
+        ld hl,DISP_BUFF     ;point HL to address location in display buffer
+        ld b,04H            ;four dots for address
+        ld a,(MCB)          ;get monitor control byte
+        bit 2,a             ;check address/data bit status
+        jr nz,setDot        ;Address mode, set 4 dots
+        ld b,02H            ;two dots for data
+        ld hl,DISP_DATA     ;point HL to data location in display buffer
+        and 03H             ;mask out nibble bits
+        or a                ;is it zero?
+        jr z,setDot         ;yes, display two dots
+        dec a               ;subract 1
+        or a                ;is it zero
+        jr nz,$+3           ;no, skip buffer move
+        inc hl              ;move to lower nibble of display
+        dec b               ;set only one dot
+setDot:
+        set 4,(hl)          ;set segment decimal place dot ON
+        inc hl              ;move to next segment
+        djnz setDot         ;repeat if necessary
+        ret
+
+; Entry to multiplex the monitor display buffer
+scanDisplayBuff:
+        ld de,DISP_BUFF     ;point DE to display buffer location
+
+; Multiplex the Seven Segment displays with the contents of DE
+; Inputs: DE = 6 byte location of segment data
+; Destorys: A, B, DE = DE + 6
+scanSegments:
+        ld b,00100000B      ;left most digit port address
+scanLoop:
+        ld a,(de)           ;load A with Segment data
+        out (SEGS),a        ;send it to LED Segment
+        ld a,b              ;get digit port address
+        out (DIGITS),a      ;light up digit
+        ld b,40H            ;set on delay
+        djnz $              ;delay
+        inc de              ;move to next buffer location
+        ld b,a              ;save current digit reference
+        xor a               ;zero A
+        out (DIGITS),a      ;blank digits
+        rrc b               ;rotate digit port bit to the right
+        jr nc,scanLoop      ;if not on last digit repeat
+        out (SEGS),a        ;clear LED Segment
+        ret
+
+; ASCII string to LCD.  Writes a string to the current cursor location on the LCD
+; Inputs: HL = ASCII string terminated with zero byte
+; Destroys: A, HL (moves to end of list)
+stringToLCD:
+        ld a,(hl)           ;get ASCII character
+        inc hl              ;move to next ASCII character
+        or a                ;is it zero?
+        ret z               ;yes, exit
+        rst 28H             ;wait until LCD is not busy
+        out (LCD_DATA),a    ;send ASCII to LCD Data port
+        jr stringToLCD      ;repeat
+
+; ASCII string to Serial.  Writes a string to the FTDI serial port 
+; Inputs: HL = ASCII string terminated with zero byte
+; Destroys: A, HL (moves to end of list)
+stringToSerial:
+        call readyToTransmit ;set up serial for transmit
+strSerialLoop:
+        ld a,(hl)           ;get ASCII character
+        inc hl              ;move to next ASCII character
+        or a                ;is it zero?
+        ret z               ;yes, exit
+        call txByte         ;send ASCII to serial port
+        jr strSerialLoop    ;repeat
+
+; ASCII character to LCD.  Writes one character to the LCD as the current curso locaiton
+; Inputs: A = ASCII character
+; Destroys: none
+charToLCD:
+        rst 28H             ;wait until LCD is not busy
+        out (LCD_DATA),a    ;send ASCII to LCD Data port
+        ret
+
+; Command to LCD.  Sends an LCD instruction to the LCD
+; Inputs: B = Instruction byte
+; Destroys: none
+commandToLCD:
+        push af             ;save AF
+        rst 28H             ;wait until LCD is not busy
+        ld a,b              ;move instruction into A
+        out (LCD_INST),a    ;send byte to instruction port
+        pop af              ;restore AF
+        ret
+
+; LCD initialise routine to set up LCD for correct use after a reset
+; Inputs: nothing
+; Destroys: all
+LCDinitialise:
+        ld bc,400H+LCD_INST ;4 instructions, LCD Instruction port
+        ld hl,LCDInitTable  ;LCD instructions table
+        ld de,1000H
+        dec de
+        ld a,e
+        or d
+        jr nz,$-3
+        outi                ;send it to LCD
+        jr nz,$-10          ;loop again
+        ret
+
+; HL to LCD.  Dipslay the contents of HL as a string on the LCD at the current
+; cursor location
+; Inputs: HL
+; Destroy: A
+HLtoLCD:
+        push hl             ;save HL
+        push de             ;save DE
+        ld de,DATA_ROW      ;tmp memory storage
+        call HLToString     ;convert HL to ASCII string in (DE)
+        xor a               ;set A = 0
+        ld (de),a           ;terminate string with zero
+        ld hl,DATA_ROW      ;set HL to text address
+        call stringToLCD    ;write text
+        pop de              ;restore DE
+        pop hl              ;restore HL to address
+        ret
+
+; LCD busy check.  Checks the LCD busy flag and loops until LCD isn't busy
+; Inputs: nothing
+; Destorys: none
+LCDBusy:
+        push af             ;save af
+        in a,(LCD_INST)     ;Read status bit on LCD
+        rlca                ;put bit 7 (status) in carry
+        jr c,$-3            ;loop if LCD is busy
+        pop af              ;restore af
+        ret
+
+; Universal Key input detection routine.  Responds to Hex keypad or Matrix Keyboard
+; Return: A = key value
+;         zero flag set if a key is pressed
+;         carry flag set if press detected of a new key
+;         carry flag not set for key pressed and held
+; Destroys: DE if using Matrix Keyboard
+scanKeys:
+        ;Detect keyboard input method
+        in a,(SYS_INPUT)    ;read simp buffer
+        rrca                ;check bit 0
+        jr c,keyboardScan   ;if set, matrix keyboard in use
+        ;Check keypad for press via keyboard decoder
+        and 20H             ;check bit 6 (now 5) for keypress on keypad
+        jr z,keyPress       ;bit is low, a key is pressed
+        ld (KEY_PRESS),a    ;set key press to non zero
+        ret                 ;return non zero for no key press
+keyPress:
+        ld a,(KEY_PRESS)    ;get key press flag
+        or a                ;has it been already pressed (held down)?
+        ld a,(KEY_BUFF)     ;set a to current key pressed if returning
+        ret z               ;key pressed and held, return zero and carry not set
+        xor a               ;clear a
+        ld (KEY_PRESS),a    ;set key press flag to zero
+        ;Universal key reader
+        in a,(KEYB)         ;read key pressed
+        and 3FH             ;mask out high bits
+        xor 20H             ;flip bit 5 (Fn-key)
+keyExit:
+        cp a                ;set zero flag
+        scf                 ;set carry flag
+        ld (KEY_BUFF),a     ;save key pressed into key buffer
+        ret
+
+; Matrix Keyboard handler.  If no key or invalid key press
+keyboardScan:
+        call matrixScan     ;detect if key has been pressed
+        jr z,keyboardFetch  ;yes, continue with a key press flow
+        ld (KEY_PRESS),a    ;set key press to non zero
+        ret                 ;return non zero for no key press
+keyboardFetch:
+        ;E = key, D = second key
+        ld a,d              ;get seocnd key press if any
+        ld (KEY_SECOND),a   ;store second key press
+        ld a,e              ;get first key press
+        ;Need to check if key is 0-F, +, -, GO or AD
+        ;0-9 = 13H-1CH, A-F = 24H-29H
+        ;AD = 3 or C, GO = 4 or A, - = 5, + = 6
+        cp 2AH              ;is it greater than 29H?
+        jr nc,keyBad        ;yes, return with non zero
+        cp 24H              ;is it greater than 24H? (in range)
+        jr c,keyNumber      ;no, could be a number
+        sub 1AH             ;adjust alpha to be A-F
+        jr keyGood          ;clean exit
+keyNumber:
+        cp 1DH              ;is it greater than 1CH?
+        jr nc,keyBad        ;yes, return with non zero
+        cp 13H              ;is it greater than 13H? (in range)
+        jr c,keySpecial     ;no, could be special key
+        sub 13H             ;adjust for number 0-9
+        jr keyGood          ;clean exit
+keySpecial:
+        cp 0CH              ;is it ESC?
+        jr nz,$+6           ;no, keep checking
+        ld a,K_ADDR         ;set key to AD
+        jr keyGood          ;clean exit
+        cp 0AH              ;is it Enter?
+        jr nz,$+6           ;no, keep checking
+        ld a,K_GO           ;set key to GO
+        jr keyGood          ;clean exit
+        cp 07H              ;is it greater than 06H?
+        jr nc,keyBad        ;yes, return with non zero
+        cp 05H              ;is it less than 5?
+        jr c,keyBad         ;yes, return with non zero
+        sub 3               ;subtract 3
+        xor 03H             ;flip bits
+        add a,10H           ;adjust special to be 10H-13H
+keyGood:
+        ld e,a              ;store key
+        ld a,(KEY_PRESS)    ;get key press flag
+        or a                ;has it been already pressed (held down)?
+        ld a,(KEY_BUFF)     ;set a to current key pressed if returning
+        ret z               ;key pressed and held, return zero and carry not set
+        xor a               ;clear a
+        ld (KEY_PRESS),a    ;set key press flag to zero
+        ld a,d              ;check for Fn key
+        cp K_FN             ;is it function?
+        ld a,0              ;reset A but not flags
+        jr nz,$+4           ;skip adding function
+        ld a,00100000B      ;set bit 5
+        add a,e             ;restore key
+        jr keyExit          ;clean exit
+keyBad:
+        or 1                ;reset zero flag
+        ret                 ;return non zero for invalid key press
+
+; Scan keys and wait until key released to get next key
+; Input: none
+; Return: A = key pressed
+;         Zero flag is set
+; Destroys: DE if using Matrix Keyboard
+scanKeysWait:
+        call scanKeys       ;check for key pressed
+        ld a,(KEY_PRESS)    ;is a key currently pressed?
+        or a                ;is it zero (pressed)
+        jr z,scanKeysWait   ;repeat until key is released
+        call scanKeys       ;check for key pressed
+        jr nz,$-3           ;repeat scanKeys until a key is pressed
+        ret
+
+; Toggles LCD Menu or Segment Data entry mode
+switchMode:
+        ld a,(MCB)          ;get MCB
+        xor MCB_LCD_SEG     ;toggle Bit 3
+        res 5,a             ;reset Parameter bit
+        ld (MCB),a          ;save it back
+        ret
+
+; Toggles Data Entry View or Disassembler View
+switchView:
+        ld a,(MCB)          ;get MCB
+        xor MCB_DIS_DE      ;toggle Bit 4
+        ld (MCB),a          ;save it back
+        ret
+
+; ASCII to Segment.  Converts an ASCII character to Seven Segment character
+; Input: A = ASCII character
+; Return: A = Segment character or 0 if out of range
+; Destroys: none
+ASCIItoSegment:
+        sub 20H             ;adjust for table lookup
+        jr c,a2sExit        ;out of range
+        cp 60H              ;check upper range
+        jr c,a2sLookup      ;okay
+a2sExit:
+        xor a               ;set return value to zero
+        ret
+a2sLookup:
+        push hl             ;save HL
+        ld hl,ASCIISegTable ;point hl to ASCII segment table
+        add a,l             ;index l
+        ld l,a              ;save l
+        ld a,(hl)           ;get value in table
+        pop hl              ;restore HL
+        ret                 ;exit
+
+; Software ID.  Get Software ID String
+; Input: nothing
+; Return: HL = Pointer to SOFTWARE ASCIIZ String
+; Destroys: none
+softwareID:
+        ld hl,SOFTWARE      ;return the ID string pointer
+        ret
+
+; Version ID.  Get Version Number and Version String
+; Input: nothing
+; Return: HL = Pointer to Release ASCIIZ String
+;         BC = Release major version number
+;         DE = Release minor version number
+; Destroys: none
+versionID:
+        ld hl,RELEASE      ;return the ID string pointerB
+        ld bc,(RELMAJOR)   ;return major version as a number
+        ld de,(RELMINOR)   ;return minor version as a number
+        ret
+
+; Set serial for Ready To Transmit.  Must be called prior to any TEC to Serial
+; routine
+; Input: none
+; Destroy: A
+readyToTransmit:
+        call serialEnable   ;enable serial
+        push hl             ;save hl
+        ld hl,2000H         ;small
+        call timeDelay      ;delay
+        pop hl              ;restore HL
+        ret
+
+; Bit Bang FTDI USB tranmit routine.  Transmit one byte via the FTDI USB serial
+; connection.  It assumes a uart connection of 4800-8-N-2
+; Input: A = byte to transmit
+; Output: nothing
+; Destroy: none
+txByte:
+        push af             ;save AF
+        push bc             ;save BC
+        push hl             ;save HL
+        ld hl,BAUD          ;set HL to Baud delay
+        ld c,a              ;save transmit byte in C
+        ;transmit the start bit
+        xor a               ;clear A
+        out (DIGITS),a      ;pull D6 low
+        out (SEGS),a        ;output to disco leds
+        call timeDelay      ;do a baud delay
+        ;transmit the byte
+        ld b,8              ;eight bits to send
+        rrc c               ;move fist bit into carry flag
+sendBit:
+        rrc c               ;shift to bit 6
+        ld a,c              ;load byte in A
+        and 40H             ;mask out all bits except 6
+        out (DIGITS),a      ;output the bit
+        out (SEGS),a        ;output to disco leds
+        call timeDelay      ;do a baud delay
+        djnz sendBit        ;send next bit
+        ;transmit stop bits
+        ld a,40H            ;set bit
+        out (DIGITS),a      ;output the bit
+        out (SEGS),a        ;output to disco leds
+        call timeDelay      ;do a baud delay
+        call timeDelay      ;do a baud delay x2 (two stop bits)
+        pop hl              ;restore HL
+        pop bc              ;restore BC
+        pop af              ;restore AF
+        ret
+
+; Bit Bang FTDI USB receive routine.  Receive one byte via the FTDI USB serial
+; connection.  It assumes a uart connection of 4800-8-N-2
+; Input: nothing
+; Return: A = byte received
+; Destroy: none
+rxByte:
+        push bc             ;save BC
+        push hl             ;save HL
+startBit:
+        in a,(SYS_INPUT)    ;read system input for High to Low on Bit 7
+        rlca                ;put bit 7 (TX line) in carry
+        jr c,startBit       ;loop if TX line is high
+        ;start bit detected
+        ld hl,BAUD          ;set HL to Baud delay
+        srl h               ;half the delay
+        rr l
+        call timeDelay      ;do a baud delay
+        in a,(SYS_INPUT)    ;get start bit
+        rlca                ;move bit 7 into carry
+        jr c,startBit       ;start bit too short, try again
+        ;valid start bit detected
+        ld b,8              ;eight bits to receive
+getBit:
+        ld hl,BAUD          ;set HL to Baud delay
+        call timeDelay      ;do a baud delay
+        in a,(SYS_INPUT)    ;get data bit
+        rlca                ;move bit 7 into carry
+        rr c                ;rotate register C and put carry in bit 7
+        djnz getBit         ;get next bit
+        ld a,c              ;load byte C to A
+        or a                ;clear carry flag
+        pop hl              ;restore HL
+        pop bc              ;restore BC
+        ret
+
+; Time delay.  16-bit Delay routine
+; Input: HL = delay amount
+; Destroy: none
+timeDelay:
+        push hl             ;save HL
+        push de             ;save DE
+        ld de,1             ;load DE with 1
+        sbc hl,de           ;subtract 1 from HL
+        jp nc,$-2           ;repeat subtraction until HL=0
+        pop de              ;restore DE
+        pop hl              ;restore HL
+        ret
+
+; INTEL Hex Load Routine.
+; Intel Hex file format is a string of ASCII with the following parts:
+; MARK | LENGTH | ADDRESS | RECORD TYPE | DATA | CHECKSUM
+; :10200000210621CD7D20CD98203A00213C320021AF <- EXAMPLE LINE
+; MARK is a colon character, LENGTH is the number of bytes per line, ADDRESS  is
+; the 2 byte address of where the data is to be stored.  RECORD TYPE is 00 for
+; Data and 01 for EOF.  DATA is the bytes to be stored.  CHECKSUM is the addition of
+; all bytes in the one line.
+; Input: nothing
+; Output: nothing
+; Destroy: HL,DE,BC,A
+intelHexLoad:
+        ld a,(SYS_MODE)     ;reset hardware to MONitor mode
+        ld b,a
+        ld a,PROTECT        ;Disable PROTECT during load
+        cpl
+        and b
+        out (SYS_CTRL),a
+        call intelLoader    ;call the load routine, set zero if passed
+        ld a,(SYS_MODE)     ;reset hardware to MONitor mode
+        out (SYS_CTRL),a
+        jp z,displayPass    ;if checksum good then display pass
+        jp displayError     ;else display error
+
+; Intel Hex Load Routine.
+; Returns: Zero Flag set = Pass, Zero Flag not set = Fail
+intelLoader:
+        xor a               ;zero A
+        ld c,a              ;clear checksum
+        ;Get header information
+intelMark:
+        call rxByte         ;Get Byte from FTDI USB driver
+        cp ':'              ;Is byte received a colon?
+        jr nz,intelMark     ;No, loop until a colon is found
+        call getHexByte     ;Convert ASCII to Byte (Length)
+        ld b,a              ;Store Record Length in B
+        call getHexByte     ;Convert ASCII to Byte (Destination address)
+        ld h,a              ;Store High Address byte in H
+        call getHexByte     ;Convert ASCII to Byte (Destination address)
+        ld l,a              ;Store Low Address byte in L
+
+        ;Display indication that file is loading
+        out (SEGS),a        ;load low address byte to segments
+        ld a,1              ;set first segment
+        out (DIGITS),a      ;light up first segment
+
+        call getHexByte     ;Convert ASCII to Byte (Record Type)
+        jr nz,intelCheckSum ;Anything non zero treat as EOF
+
+        ;C=checksum, B=number of bytes, HL=destination address
+        ;Load bytes to (HL), B times
+intelLoad:
+        call getHexByte     ;Convert ASCII to Byte (Data)
+        ld (hl),a           ;store data in RAM
+        ld d,a              ;copy A to D for later checking
+        ld a,(hl)           ;read back value stored
+        cp d                ;check if we stored the value successfully
+        ret nz              ;exit with ZF not set if the store value check failed
+        inc hl              ;move to next RAM location
+        djnz intelLoad      ;repeat until B=0
+        call intelCheckSum  ;Get checksum value
+        jr z,intelLoader    ;Line is processed and okay, get next line
+        ret                 ;Exit with zero flag not set (load error)
+
+intelCheckSum:
+        call getHexByte     ;Convert ASCII to Byte (Checksum)
+        ld a,c              ;Final Checksum is zero if okay
+        or a                ;set zero flag
+        ret                 ;get next line or exit
+
+        ;Get ASCII character from FTDI AND convert it to a byte
+        ;IE: "D3" -> 0D3H
+getHexByte:
+        call getHexChar     ;Get first Hex character from FTDI
+        rlca                ;Move lower nibble
+        rlca                ;(first character)
+        rlca                ;to upper
+        rlca                ;nibble in A
+        ld d,a              ;store it in D
+        call getHexChar     ;Get second Hex character from FTDI
+        or d                ;make a byte
+        ;add byte to checksum
+        push af             ;save AF
+        add a,c             ;add existing checksum C to current byte
+        ld c,a              ;load total back to C
+        pop af              ;restore AF
+        ret
+getHexChar:
+        call rxByte         ;Get Byte from FTDI USB driver
+        bit 6,a             ;is the chracter 0-9 or A-F?
+        jr z,$+4            ;Its 0-9 skip A-F adjustment
+        add a,9             ;add 9 to fix A-F
+        and 0FH             ;mask out high nibble and convert to binary
+        ret
+
+; SIO Hex Dump.  Transfer data on the TEC to a serial terminal
+; Destroys: A,HL,DE,BC
+dataToSerial:
+        call getToFrom      ;collect parameters
+; transmits data from HL for BC bytes
+sendToSerial:
+        call readyToTransmit ;set up serial for transmit
+sendLoop:
+        ld a,(hl)           ;load A with data
+        call txByte         ;transmit it to FTDI
+        cpi                 ;inc HL, dec BC
+        jp pe,sendLoop      ;repeat until BC=0
+        ret                 ;all done
+; send to serial Entry for API
+; Input: HL = start address
+;        DE = length in bytes
+sendToSerialAPI:
+        push de             ;make BC = DE
+        pop bc
+        jp sendToSerial
+
+; SIO receive data.  Receive binary data from FTDI
+dataFromSerial:
+        call getToFrom      ;collect parameters
+receiveFromSerial:
+        call rxByte         ;get byte from serial
+        ld (hl),a           ;load byte into HL
+        cpi                 ;inc HL, dec BC
+        jp pe,receiveFromSerial  ;repeat until BC=0
+        ret                 ;all done
+; receive from serial Entry for API
+; Input: HL = start address
+;        DE = length in bytes
+receiveFromSerialAPI:
+        push de             ;make BC = DE
+        pop bc
+        jp receiveFromSerial
+
+; Collect Address To and From information from user via the LCD interface
+; Stores From at DATA_FROM (08C0H) and To at DATA_TO (08C2H)
+; Output: HL = start address
+;         BC = length of end - start+1
+; Note: if end < start (error) then call error handler
+; Destroys: DE
+getToFrom:
+        ld hl,dataRangeParams
+        call paramDriver    ;collect parameters
+        ld hl,DATA_FROM     ;check parameters
+        call checkStartEnd  ;
+        ret nc              ;All good, continue
+        pop hl              ;remove call return from stack
+        jp displayError     ;display error if end < start
+
+dataRangeParams:        
+        .db 2                           ;Three parameters
+        .db "Enter "                    ;7seg Text
+        .db "= Enter Parameters =",0    ;Parameter title
+        .db "From Address:",0           ;Text and Address
+        .dw DATA_FROM
+        .db "To Address:",0             ;Text and Address
+        .dw DATA_TO
+
+; Send Disassembly to serial terminal
+; Destroys: All
+assemblyToSerial:
+        call getToFrom      ;collect parameters
+; prints assemblybetween DATA_FROM / DATA_TO to the serial terminal.  Can
+; be called externally provided DATA_FROM/TO (08C0-08C3) are populated.
+sendAssembly:
+        call readyToTransmit ;set up serial for transmit
+        ld hl,(DATA_FROM)   ;get start address
+        ld (DISFROM),hl     ;save start in DIS_FROM
+assemblyLoop:
+        call disStart       ;generate Disassembly
+        ld hl,DISLINE1      ;get string
+        ld b,38             ;38 characters
+        ld a,(hl)           ;load A with data
+        call txByte         ;transmit it to FTDI
+        inc hl              ;move to next location
+        djnz $-5            ;repeat 38 times
+        ld a,CR             ;carriage return
+        call txByte         ;send CR
+        ld a,LF             ;line feed
+        call txByte         ;send LF
+        ld hl,(DISFROM)     ;get current start
+        ld de,(DATA_TO)     ;get end address
+        or a                ;clear carry
+        sbc hl,de           ;check difference between
+        add hl,de           ;start and end address
+        jr c,assemblyLoop   ;if not zero then loop
+        ret                 ;all done
+; send assembly to serial Entry for API
+; Input: HL = start address
+;        DE = length in bytes
+sendAssemblyAPI:
+        ld (DISFROM),hl     ;save start in DIS_FROM
+        add hl,de           ;get end address
+        ld (DATA_TO),hl     ;get end address
+        call readyToTransmit ;set up serial for transmit
+        jp assemblyLoop
+; Send a traditional HEX dump to the serial terminal.
+; Input: none
+; Output: text to  serial
+; Destroy: All
+hexDumpToSerial:
+        call getToFrom      ;collect parameters
+        call readyToTransmit ;set up serial for transmit
+sendHex:
+        push hl             ;store current address
+        push bc             ;store byte count
+        pop hl              ;HL = BC
+        ld de,-16           ;load DE with minus 16
+        add hl,de           ;reduce hl by 16
+        ld e,16
+        jr c,hexMore
+        push bc
+        pop hl
+        ld e,c
+hexMore:
+        ex (sp),hl          ;get current address, store bytes remaining
+        ld b,e              ;byte count
+        ld de,DATA_ROW      ;point to Data Entry RAM
+        call genDataDump    ;fill DE with data dump line
+        push hl             ;store next address
+        ld hl,DATA_ROW      ;make HL = start or data row
+hexTextloop:
+        ld a,(hl)           ;get ASCII
+        inc hl              ;move to next address
+        or a                ;is it zero
+        jr z,skipHex        ;yes, skip sending to serial
+        call txByte         ;send byte to serial
+        jr hexTextloop      ;repeat
+skipHex:
+        ld a,CR             ;carriage return
+        call txByte         ;send CR
+        ld a,LF             ;line feed
+        call txByte         ;send LF
+        pop de              ;restore next start address
+        pop bc              ;restore bytes remaining
+        ld hl,(DATA_TO)     ;get end address
+        or a
+        sbc hl,de           ;check difference
+        ret z               ;return if all done
+        ret c               ;return if all done
+        ex de,hl            ;set hl to new start address
+        jr sendHex          ;repeat until all bytes are printed
+; send hex dump to serial Entry for API
+; Input: HL = start address
+;        DE = length in bytes
+sendHexAPI:
+        push de             ;make BC = DE
+        pop bc
+        ex de,hl            ;set HL for add
+        add hl,de           ;get end address
+        ld (DATA_TO),hl     ;put end address in RAM
+        ex de,hl            ;restore HL  
+        call readyToTransmit ;set up serial for transmit
+        jp sendHex
+
+; Display 7Seg Message.  Display data on the Seven Segment Display and 
+; maintain display until a key is pressed
+; Input: HL = 6 byte Segment Data pointer
+; Destroy: ALL
+display7Segs:
+        ld de,DISP_BUFF     ;set destination to display buffer
+        ld bc,6             ;size bytes
+        ldir                ;fill display buffer with text
+        call scanKeys       ;check for key pressed
+        ld a,(KEY_PRESS)    ;is a key currently pressed?
+        or a                ;is it zero (pressed)
+        jr z,$-7            ;repeat until key is released
+displayLoop:
+        call scanDisplayBuff ;Multiplex the seven segments
+        call scanKeys       ;Scan for key press
+        jr nz,displayLoop   ;Repeat scan until key pressed
+        ret
+
+; Compare strings utility
+; HL = source
+; DE = target
+; B = #bytes to compare (up to 256)
+;
+; Z = compare match
+; NZ = compare fail
+;
+; destroys HL, DE, A, BC
+stringCompare:
+        ld a,(hl)           ;Load Source into A
+        ld c,a              ;Store in C
+        ld a,(de)           ;Load compare into A
+        cp c                ;A==C ?
+        ret nz              ;No - so edxt with Z flag reset
+        inc hl              ;Yes - move on to next byte
+        inc de              ;Next byte
+        djnz stringCompare  ;Loop around till B=0 (check whole string)
+        ret                 ;Matched, so return with Z flag set
+
+; Defaults to check for double ASCII space
+stringZeroSpace:
+        ld a,SPACE          ;Space and fall through.         
+; Place a zero at then end of a string.  Routine checks for two bytes
+; in a row that are the same and when found, will place a zero in the first 
+; byte found.  If no byte found within 20 characters then exit with no update
+; Input: A = byte value to check, usually 0 or ' '
+;        HL = pointer to ASCII string
+; Output: Zero Set = Updated HL
+;         Zero not set = No match found
+; Destroys: A
+stringZero:
+        push bc             ;save BC
+        push hl             ;save HL
+        ld bc,20            ;twenty goes (LCD width)
+sZ1:
+        cpir                ;find a matching byte
+        jr nz,sZ2           ;if non zero here, no byte match and BC=0, just exit
+        cp (hl)             ;compare with next value
+        jr nz,sZ1           ;Nope, try again
+        dec hl              ;go back to first match
+        xor a               ;set A=0
+        ld (hl),a           ;make it zero
+sZ2:
+        pop hl              ;restore HL
+        pop bc              ;restore BC
+        ret
+
+; Count the number of ASCII spaces in a zero terminated string
+; Input: HL = pointer to string
+; Output: A = number of spaces
+stringSpaces:
+        push bc             ;save BC
+        push hl             ;save HL
+        ld c,0              ;counter
+strSpLoop:
+        ld a,(hl)           ;get value
+        or a                ;is it zero?
+        jr nz,strSpCheck    ;no
+        ld a,c              ;set return value
+        pop hl              ;restore HL
+        pop bc              ;restore BC
+        ret                 ;exit
+strSpCheck:
+        cp SPACE            ;is it a space
+        inc hl              ;move to next address
+        jr nz,strSpLoop     ;loop again if not space
+        inc c               ;increase space counter
+        jr $-3              ;loop again, c = non zero
+
+; Convert HL to ASCII string. IE: 2CH -> "2C"
+; Input: HL = value to convert
+;        DE = address of string destination
+; Output: DE = address one after last ASCII entry
+; Destroys: A
+HLToString:
+        ld a,h              ;get H
+        call AToString      ;convert to String
+        ld a,l              ;get L
+
+; Convert A to ASCII string
+; Input: A = byte to convert
+;        DE = address of string destination
+; Output: DE = address one after last ASCII entry
+; Destroys: A
+AToString:
+        push af             ;save AF
+        rra                 ;move high
+        rra                 ;nibble to low nibble
+        rra
+        rra
+        call lowNibToString ;get lower nibble and save in DE
+        pop af              ;restore AF
+lowNibToString:
+        and 0FH             ;mask out high nibble
+        add a,90H           ;convert to
+        daa                 ;ASCII
+        adc a,40H           ;using this
+        daa                 ;amazing routine
+        ld (de),a           ;save in DE
+        inc de              ;move to next DE
+        ret                 ;exit back
+
+; convert register A to ASCII. IE: 2CH -> "2C"
+; Input: A = byte to convert
+; Output: HL = two byte ASCII string
+; Destroys: A
+regAToASCII:
+        push af             ;save AF
+        rrca                ;move high 
+        rrca                ;nibble to
+        rrca                ;low
+        rrca                ;nibble
+        call nibble2ASCII   ;call nib to ASCII routine
+        ld h,l              ;move upper nibble to H
+        pop af
+nibble2ASCII:
+        and 0FH             ;mask out high nibble
+        add a,90H           ;convert to
+        daa                 ;ASCII
+        adc a,40H           ;using this
+        daa                 ;amazing routine
+        ld l,a              ;store in L
+        ret                 ;exit
+
+; Generate data dump in ASCII.  Print Address and then C number of bytes
+; Input: B = number of bytes to display
+;        HL = start address of data dump
+;        DE = address of string destination
+; Output: DE = zero terminated address one after last ASCII entry
+;           IE: "4000: 23 34 45 56 78 9A BC DE",0
+; Destroys: A, HL (moves to next address after last byte)
+genDataDump:
+        push bc             ;save BC
+        call HLToString     ;convert HL to address in ASCII
+        ld a,COLON          ;set A = colon
+        ld (de),a           ;write a colon after address
+        inc de
+dataDumpLoop:
+        ld a,SPACE          ;set A = space
+        ld (de),a           ;write a space
+        inc de
+        ld a,(hl)           ;get byte at HL
+        call AToString      ;convert A to string
+        inc hl              ;move HL to next address
+        djnz dataDumpLoop   ;if not zero get next byte
+        xor a               ;set A = 0
+        ld (de),a           ;terminate string with zero
+        pop bc              ;restore BC
+        ret
+
+; Check start and end address difference.
+; Input: HL = address location of START value
+;        HL+2 = address location of END value
+; Output: HL = start address
+;         BC = length of end-start
+;         Carry = set if end is less than start
+; Destroys: DE
+checkStartEnd:
+        ld e,(HL)           ;move start
+        inc hl              ;address into DE
+        ld d,(HL)           ;move end
+        inc hl              ;address into HL
+        ld c,(HL)
+        inc hl
+        ld h,(HL)
+        ld l,c
+        or a                ;clear carry
+        sbc hl,de           ;is END > START (it should be)
+        ld c,l              ;move byte count
+        ld b,h              ;into BC
+        inc bc              ;if END < START then carry is set
+        ex de,hl            ;HL is start address
+        ret
+
+; Block Move generic routine.  Move a block of code between start and end
+; to destination.
+; NOTE: Must have COPY_START,COPY_END and COPY_DEST filled
+; Destroys HL, DE, A, BC
+blockMove:
+        ld hl,COPY_START    ;get start location
+        call checkStartEnd  ;check start < end
+        jp c,displayError   ;if carry is set exit and error
+        ld de,(COPY_DEST)   ;load DE with destination address
+        sbc hl,de           ;see if destination is < or > than start
+        jr nc,mvup          ;jump if start > destination
+        ex de,hl            ;add byte count to destination
+        add hl,bc
+        dec hl
+        ex de,hl
+        ld hl,(COPY_END)    ;get end address
+        lddr                ;copy End to Start going backwards
+        inc de
+        ret                 ;move done
+mvup:
+        add hl,de           ;make HL the difference between start and dest
+        ldir                ;copy Start to End going forwards
+        dec de
+        ret                 ;move done
+blockMoveParams:        
+        .db 3                           ;Three parameters
+        .db "BACKUP"                    ;7seg Text
+        .db "=   Block Backup   =",0    ;Parameter title
+        .db "Start Address:",0          ;Text and Address
+        .dw COPY_START
+        .db "End Address:",0            ;Text and Address
+        .dw COPY_END
+        .db "Dest. Address:",0          ;Text and Address
+        .dw COPY_DEST
+blockCopyParams:        
+        .db 3                           ;Three parameters
+        .db "S-COPY"                    ;7seg Text
+        .db "= Smart Block Copy =",0    ;Parameter title
+        .db "Start Address:",0          ;Text and Address
+        .dw COPY_START
+        .db "End Address:",0            ;Text and Address
+        .dw COPY_END
+        .db "Dest. Address:",0          ;Text and Address
+        .dw COPY_DEST
+blockRestoreParams:        
+        .db 3                           ;Three parameters
+        .db "RESTOR"                    ;7seg Text
+        .db "=  Restore Backup  =",0    ;Parameter title
+        .db "Start Address:",0          ;Text and Address
+        .dw REST_START
+        .db "End Address:",0            ;Text and Address
+        .dw REST_END
+        .db "Dest. Address:",0          ;Text and Address
+        .dw REST_DEST
+
+; Move a block of code AND update all absolute jumps and calls.
+; Destroys HL, DE, A, BC
+smartCopy:
+        ld hl,blockCopyParams
+        call paramDriver    ;collect parameters
+smartCopyDirect:
+        call blockMove      ;move block
+        ld hl,(COPY_DEST)   ;put destination in HL
+        ld de,(COPY_START)  ;put start in DE
+        or a                ;clear carry
+        sbc hl,de           ;get offset from start and destination
+        ld (COPY_CORR),HL   ;save offset in correction
+        ld hl,(COPY_END)    ;put end in HL
+        ld de,(COPY_START)  ;put start in DE
+        or a                ;clear carry
+        sbc hl,de           ;get byte count between start and end
+        inc hl              ;correct HL to real count
+        ld de,(COPY_DEST)   ;put destination in DE
+        add hl,de           ;find end of destination block
+        ld (COPY_EBLK),hl   ;save it
+        ld (COPY_PTR),de    ;save destination to pointer
+checkInst:
+        ld hl,(COPY_PTR)    ;get pointer
+        ld a,(hl)           ;get instruction
+        call getInstLen     ;get instruction length in C
+        ld a,c              ;get instruction count
+        cp 4                ;is it 4 bytes long?
+        jr nz,check3        ;no, check 3
+        ld a,(hl)           ;get instruction
+        cp 0EDH             ;is it extended instruciton?
+        jr z,fourByteAddr   ;yes, modify address
+        and 0DFH            ;check fo IX
+        cp 0DDH             ;and IY
+        jr nz,nextInst      ;skip, as its something else
+        inc hl              ;move to second byte
+        ld b,(hl)           ;get instruction
+        dec hl              ;move back one byte
+        ld a,b              ;check A
+        and 0CFH            ;is it 21H?
+        cp 01H              ;
+        jr z,fourByteAddr   ;yes, modify address
+        ld a,b              ;check A
+        and 0E7H            ;is it 22H
+        cp 22H              ;or 2AH?
+        jr nz,nextInst      ;no, skip instruction
+fourByteAddr:
+        inc hl              ;move to make 3 bytes
+        ld (COPY_PTR),hl    ;save destination to pointer
+        jr $+4              ;continue
+check3:
+        cp 3                ;is it 3 bytes long?
+        jr nz,nextInst      ;no, just get next instruction
+        ld a,(hl)           ;get instruction
+        and 0DFH            ;check fo IX
+        cp 0DDH             ;and IY
+        jr z,nextInst       ;skip, as its something else
+        ld a,(hl)           ;get instruction
+        push hl             ;store instruction
+        pop de              ;put in DE
+        inc hl              ;put address
+        ld c,(hl)           ;in
+        inc hl              ;BC
+        ld b,(hl)
+        ld hl,(COPY_START)  ;load HL with start address
+        dec hl
+        or a                ;clear carry
+        sbc hl,bc           ;get target difference
+        jr nc,targetSkip    ;jump if target is less than start
+        ld hl,(COPY_END)    ;load HL with end address
+        or a                ;clear carry
+        sbc hl,bc           ;get target difference
+        jr c,targetSkip     ;jump if target is higher than end
+        ld hl,(COPY_CORR)   ;get correction factor
+        add hl,bc           ;adjust target with correction
+        ex de,hl            ;put new address in DE
+        inc hl              ;and store
+        ld (hl),e           ;it
+        inc hl              ;back
+        ld (hl),d           ;to jump/call instruction
+targetSkip:
+        ld hl,(COPY_PTR)    ;get pointer
+        inc hl              ;increase to next instruction
+        inc hl
+        inc hl
+endTest:
+        ld (COPY_PTR),hl    ;save new pointer
+        ld de,(COPY_EBLK)   ;get end block
+        or a                ;clear carry
+        sbc hl,de           ;test for finish
+        jr c,checkInst      ;not at end, check next instruction
+        ret                 ;end, just return
+nextInst:
+        inc hl              ;move to next byte
+        dec c               ;until new instruction
+        jr nz,nextInst
+        jr endTest          ;jump to end test
+
+; Instruction byte count routine
+; Input: HL = address of first op code
+; Return: C = instruction length
+;         Carry Set = instruction is a RET,JP,CALL,RST
+; Destroys A, B
+getInstLen:
+        ld c,4              ;set length to longest instruction
+        ld a,(hl)           ;put first op code in A
+        inc hl
+        ld b,(hl)           ;put second op code in B
+        dec hl              ;restore HL
+        and 0DFH
+        cp 0DDH             ;is it an IX/IY instruction
+        jr nz,getIns2
+        ld a,b
+        cp 0CBH             ;is it a IX/IY Bit instruction
+        jr nc,getIns1     
+        cp 36H
+        ret z
+        cp 21H
+getIns1:
+        ret z
+        and 0F7H
+        cp 22H
+        ret z
+        jr getIns3
+getIns2:
+        ld a,(hl)
+        cp 0EDH             ;is it an Misc Instruction
+        jr nz,getIns4
+        ld a,b
+        and 0C7H
+        cp 43H              ;does it have a 2 byte address?
+        ret z
+        or a
+        dec c
+        dec c
+        ret
+getIns3:
+        dec c
+        ld a,b
+        and 0B8H
+        cp 30H
+        ret z
+        ld a,b
+        and 06H
+        cp 06H
+        ret z
+        dec c
+        ld a,b
+        cp 0E9H
+        scf
+        ret z
+        ccf
+        ret
+getIns4:
+        dec c
+        ld a,(hl)
+        and 0CFH
+        cp 01H
+        ret z
+        ld a,(hl)
+        and 0E7H
+        cp 22H
+        ret z
+        ld a,(hl)
+        cp 0C3H
+        scf
+        ret z
+        cp 0CDH
+        scf
+        ret z
+        and 0C7H
+        cp 0C2H
+        scf
+        ret z
+        cp 0C4H
+        scf
+        ret z
+        dec c
+        cp 06H
+        ret z
+        cp 0C6H
+        ret z
+        dec c
+        scf
+        ret z
+        ld a,(hl)
+        and 0F7H
+        ret z
+        inc c
+        ld a,(hl)
+        and 0E7H
+        cp 0C3H
+        ret z
+        and 0C7H
+        scf
+        ret z
+        dec c
+        ld a,(hl)
+        cp 0E9H
+        scf
+        ret z
+        cp 0C9H
+        scf
+        ret z
+        and 0C1H
+        cp 0C0H
+        scf
+        ret z
+        ccf
+        ret
+
+; Calculate actual disassembly address from CEL
+; Output: HL = Disassembly start address
+; Destroy: A,DE
+; Updates DIS_ADDR
+calcDisAddress:
+        ld hl,(CEL)         ;get CEL
+        ld bc,0FFF9H        ;set BC = -7
+        add hl,bc           ;modify HL with offset
+        jr c,disTestLoop    ;if HL <=3 then fix HL
+        ld hl,0
+disTestLoop:
+        ld (DIS_ADDR),hl    ;update DIS_ADDR with current HL
+        ld (DISFROM),hl     ;Store it in the disassembler start address
+        call disStart       ;Work out next valid from address
+        ld de,(CEL)         ;get CEL
+        ex de,hl            ;swap HL,DE
+        or a
+        sbc hl,de           ;Calculate CEL-DISFROM
+        ex de,hl
+        jp p,disTestLoop    ;If DISFROM < CEL then
+        ld hl,(DIS_ADDR)    ;Store HL with previous valid disassembly address
+        ret
+
+; Just move a block from A to B with no 2 byte address updates
+; Destroys HL, DE, A, BC
+dumbCopy:
+        ld hl,blockMoveParams
+        call paramDriver    ;collect parameters
+        jp blockMove        ;move block
+
+; Restore from backup.  This is the reverse of the Backup or Smart Copy
+; Start = COPY_DEST
+; End = COPY_DEST + (COPY_END - COPY_START + 1)
+; Dest = COPY_START
+restoreBackup:
+        ld hl,COPY_START
+        ld de,REST_DEST
+        call HLtoDE
+        ld hl,COPY_DEST
+        ld de,REST_START
+        call HLtoDE
+        ld hl,COPY_START
+        call checkStartEnd
+        dec bc
+        ld hl,(REST_START)
+        add hl,bc
+        ld (REST_END),hl
+        ld hl,blockRestoreParams
+        call paramDriver    ;collect parameters
+        ld hl,COPY_START
+        ld de,TEMP_START
+        ld bc,6
+        ldir
+        ld hl,REST_START
+        ld de,COPY_START
+        ld bc,6
+        ldir
+        call blockMove        ;move block
+        ld hl,TEMP_START
+        ld de,COPY_START
+        ld bc,6
+        ldir
+        ret
+
+HLtoDE:
+        ld a,(hl)
+        ld (de),a
+        inc hl
+        inc de
+        ld a,(hl)
+        ld (de),a
+        ret
+
+; Fill with NOP.  Fill data range with 00h or NOP instruction
+NOPFill:
+        ld hl,fillRangeParams
+        call paramDriver    ;collect parameters
+        call LCDConfirm     ;this is serious mum!
+        ret nz              ;no, just exit
+        ld hl,TEMP_START    ;check parameters
+        call checkStartEnd  ;
+        jr nc,doFill        ;All good, continue
+        pop hl              ;remove call return from stack
+        jp displayError     ;display error if end < start
+doFill:
+        ld d,h
+        ld e,l
+        inc de
+        xor a
+        ld (hl),a
+        dec bc
+        ldir
+        ret
+
+fillRangeParams:        
+        .db 2                           ;Three parameters
+        .db "FILL  "                    ;7seg Text
+        .db "=  Fill with NOPs  =",0    ;Parameter title
+        .db "From Address:",0           ;Text and Address
+        .dw TEMP_START
+        .db "To Address:",0             ;Text and Address
+        .dw TEMP_END
+        
+        
+        call getToFrom      ;collect parameters
+
+
+; Display ERROR/PASS on the 7Segs and wait for key press
+displayError:
+        ld hl,errorText     ;error text
+        jp display7Segs     ;display on 7Segs and exit when key is pressed
+displayPass:
+        ld hl,passText      ;pass text
+        jp display7Segs     ;display on 7Segs and exit when key is pressed
+displayNoFn:
+        ld hl,noFnText      ;no function text
+        jp display7Segs     ;display on 7Segs and exit when key is pressed
+
+; Key scan routine for the Matrix Keyboard.  This routine detects up to
+; two key presses at the same time.  Key values stored in DE
+; Note: Must be called repetatively
+; Input: None
+; Output: E = Key pressed between 00H-3FH (0-64)
+;         D = Second key, FF=no key, 00=shift, 01=Ctrl, 02=Fn
+;         zero flag set if a key is pressed or combination valid
+matrixScan:
+        ld l,0FFH           ;Row value accumulator. Add 8 for each ROW
+        ld de,0FFFFH        ;Return Values if no key is pressed
+        LD bc,0FEFEH        ;Port = C, A8-A15 = B. B loaded with only A8 = 0 to start.
+kLine:
+        in a,(c)            ;Check data bus for Port C and high address B
+        cpl                 ;Invert to check for zero
+        and 0FFH            ;Masking of bits would happen here, but we use all 8
+        jr z,kDone          ;If Zero, no key press for Address line
+        ld h,a              ;Save key(s) pressed data in H
+        ld a,l              ;Load A with the current ROW count*8
+kBits:
+        inc a               ;Add one until data bit found
+        srl h               ;Shift H right until bit is detected
+        jr nc,kBits         ;If Carry is not set, shift again
+        ld d,e              ;Load first key detected into D
+        ld e,a              ;Store key detected
+        jr nz,kBits         ;Keep going until all bits are checked.
+kDone:
+        ld a,8              ;
+        add a,l             ;Increase L by 8 for each ROW checked
+        ld l,a
+        rlc b               ;Move to next address line
+        jr c,kLine          ;if more address lines needed repeat key check
+
+        ld a,e              ;Check for any key press
+        cp 40H              ;Is it a valid key?
+        ret nc              ;No, exit with Zero flag false
+
+        ld a,d              ;Check if 1 or two key pressed
+        inc a
+        ret z               ;If one key exit, D=FF, E=key
+        ;Check for Shift/Ctrl/Fn keys pressed
+        dec a
+        ret z               ;Exit zero if Shift pressed
+        dec a
+        ret z               ;Exit zero if Control pressed
+        dec a
+        ret                 ;Exit zero if Function pressed or non zero for anything else
+
+; Joystick port scan routines.  This routine will return a value based on the
+; movement / button of the joystick or any combination: IE: UP+DOWN = 03H
+; Note: Must be called repetatively
+; Input: None
+; Output: A = Joystick return value between 00H-5FH (0-95)
+;       01H = Up        10H = Fire 2
+;       02H = Down      20H = Comm2 (Pin 9)
+;       04H = Left      40H = Fire 1
+;       08H = Right     80H = Fire 3
+;         zero flag set if no joystick value returned
+; Destroy: none
+joystickScan:
+        push bc             ;save BC
+        ld bc,0F7FEH        ;Port = FE, B is only loaded with A11 = 0 (Joystick Line)
+        in a,(c)            ;read joystick port
+        cpl                 ;Invert to check for zero
+        and 0FFH            ;Mask and set zero flag if A=0
+        pop bc              ;restore BC
+        ret                 ;Exit with A set and Zero flag
+
+; Breakpoint Entry.  Display flags and most registers on the LCD Screen.
+; Press GO to continue executing, AD to do a soft reset.  Entry to this
+; routine can be done by RST 30H or 0F7H
+breakPoint:
+        call saveRegisters  ;save all current registers to BP stack
+        call saveLCD        ;save contents of DDRAM into RAM
+        ld b,01H            ;clear LCD
+        call commandToLCD   ;update LCD
+        ; display register text on LCD
+        ld de,breakPointRows ;LCD row table
+        ld hl,breakPointRegs ;LCD resgister text
+        ld c,8              ;eight registers
+bpText:
+        ld a,(de)           ;get row position
+        ld b,a              ;move to B
+        call commandToLCD   ;update LCD
+        inc de
+        call stringToLCD    ;output text (HL) to LCD
+        dec c               ;next register
+        jr nz,bpText        ;repeat for all 8 registers
+
+        ;display register values next to text
+bpData:
+        ld de,breakPointRows ;LCD row table
+        ld hl,BP_BASE_SP    ;register memory location
+        ld c,6              ;six registers
+        call bpPrintData
+        ld hl,BP_PC         ;start at PC
+        ld c,2              ;two registers
+        call bpPrintData
+
+        ;display flags
+        ld a,(BP_BASE_SP)   ;register AF
+        ld c,a
+        ld de,breakPointFlagRows
+        ld hl,breakPointFlags
+bpFlagRow:
+        ld a,(de)
+        or a
+        jr z,bpQuery        ;No more, go to key query
+        ld b,a              ;move to B
+        call commandToLCD   ;update LCD
+        inc de
+        ld b,2              ;two flags
+bpFlagCol:
+        ld a,(hl)
+        inc HL
+        rlc c
+        jr c,$+4            ;Skip lower case
+        add a,20H           ;Make lowercase
+        call charToLCD      ;send character to LCD
+        djnz bpFlagCol
+        jr bpFlagRow
+
+        ;handle keypress and exit. GO = continue, AD = Exit
+bpQuery:
+        ld de,breakText     ;set display buffer to Breakpoint display
+        call scanSegments   ;Multiplex the seven segments
+        in a,(SYS_INPUT)    ;Get System input
+        and 20H             ;check if GIMP is set
+        jr nz,bpNoStop      ;simulate GO pressed
+        call scanKeys       ;Scan for key press
+        jr nz,bpQuery       ;Repeat scan until key pressed
+        jr nc,bpQuery       ;Skip if not new key
+        cp K_GO             ;is key GO
+        jr nz,$+9           ;No, check if AD key pressed
+bpNoStop:
+        call restoreLCD     ;restore content of LCD from RAM
+        call restoreRegisters ;clean up stack and exit back to code execution
+        ret                 ;return back to last execution location
+        cp K_ADDR           ;is it the AD key (Exit back to monitor)
+        jr nz,bpQuery       ;no, keep scanning
+        ld sp,STACK_TOP     ;reset the Hardware Stack to top of stack in RAM
+        jp softBoot         ;just do a softboot and exit
+
+bpPrintData:
+        ld a,(de)           ;get row position
+        add a,3             ;move three to the right
+        ld b,a              ;move to B
+        call commandToLCD   ;update LCD
+        inc de              ;move to next postion
+        push de             ;save DE
+        ex de,hl
+        ld b,2
+        inc de
+bpDataOut:
+        ld a,(de)
+        call regAToASCII
+        ld a,h
+        call charToLCD      ;send character to LCD
+        ld a,l
+        call charToLCD      ;send character to LCD
+        dec de
+        djnz bpDataOut
+        inc de
+        inc de
+        inc de
+        ex de,hl
+        pop de
+        dec c
+        jr nz,bpPrintData
+        ret
+        
+; Save registers to Break Point stack.  Registers are saved in memory in
+; this order: AF,HL,BC,DE,IX,IY,AF',HL',BC',DE',PC,SP
+; Input: none
+; Destroys: nothing
+; Note: need to set BP_PC prior to calling this routine to set actual program counter
+; Routine is to be called from previous CALL to get Actual SP. SP=SP-4.
+; IE: Actual Code > RST 30H > saveRegisters. 
+saveRegisters:
+        ld (BP_HL),hl       ;save HL first so to use HL in routine
+        push af             ;store AF
+        pop hl              ;HL = AF
+        ld (BP_BASE_SP),hl  ;save AF as flags get corrupt below
+        ld hl,4             ;set HL to calling SP
+        add hl,sp           ;HL = SP+4
+        ld (BP_ORIG_SP),hl  ;save actual SP
+        ld sp,BP_REGS       ;set SP to use Break Point stack
+        ex af,af'           ;start saving registers
+        exx
+        push de
+        push bc
+        push hl
+        push af
+        ex af,af'
+        exx
+        push iy
+        push ix
+        push de
+        push bc
+        ld hl,(BP_HL)       ;restore original hl
+        ld sp,(BP_ORIG_SP)  ;restore hardware stack
+        dec sp              ;to 
+        dec sp              ;acutal 
+        dec sp              ;position prior
+        dec sp              ;to calling this routine
+        ret
+
+; Restore registers.  Replace CPU registers with values stored in the BreakPoint buffer
+; A call to saveRegisters is to be called prior
+; Input: none
+; Output: Updates registers AF,HL,BC,DE,IX,IY,AF',HL',BC' and DE'
+restoreRegisters:
+        ld (BP_ORIG_SP),sp
+        ld sp,BP_BASE_SP
+        pop af
+        pop hl
+        pop bc
+        pop de
+        pop ix
+        pop iy
+        ex af,af'
+        exx
+        pop af
+        pop hl
+        pop bc
+        pop de
+        ex af,af'
+        exx
+        ld sp,(BP_ORIG_SP)
+        ret
+
+; Save LCD screen contents.  Copy LCD DDRAM contents to RAM location BP_LCD.  
+; Input: none
+; Output: Writes 80 bytes (20x4) of LCD DDRAM to BP_LCD address (08B8H-0908H)
+; Destroys: A, BC, HL
+saveLCD:
+        ld b,LCD_ROW1       ;Set DDRAM address counter to Row 1
+        call commandToLCD   ;Send instruction to LCD
+        ld hl,BP_LCD        ;set HL to LCD RAM location
+        ld bc,40*100H+LCD_DATA ;40 bytes to read, Port LCD_DATA
+        rst 28H             ;ensure LCD isn't busy
+        ini                 ;read port C, into (HL), inc HL, dec B
+        jr nz,$-3           ;Do unitl B=0
+
+        ld b,LCD_ROW2       ;Set DDRAM address counter to Row 2
+        call commandToLCD   ;Send instruction to LCD
+        ld b,40             ;40 bytes to read
+        rst 28H             ;ensure LCD isn't busy
+        ini                 ;read port C, into (HL), inc HL, dec B
+        jr nz,$-3           ;Do unitl B=0
+        ret
+
+; Restore LCD screen contents.  Copy RAM location BP_LCD to LCD DDRAM
+; A call to saveLCD is to be called prior
+; Input: none
+; Output: Updates LCD with values at BP_LCD (08B8H-0908H)
+; Destroys: A, BC, HL
+restoreLCD:
+        ld b,LCD_ROW1       ;Set DDRAM address counter to Row 1
+        call commandToLCD   ;Send instruction to LCD
+        ld hl,BP_LCD        ;set HL to LCD RAM location
+        ld bc,40*100H+LCD_DATA ;40 bytes to read, Port LCD_DATA
+        rst 28H             ;ensure LCD isn't busy
+        outi                ;write to port C, from (HL), inc HL, dec B
+        jr nz,$-3           ;Do unitl B=0
+
+        ld b,LCD_ROW2       ;Set DDRAM address counter to Row 2
+        call commandToLCD   ;Send instruction to LCD
+        ld b,40             ;40 bytes to read
+        rst 28H             ;ensure LCD isn't busy
+        outi                ;write to port C, from (HL), inc HL, dec B
+        jr nz,$-3           ;Do unitl B=0
+        ret
+
+; Set the address of a Quick Jump CEL
+; Input: none
+; Destroys: All
+setCELQuickJump:
+        call beep           ;beep the speaker bit
+        ld b,01H            ;clear LCD
+        call commandToLCD   ;update LCD
+        ld hl,CELJumpText   ;point to CEL Jump text
+        call stringToLCD    ;write text
+        ld b,0C9H           ;set cursor to Row 2,Col 9
+        call commandToLCD   ;update LCD
+        ld hl,CELHelpText   ;point to CEL Help text
+        call stringToLCD    ;write text
+        ld c,3              ;three values
+        ld de,LCDBaseRows+3 ;set de to last row
+        ld hl,CEL_QJMP+5    ;move to last entry
+printCELRow:
+        ld a,(de)           ;get column
+        ld b,a              ;set B as LCD row
+        call commandToLCD   ;update LCD
+        ld a,c              ;get location value
+        add a,30H           ;adjust for ascii
+        call charToLCD      ;send character to LCD
+        ld a,COLON
+        call charToLCD      ;send character to LCD
+        ld b,2              ;two nibbles
+printHL:
+        push hl             ;save CEL jump table
+        ld a,(hl)           ;get nibble
+        call regAToASCII
+        ld a,h
+        call charToLCD      ;send character to LCD
+        ld a,l
+        call charToLCD      ;send character to LCD
+        pop hl              ;restore CEL jump table
+        dec hl              ;move to next nibble
+        djnz printHL
+        dec de              ;move to next column
+        dec c               ;move to next location
+        jr nz,printCELRow   ;do next row
+; LCD displayed, now get key
+CELKeyPress:
+        rst 08H             ;get key and wait
+        cp K_ADDR           ;is it address?
+        ret z               ;yes, just exit
+        dec a               ;adjust key for index
+        cp 3                ;check for range 0-2
+        jr nc,CELKeyPress   ;loop again until 1-3,AD is pressed
+        ld hl,CEL           ;get CEL
+        ld de,CEL_QJMP      ;point to table
+QJmpToCEL:
+        add a,a             ;double for index
+        add a,e             ;index it
+        ld e,a
+        ld bc,2             ;two bytes
+        ldir
+; Check for RTC installed
+        ld a,(MCB)          ;get MCB
+        and MCB_RTC         ;is bit 6 set?
+        ret z               ;no just exit
+        dec de
+        dec de
+        ex de,hl            ;reset QJMP address and make it HL
+        ld a,l
+        sub 0A2H            ;take base off to get RTC slot
+        call RTCSetPRAM     ;save it to RTC
+        ret
+
+getCELQuickJump:
+        ld de,CEL           ;get CEL
+        ld hl,CEL_QJMP      ;point to table
+        ;reg c=key
+        ld a,c              ;get key pressed
+        dec a               ;adjust for index
+        add a,a             ;double for index
+        add a,l             ;index it
+        ld l,a
+        ld a,(hl)           ;hl = (hl)
+        inc hl
+        ld h,(hl)
+        ld l,a
+        ld (CEL),hl
+        jp setDataBase    ;set the DATA_BASE variable
+
+; Serial Enable.  Sets the TX line to high ready for serial transfer
+; Input: none
+; Destroys: A
+serialEnable:
+        ld a,40H            ;Serial TX bit
+        out (DIGITS),a      ;Set it high
+        ld a,44H            ;Set Tri colour LEDs to Disco Blue
+        out (SEGS),a        ;output it
+        ret
+
+; Serial Disable.  Sets the TX line to low disabling serial transfer
+; Input: none
+; Destroys: A
+serialDisable:
+        xor a               ;clear A
+        out (DIGITS),a      ;Set it segment display off
+        out (SEGS),a        ;Clear segment leds
+        ret
+
+; Confirmation LCD Question.  Press 'C' to confirm or any other key to not confirm
+; Input: none
+; Return: Zero Flag Set === Confirmed
+LCDConfirm:
+        ld hl,confirmText
+        ld b,01H            ;clear LCD instruction
+        call commandToLCD   ;update LCD
+        call stringToLCD    ;Display Message on LCD
+        rst 08H             ;get key and wait
+        cp 0CH              ;is it C? Set Zero Flag
+        ret
+
+; Real Time Clock (RTC) Routines
+; ------------------------------
+
+; Nicely reset RTC PRAM by asking the question first!
+RTCReset:
+        call LCDConfirm     ;check before proceding TISM
+        ret nz              ;no, just exit
+        ;fall through to next routine
+
+; Reset Mon3 RTC PRAM data to default values.
+; Input: none
+; Destroys: none
+resetRTCPRAM:
+        call resetDS1302    ;Reset RTC Time/Date to start it off
+        ld bc,0800H         ;B=eight 2 byte addresses, C=slot 0
+        ld hl,USER_ADDR     ;default to 4000H
+RTCResetLoop1:
+        ld d,c              ;load slot
+        ld e,l              ;load LSB
+        call writeRTCByte   ;
+        inc c               ;next slot
+        ld d,c              ;load slot
+        ld e,h              ;load MSB
+        call writeRTCByte   ;
+        inc c               ;next slot
+        ld a,0CH            ;are we on the last 4 slots?
+        sub c
+        jr nz,$+4           ;no, ignore
+        ld h,00H            ;yes, set H=0
+        djnz RTCResetLoop1
+        call RTCfillRAM     ;fill RTC PRAM to Mon3 Ram
+
+        ;get checksum
+RTCSaveChecksum:
+        call getRTCChecksum ;get new checksum
+        ld d,30             ;load slot 30
+        ld e,a              ;load with new checksum
+        jp writeRTCByte     ;save checksum
+
+; Get two byte value from PRAM
+; Input: A = first slot value
+; Output: HL = two byte value where L=slot, H=slot+1
+RTCGetPRAM:
+        push af
+        ld d,a
+        call readRTCByte
+        ld l,a
+        pop af
+        inc a
+        ld d,a
+        call readRTCByte
+        ld h,a
+        ret
+
+; Set two byte value to PRAM
+; Input: A = first slot value
+;        HL = address of value to write to
+RTCSetPRAM:
+        push af
+        ld d,a
+        ld e,(hl)
+        call writeRTCByte
+        pop af
+        inc hl
+        inc a
+        ld d,a
+        ld e,(hl)
+        call writeRTCByte
+        jp RTCSaveChecksum
+
+; Copy the RTC PRAM to Mon3 RAM locations
+RTCFillRAM:
+        ;Set CEL Jump Table from PRAM (Ugly code here!!)
+        ld a,0              ;get 1st slot
+        call RTCGetPRAM
+        ld (CEL_QJMP),hl
+        ld a,2              ;get 3rd slot
+        call RTCGetPRAM
+        ld (CEL_QJMP+2),hl
+        ld a,4              ;get 5th slot
+        call RTCGetPRAM
+        ld (CEL_QJMP+4),hl
+        ;Set Copy/To/Dest from PRAM
+        ld a,6              ;get 7th slot
+        call RTCGetPRAM
+        ld (COPY_START),hl
+        ld a,8              ;get 9th slot
+        call RTCGetPRAM
+        ld (COPY_END),hl
+        ld a,10              ;get 11th slot
+        call RTCGetPRAM
+        ld (COPY_DEST),hl
+        ret
+
+; Menu Initialise.  Set a custom user menu on the LCD. 
+; Input: HL = Pointer to Menu configuration.
+; Destroys: A, HL
+menuInit:
+        call menuReset      ;reset menu variables
+        push de             ;store DE
+        ld a,(MENU_IDX)     ;get menu index
+        inc a               ;move to next index
+        and 03H             ;reset to 0 if 4
+        ld (MENU_IDX),a     ;save it
+        add a,a             ;double it
+        ld de,MENU_CFG_D    ;get config depth table
+        add a,e             ;index table
+        ld e,a              ;to index postion
+        ld a,l              ;(DE) = HL
+        ld (de),a
+        inc de
+        ld a,h
+        ld (de),a
+        pop de              ;restore DE
+        ret
+
+; Reset the menu variables for setting up a new menu
+; Input: HL = Pointer to Menu configuration.
+; Destroys: A
+menuReset:
+        xor a               ;clear A
+        ld (MENU_POS),a     ;set menu position to first
+        ld (MENU_SEL),a     ;set first item to be selected
+        ld a,(hl)           ;get menu count
+        ld (MENU_CNT),a     ;save menu count
+        ld (MENU_CFG),hl    ;store new menu configuration
+        ret
+
+; Revert the menu to the previous one if any.
+; Input: none
+; Destroy: A
+menuPop:
+        ld a,(MENU_IDX)     ;get current menu index
+        dec a               ;reduce by one
+        ld (MENU_IDX),a     ;save it back
+        jp m,switchMode     ;if a < 0, switch to Data mode and return
+        add a,a             ;double it
+        push hl             ;save HL
+        ld hl,MENU_CFG_D    ;get config depth table
+        add a,l             ;index table
+        ld l,a              ;to index postion
+        ld a,(hl)           ;get low byte
+        inc hl
+        ld h,(hl)           ;get high byte
+        ld l,a              ;make HL = (HL)
+        call menuReset      ;reset menu to new menu
+        pop hl              ;restore HL
+        ret
+
+; Menu Draw routine.  Title, then menu items from MENU_POS
+menuDraw:
+        ld b,01H            ;clear LCD instruction
+        call commandToLCD   ;update LCD
+        ld hl,(MENU_CFG)    ;load menu config
+        inc hl              ;move to seven segment text
+        ;set segment text
+        ld de,DISP_BUFF     ;store in Monitor 7seg Buffer
+        ld b,6
+LCDSegLoop:
+        ld a,(hl)
+        call ASCIItoSegment ;convert A to segment code
+        ld (de),a
+        inc hl
+        inc de
+        djnz LCDSegLoop
+        ;HL is now at menu title
+        call stringToLCD    ;send Title to LCD
+        ld a,(MENU_POS)     ;get current menu selection
+        call menuIndex      ;set HL to menu config at index A
+        ld c,3              ;three rows
+        ld a,(MENU_CNT)     ;get menu count
+        cp c                ;is it 3 or less?
+        jr nc,$+3           ;yes, skip setting b=count
+        ld c,a              ;set rows to max count
+        ld de,LCDBaseRows+1 ;LCD rows 2,3,4
+drawLoop:
+        ld a,(de)           ;get row value
+        ld b,a              ;set B as LCD row
+        inc b               ;move one to the right
+        call commandToLCD   ;update LCD
+        call stringToLCD    ;write menu item
+        ld a,(MCB)          ;get MCB
+        and MCB_MEN_PAR     ;check to see if menu or parameter structure
+        jr z,drawHLSkip     ;menu so skip HL draw
+        ld a,(de)           ;get row value
+        add a,16            ;right justify
+        ld b,a              ;set B as LCD row/column
+        call commandToLCD   ;update LCD                
+        push hl             ;save HL
+        ld a,(hl)           ;store ram
+        inc hl              ;address
+        ld h,(hl)           ;back into
+        ld l,a              ;HL
+        inc hl              ;move to high byte
+        ld b,2              ;type bytes
+drawHL:
+        ld a,(hl)           ;get byte
+        push hl             ;save HL
+        call regAToASCII
+        ld a,h
+        call charToLCD      ;send character to LCD
+        ld a,l
+        call charToLCD      ;send character to LCD
+        pop hl              ;restore HL
+        dec hl              ;move to low byte
+        djnz drawHL         ;do next byte
+        pop hl              ;restore HL
+drawHLSkip:
+        inc hl              ;skip jump
+        inc hl
+        inc de              ;move to next row
+        dec c               ;get next row
+        jr nz,drawLoop      ;if any
+        ;draw pointer
+        ld a,(MENU_POS)     ;get menu text pos
+        ld b,a
+        ld a,(MENU_SEL)     ;get selection
+        sub b               ;A = 0,1 or 2
+        ld de,LCDBaseRows+1 ;LCD rows 2,3,4
+        add a,e             ;index DE (same page!)
+        ld e,a
+        ld a,(de)           ;get row index
+        ld b,a
+        call commandToLCD   ;update LCD
+        ld a,MENU_PTR       ;display ->
+        jp charToLCD        ;display it and exit
+
+; Index menu configuration with A
+; Input: A = index
+; Output: HL = position of menu entry text.
+menuIndex:
+        ld b,a              ;save index
+        ld hl,(MENU_CFG)    ;get configuration
+        ld a,(hl)           ;skip menu title and 7seg/count data (can't be zero)
+        inc hl          
+        or a                ;is it zero
+        jr nz,$-3           ;repeat until zero found
+        ld a,b              ;is index zero?
+        or a                ;yes
+        ret z               ;HL in correct spot
+indexLoop:
+        ld a,(hl)           ;skip menu entry
+        inc hl          
+        or a                ;is it zero
+        jr nz,$-3           ;repeat until zero found
+        inc hl              ;move to next menu entry
+        inc hl
+        djnz indexLoop      ;keep going until done
+        ret
+
+; Menu driver for external applications.  Creates a selectable custom menu
+; Keys: Go = Select menu item, AD = Exit Menu, +/- = Navigate menu
+; Input: HL = Pointer to Menu configuration. (See Note)
+; Destroys: A, HL
+; Note: Menu configuration is as follows.  All strings are ZERO terminated!
+; <Menu Entries>, <7Seg Text>, <Menu Text Title>,
+;        [<Menu Text Label>, <Menu Routine Address>]+
+; EG: .db 2             ;Two menu items
+;     .db "Games "      ;7Seg Text
+;     .db "Games",0     ;Menu title
+;     .db "TEC Invaders",0  ;Text and Routine
+;     .dw invaders
+;     .db "TEC Maze",0  ;Text and routine
+;     .dw maze
+menuDriver:
+        call menuInit       ;Initialise the internal memory with menu config
+        ld hl,MCB           ;set MCB
+        set 3,(hl)          ;into LCD mode
+        pop hl              ;pop return address of rst 10
+        pop hl              ;pop return address of GO call
+        jp setLCD           ;hook into monitor menu controller
+
+; Parameter data entry driver.  Creates a list of editable two byte parameters
+; utilising the menu handler.
+; Keys: Go = Continue, AD = Exit, +/- = Navigate, 0-F = enter values
+; Input: HL = Pointer to Parameter configuration. (See Note)
+; Note: Parameter configuration is as follows.  All strings are ZERO terminated!
+; Parameter text can be no longer than 14 characters
+; <No. of Entries>, <7Seg Text>, <Parameter Title Text>,
+;      [<Param Text Label>, <Param RAM Address>]+
+; EG: .db 3             ;Three parameters
+;     .db "Params"      ;7seg text
+;     .db "= Enter Parameters =",0     ;Parameter title
+;     .db "Start Address:",0  ;Text and Address
+;     .dw COPY_START
+;     .db "End Address:",0  ;Text and Address
+;     .dw COPY_END
+;     .db "Dest. Address:",0  ;Text and Address
+;     .dw COPY_DEST
+paramDriver:
+        call menuInit       ;Initialise the internal memory with param config
+        ld hl,MCB           ;set MCB
+        set 3,(hl)          ;into LCD mode
+        set 5,(hl)          ;and Parameter Entry mode
+        jp setLCD           ;hook into monitor menu controller    
+
+; Get Caps lock state
+; Input: none
+; Output: A = caps lock state; 0 = off, CAPSLOCK = on
+getCaps:
+        ld a,(CAPS_LOCK)    ; fetch current value
+        ret
+
+; Get GLCD Terminal state
+; Input: none
+; Output: A = GLCD Terminal state; 0 = off, FF = on
+getGLCDTerm:
+        ld a,(GLCD_TERM)    ; fetch current value
+        ret
+
+; Get SHADOW state
+; Input: none
+; Output: A = shadow state; 0 = off, SHADOW = on
+getShadow:
+        ld a,(SYS_MODE)     ; fetch current value
+        and SHADOW          ; return SHADOW bit only
+        xor SHADOW          ; flip bit becuase active low
+        ret
+        
+; Get PROTECT state
+; Input: none
+; Output: A = protect state; 0 = off
+getProtect:
+        ld a,(PROT_MODE)    ; fetch current value
+        ret
+
+; Get EXPAND state
+; Input: none
+; Output: A = expand state; 0 = off
+getExpand:
+        ld a,(SYS_MODE)     ; fetch current value
+        and EXPAND          ; return EXPAND bit only
+        ret
+
+; Set Caps lock state
+; Input: A = Desired caps lock state; 0 = off, CAPSLOCK = on
+; Destroy: A
+setCaps:
+        push bc
+        and CAPSLOCK        ; ensure only correct bit is accepted
+        ld (CAPS_LOCK),a    ; save caps lock
+        ld b,a              ; save A in B
+        ld a,(SYS_MODE)     ; get current state
+        and CAPSLOCK-1      ; clear bit
+updateMode:
+        or b                ; set new bit state from B
+        out (SYS_CTRL),a
+        ld (SYS_MODE),a
+        pop bc
+        ret
+
+; Set GLCD Terminal state
+; Input: A = Desired GLCD Terminal state; 0 = off, FF = on
+; Destroy: A
+setGLCDTerm:
+        or a                ; check for zero
+        jr z,$+4            ; yes, skip force FF
+        ld a,0FFH           ; set to FF
+        ld (GLCD_TERM),a    ; save glcd termnial flag
+        jp initGLCDTerminal ; set GLCD based on flag
+
+; Set SHADOW state
+; Input: A = Desired SHADOW state; 0 = off, SHADOW = on
+; Destroy: A
+setShadow:
+        push bc
+        and SHADOW          ; ensure only correct is accepted
+        xor a               ; flip bit because active low
+        ld b,a              ; save A in B
+        ld a,(SYS_MODE)     ; get current state
+        and -SHADOW-1       ; clear bit
+        jr updateMode       ; set mode and exit
+
+; Set PROTECT state
+; Input: A = Desired Protect state; 0 = off, PROTECT = on
+; Destroy: A
+setProtect:
+        push bc
+        and PROTECT         ; ensure only correct bit is accepted
+        ld (PROT_MODE),a    ; save prot mode
+        ld b,a              ; save A in B
+        ld a,(SYS_MODE)     ; get current state
+        and -PROTECT-1      ; clear bit
+        jr updateMode       ; set mode and exit
+
+; Set EXPAND state
+; Input: A = Desired Expand state; 0 = off, EXPAND = on
+; Destroy: A
+setExpand:
+        push bc
+        and EXPAND          ; ensure only correct bit is accepted
+        ld (XPND_MODE),a    ; Save expand
+        ld b,a              ; save A in B
+        ld a,(SYS_MODE)     ; get current state
+        and -EXPAND-1       ; clear bit
+        jr updateMode       ; set mode and exit
+
+; Toggle Caps Lock
+; Input: none
+; Destroy: A
+toggleCaps:
+        ld a,(CAPS_LOCK)    ; get caps lock mode status
+        xor CAPSLOCK        ; toggle bit
+        ld (CAPS_LOCK),a    ; return it back
+        ld a,(SYS_MODE)     ; get current state
+        xor CAPSLOCK        ; toggle bit
+updateCTL:
+        out (SYS_CTRL),a    ; update latch
+        ld (SYS_MODE),a     ; save state
+        ret
+
+; Toggle EXPAND
+; Input: none
+; Destroy: A
+toggleExpand:
+        ld a,(XPND_MODE)    ; get expand mode status
+        xor EXPAND          ; toggle bit
+        ld (XPND_MODE),a    ; return it back
+        ld a,(SYS_MODE)     ; get current state
+        xor EXPAND          ; toggle bit
+        jr updateCTL
+
+; Toggle GLCD Terminal Flag
+; Input: none
+; Destroy: A
+toggleGLCDTerminal:
+        ld a,(GLCD_TERM)    ; get glcd terminal status
+        cpl                 ; twos complement
+        ld (GLCD_TERM),a    ; save it back
+initGLCDTerminal:
+        push bc
+        push de
+        push hl
+        push af
+        or a
+        jr z, $+7
+        call initTerminal   ; set GLCD as terminal
+        jr $+5
+        call initLCD        ; set GLCD as normal
+        pop af
+        pop hl
+        pop de
+        pop bc
+        ret
+
+; Toggle Key Press Beep
+; Input: none
+; Destroy: A
+toggleBeep:
+        ld a,(KEY_BEEP)     ; get current state
+        cpl                 ; twos complement
+        ld (KEY_BEEP),a     ; save it back
+        ret
+
+; Toggle Auto increment address after second nibble keyed
+; Input: none
+; Destroy: A
+toggleAutoAddress:
+        ld a,(KEY_AUTO)     ; get current state
+        cpl                 ; twos complement
+        ld (KEY_AUTO),a     ; save it back
+        ret
+
+; Display credits via menu
+displayCredits:
+        ld hl,creditsCFG
+        call menuDriver
+
+; Display setting menu
+displaySettings:
+        ld hl,settingsCFG
+        call menuDriver
+
+; Random Number generator.
+; Input: note
+; Output: A = pseudo random number
+; Destroy: B
+random:
+        ld a,(RNG_SEED)     ;Random RAM seed
+        ld b,a
+        sla b
+        sbc a,a
+        and 5FH
+        xor b
+        ld (RNG_SEED),a
+        ld b,a
+        ld a,r
+        add a,b
+        ret
+
+; Set Disassembly Start Address.  Set the first address for disassembler output
+; Input: HL = start address
+; Output: none
+; Destroy: none
+setDisStart:
+        ld (DISFROM),hl     ;save start in DIS_FROM
+        ret
+
+; Get Disassembly Next Address.  Get the next disassembly address
+; Input: none
+; Output: HL = next disassembly address
+; Destroy: none
+getDisNext:
+        ld hl,(DISFROM)     ;get next address from DIS_FROM
+        ret
+
+; Generate Disassembly line
+; Input: None (but must call setDisStart first)
+; Output: HL = pointer to disassembly ASCII output, zero terminated
+; Destroy: All
+getDisassembly:
+        call disStart       ;generate Disassembly
+        ld hl,DISPTR        ;get end of output string
+        ld (hl),0           ;place zero at end of string
+        ld hl,DISLINE1      ;reset HL to point to start of string
+        ret
+
+; Convert the output of the matrixScan routine to ASCII.  matrixScan returns values between 0 and 64
+; these represent key presses on the keyboard.  This routine will convert the output of matrixScan, DE
+; to the actual key pressed in ASCII.  If key doesn't map to an ASCII character then the
+; matrix key value is returned.
+; Input: DE = value return from matrixScan. E = key, D = secondary key
+; Output: A = key pressed in ASCII
+; Destroy: BC, HL
+matrixScanASCII:
+        ld a,e              ;get key pressed
+;handle ESC, CR, Space, Single Quote and Backslash
+        ld hl,KMOD_TABLE    ;point to mod table
+        ld bc,0005H         ;five keys to check
+kCPI:   cpi                 ;compare A to value in Table
+        jr z,kModA          ;yes, mod it
+        inc hl              ;skip the next table entry
+        jp pe,kCPI          ;does BC=0, no check again
+        jr kNumChar         ;key doesn't need modding, move to next check
+kModA:
+        ld a,(hl)           ;save A with new modded value
+        cp 26H              ;is it either a quote or back slash?
+        ret c               ;no, then just cleanly exit as shift doesn't apply
+        ld b,a              ;save A in B
+        ld a,d              ;check second key
+        or a                ;is A a SHIFT? Shift = 0
+        jr nz,kAlpEnd       ;No, exit cleanly with modded value
+        ld hl,KSHIFT_TABLE  ;point to shift table
+        ld a,12H            ;set base index
+        add a,c             ;add key index
+kShiftIndex:
+        add a,l             ;index table
+        ld l,a              ;set L
+        ld a,(hl)           ;get shifted value for quote or backslash
+        ret                 ;cleanly exit
+KMOD_TABLE:
+;First value is key, second value is modded ASCII, 5 keys in total
+        .db 0AH,0DH,0CH,1BH,0DH,20H,0EH,27H,3FH,5CH
+kNumChar:
+;Handle number and Characters
+        cp 21H              ;check key range below A-Z
+        jr nc,kAlpha        ;its higher, check for Chracter
+        cp 0FH              ;is it greater than Comma?
+        jr c,kAlpha         ;yes, check for Character
+        add a,1DH           ;index to get correct ASCII
+        ld b,a              ;save key
+        ld a,d              ;check second key
+        or a                ;is it a SHIFT? Shift = 0
+        jr nz,kAlpEnd       ;No, exit cleanly with new value
+        ld hl,KSHIFT_TABLE  ;point to shift table
+        ld a,b              ;get key value
+        sub 2CH             ;set base index
+        jr kShiftIndex      ;do index and cleanly exit
+KSHIFT_TABLE:
+;Characters when shift is pressed.  22H is double quote
+        .db '<_>?)!@#$%^&*( : +|',22H
+kAlpha:
+;Handle Alphabet characters A-Z
+        cp 24H              ;is key is A or over
+        ret c               ;no, no mod just exit cleanly
+        add a,3DH           ;index key to get correct ASCII
+        ld b,a              ;save key
+        ld a,d              ;check second key
+        dec a               ;is it CTRL?
+        jr nz,kCaps         ;no, check for caps lock
+        ld a,b              ;get correct key
+        sub 60H             ;adjust for CTRL-? keys
+        ret                 ;exit
+kCaps:
+        call getCaps        ;get CAPS lock state
+        or a                ;is it set or not?
+        jr nz,kUpper        ;yes, make upper case
+        ld a,d              ;check second key
+        or a                ;is it SHIFT?
+        jr nz,kAlpEnd       ;no, cleanly exit
+kUpper:
+        ld a,b              ;get key
+        sub "a"-"A"         ;subtract 20H to adjust for upper case
+        ret                 ;exit cleanly
+kAlpEnd:
+        ld a,b              ;save correct key
+        ret                 ;exit
+
+; Parse matrix keyboard input.  This routine checks the key(s) pressed on
+; the Matrix Keyboard and either returns the key pressed in ASCII or handle
+; special cases.  The special cases are Key Bounce/Repeat and Caps lock.  This routine
+; is designed to come directly after matrixScan and included in the Scan loop.
+; Input: DE = value return from matrixScan. E = key, D = secondary key
+;        Zero Flag = Set if key pressed. (From matrixScan output)
+; Output: A = key pressed in ASCII
+;         Carry Flag = Set if ASCII returned.
+;         Carry Flag = Not Set if special case and no ASCII returned
+; Destroy: BC, HL
+parseMatrixScan:
+        ld hl,KEY_REPEAT    ;get the key repeat timer
+        jr z,parseKey       ;Key has been pressed, check it
+        ld (hl),00H         ;reset delay counter
+        xor a               ;no key pressed, clear the key buffer
+        ld (KEY_BUFF),a
+parseSpecial:
+        ld b,00H            ;delay to slow this
+        djnz $              ;shit down.
+        djnz $              ;shit down.
+        or a                ;Clear carry flag
+        ret
+parseKey:
+        ;check for previous key
+        ld a,(KEY_BUFF)     ;Check previous key
+        cp e                ;is the key pressed
+        jr nz,parseNewKey   ;New key, parse it
+        dec (hl)            ;key held, decrease timer
+        jr nz,parseSpecial  ;loop back to exit as if no key pressed
+        ld (hl),KEY_SPEED   ;short timer set for subsequent presses
+parseNewKey:
+        ;different key, save it
+        ld a,e
+        ld (KEY_BUFF),a     ;save key to key buffer
+        cp 03H              ;ignore Shift/Ctrl/Fn if first key pressed
+        jr c,parseSpecial   ;exit cleanly
+        dec (hl)            ;set timer off
+        ;check for Caps lock pressed (need to fix auto repeat issue)
+        ld a,07H            ;caps lock key value
+        cp e
+        jr nz,parseMatrix ;no, then convert key pressed
+        call toggleCaps
+        jr parseSpecial     ;exit cleanly
+parseMatrix:
+        call matrixScanASCII
+        ;All good, A=ASCII key pressed,
+        scf                 ;set carry for good exit
+        ret
+
+; -----------------------------------------------------------------------------
+; Strings, Constants, JP tables etc.
+; -----------------------------------------------------------------------------
+        .org BASE_ADDR+1200H
+;Initial defaults on Hard Boot (Copied to RAM)
+;MCB = Bits 0,1 = Data Nibbles Entered
+;      Bit 2 = Address=H/Data=L mode
+;      Bit 3 = LCD=H/Segment=L mode
+;      Bit 4 = Disassembler View=H/Data Entry View=L mode (for segment mode only)
+;      Bit 5 = Menu=L/Parameter=H Format for Menu handler (for LCD mode only)
+;      Bit 6 = RTC Add-On Present=H
+;      Bit 7 = SD Card Add-On Present=H (not implemented yet)
+defaults:
+        .dw USER_ADDR       ;Initial Editing Location
+        .db 08H             ;Monitor Control Byte (Default LCD Menu Mode)
+        .db 00H             ;Key Buffer
+        .db 20H             ;Key Press Flag (non zero = no press)
+        .db 00H             ;Auto Increment
+        .db 00H             ;Key repeat timer
+        .db 00H             ;Key Beep On/Off
+        .db 00H             ;Matrix Second Key Buffer
+        .db 00H             ;GLCD Terminal flag (zero = use FTDI)
+        .dw USER_ADDR       ;Disassembler/Editor Starting Location
+        .dw INTHandler      ;INT User jump routine (default RETI)
+        .dw NMIHandler      ;NMI User jump routine (default RETI)
+        .db 00H             ;Menu postion
+        .db 00H             ;Menu selection
+        .db 00H             ;Menu count
+        .dw mainMenuCFG     ;Menu configuration
+        .db 0FFH            ;Menu configuration depth index
+        .db 00H             ;Capslock OFF
+defaultsSize:    .equ $-defaults
+
+;LCD Initiliastion codes
+LCDInitTable:
+        .db 38H             ;8-Bit, 2 Lines
+        .db 01H             ;Clear Display
+        .db 06H             ;No Shift, Cursor move right
+        .db 0CH             ;Display On, Cursor Off
+
+;LCD Row Column 1 Values
+LCDBaseRows:
+        .db LCD_ROW1,LCD_ROW2,LCD_ROW3,LCD_ROW4
+
+;Hexidecimal to Seven Segment display
+hexToSegmentTable:
+        .db 0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H ;0-7
+        .db 0EFH,2FH,6FH,0E6H,0C3H,0ECH,0C7H,47H ;8-F
+
+; Jump table to various routines and function when a Fn+key is pressed
+functionJumpTable:
+        .dw setCELQuickJump ;0 = Set CEL Quick Jump Address
+        .dw getCELQuickJump ;1 = Get CEL Quick Jump 1
+        .dw getCELQuickJump ;2 = Get CEL Quick Jump 2
+        .dw getCELQuickJump ;3 = Get CEL Quick Jump 3
+        .dw intelHexLoad    ;4 = Intel Hex File Loader
+        .dw toggleGLCDTerminal ;5 = Toggle GLCD Terminal output
+        .dw displayNoFn     ;6 = Unused
+        .dw displayNoFn     ;7 = Unused
+        .dw NOPFill         ;8 = NOP Fill
+        .dw displayNoFn     ;9 = Unused
+        .dw restoreBackup   ;A = Restore Backup
+        .dw dumbCopy        ;B = Block Backup
+        .dw smartCopy       ;C = Smart Copy
+        .dw switchView      ;D = Switch between Hex and Disassembly view
+        .dw toggleExpand    ;E = Toggle Expand
+        .dw displayNoFn     ;F = Unused
+
+ASCIISegTable:
+        .db 00H,18H,0AH,0EEH,0A7H,5CH,2CH,02H       ;  ! " # $ % & '
+        .db 83H,89H,0A3H,46H,40H,04H,10H,4CH        ;( ) * + , - . /
+        .db 0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H    ;0 1 2 3 4 5 6 7
+        .db 0EFH,0AFH,81H,0A1H,07H,84H,0DH,5DH      ;8 9 : ; < = > ?
+        .db 0EDH,6FH,0E6H,0C3H,0ECH,0C7H,47H,0E3H   ;@ A B C D E F G
+        .db 6EH,42H,0E8H,67H,0C2H,61H,6BH,0EBH      ;H I J K L M N O
+        .db 4FH,8FH,4BH,0A7H,0C6H,0EAH,0EAH,8AH     ;P Q R S T U V W
+        .db 6EH,0AEH,0CDH,0C3H,26H,0A9H,0BH,80H     ;X Y Z [ \ ] ^ _
+        .db 08H,0EDH,0E6H,0C4H,0ECH,0CFH,47H,0AFH   ;` a b c d e f g
+        .db 66H,40H,0A0H,67H,42H,60H,64H,0E4H       ;h i j k l m n o
+        .db 4FH,2FH,44H,0A7H,0C6H,0E0H,0E0H,60H     ;p q r s t u v w
+        .db 6EH,0AEH,0CDH,2CH,42H,46H,01H           ;x y z { | } ~
+
+passText:
+        .db 4FH,6FH,0A7H,0A7H,00H,00H               ;PASS
+errorText:
+        .db 0C7H,4BH,4BH,0EBH,4BH,00H               ;ERROR
+noFnText:
+        .db 6BH,0E4H,47H,64H,00H,00H                ;NoFn
+breakText:
+        .db 0C3H,4FH,0EAH,00H,0E6H,4FH              ;CPU bP
+
+breakPointRegs:
+        .db "AF=",0,"HL=",0,"BC=",0,"DE=",0
+        .db "IX=",0,"IY=",0,"PC=",0,"SP=",0
+breakPointRows:
+        .db 80H,88H,0C0H,0C8H,94H,9CH,0D4H,0DCH
+breakPointFlags:
+        .db "SZYHXPNC"
+breakPointFlagRows:
+        .db 91H,0D1H,0A5H,0E5H,00H
+
+;Address Jump text
+CELJumpText:
+        .db "Save Current Address",0
+CELHelpText:
+        .db "Press 1,2,3",0
+
+;Menu Go text
+menuGoText:
+        .db "Running at: ",0
+
+;Serial startup text if connected on Hard boot
+serialStartup:
+        .db "TEC-1G Connected",CR,LF,0
+
+;Confirmation Text
+confirmText:
+        .db "Press 'C' to Confirm",0
+
+;Hard Reset Tune
+hardResetTune:
+        .db 01H,01H,00H,00H,12H,12H,17H,17H         ;Funky Town!
+        .db 16H,16H,12H,12H,00H,00H,00H,1FH
+;Hard Reset Message
+hardResetMessage:
+        .db 0A5H,"------==",0F4H,0F4H,"==------",0A5H
+        .db "| TEC-1G Computer  |"
+        .db "|   Open Source!   |"
+        .db 0A5H,"------==",0F4H,0F4H,"==------",0A5H,0
+
+;Main Menu Configuration
+mainMenuCFG:
+        .db 12   ;thirteen entries
+        .db "TEC-1G"    ;7segment Text
+           ;"                   " <- Max LCD entry width
+        .db "= TEC-1G Main Menu =",0
+intelLabel:
+        .db "Intel HEX Load",0
+        .dw intelHexLoad
+        .db "Smart Block Copy",0
+        .dw smartCopy
+        .db "Block Backup",0
+        .dw dumbCopy
+        .db "Export Z80 Assembly",0
+        .dw assemblyToSerial
+        .db "Export Raw Data",0
+        .dw dataToSerial
+        .db "Export Hex Dump",0
+        .dw hexDumpToSerial
+        .db "Import Binary File",0
+        .dw dataFromSerial
+        .db "Tiny Basic",0
+        .dw tinyBasic
+        .db "Music Routine",0
+        .dw playTuneMenu
+        .db "Settings",0
+        .dw displaySettings
+        .db "Credits",0
+        .dw displayCredits
+        .db " Version: ",REL_TXT,0
+        .dw softBoot
+
+;Settings Menu
+settingsCFG:
+        .db 6
+        .db "Config"    ;7segment Text
+           ;"                   " <- Max LCD entry width
+        .db "=  TEC-1G Settings =",0
+        .db "Toggle Key Beep",0
+        .dw toggleBeep
+        .db "Toggle Address Inc",0
+        .dw toggleAutoAddress
+        .db "Toggle GLCD Term",0
+        .dw toggleGLCDTerminal
+        .db "Configure RTC",0
+        .dw RTCSetup
+        .db "Reset RTC & PRAM",0
+        .dw RTCReset
+        .db "Toggle EXPAND",0
+        .dw toggleExpand
+
+;Credits Menu
+creditsCFG:
+        .db 8   ;eight entries
+        .db "Credit"    ;7segment Text
+           ;"                   " <- Max LCD entry width
+        .db "=  TEC-1G Credits  =",0
+        .db "Mark Jelic - Design",0
+        .dw softBoot
+        .db "Brian Chiha - Coder",0
+        .dw softBoot
+        .db "Craig Hart - TECGuy",0
+        .dw softBoot
+        .db "Ian McLean - Tester",0
+        .dw softBoot
+        .db "James Elphick - ^^^",0
+        .dw softBoot
+        .db "- Original Design -",0
+        .dw softBoot
+        .db "   by John Hardy   ",0
+        .dw softBoot
+        .db "   and Ken Stone   ",0
+        .dw softBoot
+
+        .org BASE_ADDR+1600H
+APITable:
+        .dw softwareID
+        .dw versionID
+        .dw preInit
+        .dw beepAlways
+        .dw convAToSeg
+        .dw regAToASCII
+        .dw ASCIItoSegment
+        .dw stringCompare
+        .dw HLToString
+        .dw AToString
+        .dw scanSegments
+        .dw displayError
+        .dw LCDBusy
+        .dw stringToLCD
+        .dw charToLCD
+        .dw commandToLCD
+        .dw scanKeys
+        .dw scanKeysWait
+        .dw matrixScan
+        .dw joystickScan
+        .dw serialEnable
+        .dw serialDisable
+        .dw txByte
+        .dw rxByte
+        .dw intelHexLoad
+        .dw sendToSerialAPI
+        .dw receiveFromSerialAPI
+        .dw sendAssemblyAPI
+        .dw sendHexAPI
+        .dw genDataDump
+        .dw checkStartEnd
+        .dw menuDriver
+        .dw paramDriver
+        .dw timeDelay
+        .dw playNote
+        .dw playTune
+        .dw playTuneMenu
+        .dw getCaps
+        .dw getShadow
+        .dw getProtect
+        .dw getExpand
+        .dw setCaps
+        .dw setShadow
+        .dw setProtect
+        .dw setExpand
+        .dw stringToSerial
+        .dw RTCAPI
+        .dw menuPop
+        .dw toggleCaps
+        .dw random
+        .dw setDisStart
+        .dw getDisNext
+        .dw getDisassembly
+        .dw matrixScanASCII
+        .dw parseMatrixScan
+        .dw LCDConfirm
+        .dw getGLCDTerm
+        .dw setGLCDTerm
+
+
+API_COUNT:  .equ    $-APITable  ;Total number of API functions
+
+        .org BASE_ADDR+1700H
+APITable2:
+        .dw initLCD            ;Initalise the LCD
+        .dw clearGBUF          ;Clear the Graphics Buffer
+        .dw clearGrLCD         ;Clear the Graphics LCD Screen
+        .dw clearTxtLCD        ;Clear the Text LCD Screen
+        .dw setGrMode          ;Set Graphics Mode
+        .dw setTxtMode         ;Set Text Mode
+        .dw drawBox            ;Draw a rectangle between two points
+        .dw drawLine           ;Draw a line between two points
+        .dw drawCircle         ;Draw a circle from Mid X,Y to Radius
+        .dw drawPixel          ;Draw one pixel at X,Y
+        .dw fillBox            ;Draw a filled rectangle between two points
+        .dw fillCircle         ;Draw a filled circle from Mid X,Y to Radius
+        .dw plotToLCD          ;Display the Graphics Buffer to the LCD Screen
+        .dw printString        ;Print Text on the screen in a given row
+        .dw printChars         ;Print Characters on the screen in a given row and column
+        .dw delayUS            ;Microsecond delay for LCD updates
+        .dw delayMS            ;Millisecond delay for LCD updates
+        .dw setBufClear        ;Clear the Graphics buffer on after Plotting to the screen
+        .dw setBufNoClear      ;Retain the Graphics buffer on after Plotting to the screen
+        .dw clearPixel         ;Remove a Pixel at X,Y
+        .dw flipPixel          ;Flip a Pixel On/Off at X,Y
+        .dw drawGraphic        ;Draw an ASCII charcter or Sprite to the LCD
+        .dw invGraphic         ;Inverse graphics printing
+        .dw initTerminal       ;Initialize the LCD for terminal emulation
+        .dw sendCharToLCD      ;Send an ASCII Character to the LCD
+        .dw sendStringToLCD    ;Send an ASCII String to the LCD
+        .dw sendRegToLCD       ;Send register A to the LCD
+        .dw sendHLToLCD        ;Send register HL to the LCD
+        .dw setCursor          ;Set the graphics cursor
+        .dw getCursor          ;Get the current cursor
+        .dw displayCursor      ;Turn Cursor on or off
+
+API_COUNT2:  .equ    $-APITable2  ;Total number of GLCD API functions
+
+; END OF CORE MONITOR
+
+; Monitor Packages
+        .org BASE_ADDR+1800H
+        .include "packages.z80"
+
+        .org BASE_ADDR+3FECH    ; 16k
+
+RELMAJOR:   .dw 07E8h	; 2024 - for the API
+RELMINOR:   .dw 0015h
+SOFTWARE:   .db "MON3.1G",0
+RELEASE:    .db REL_TXT,0
+REL_TXT:    .equ "2024.15"
+
+        .end
+
+        .binfrom 0C000H

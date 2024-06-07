@@ -1,0 +1,115 @@
+APINames:
+softwareID_       .equ 0
+versionID_        .equ 1
+preInit_          .equ 2
+beep_             .equ 3
+convAToSeg_       .equ 4
+regAToASCII_      .equ 5
+ASCIIToSegment_   .equ 6
+stringCompare_    .equ 7
+HLToString_       .equ 8
+AToString_        .equ 9
+scanSegments_     .equ 10
+displayError_     .equ 11
+LCDBusy_          .equ 12
+stringToLCD_      .equ 13
+charToLCD_        .equ 14
+commandToLCD_     .equ 15
+scanKeys_         .equ 16
+scanKeysWait_     .equ 17
+matrixScan_       .equ 18
+joystickScan_     .equ 19
+serialEnable_     .equ 20
+serialDisable_    .equ 21
+txByte_           .equ 22
+rxByte_           .equ 23
+intelHexLoad_     .equ 24
+sendToSerial_     .equ 25
+receiveFromSerial_ .equ 26
+sendAssembly_     .equ 27
+sendHex_          .equ 28
+genDataDump_      .equ 29
+checkStartEnd_    .equ 30
+menuDriver_       .equ 31
+paramDriver_      .equ 32
+timeDelay_        .equ 33
+playNote_         .equ 34
+playTune_         .equ 35
+playTuneMenu_     .equ 36
+getCaps_          .equ 37
+getShadow_        .equ 38
+getProtect_       .equ 39
+getExpand_        .equ 40
+setCaps_          .equ 41
+setShadow_        .equ 42
+setProtect_       .equ 43
+setExpand_        .equ 44
+stringToSerial_   .equ 45
+RTCAPI_           .equ 46
+menuPop_          .equ 47
+toggleCaps_       .equ 48
+random_           .equ 49
+setDisStart_      .equ 50
+getDisNext_       .equ 51
+getDisassembly_   .equ 52
+matrixScanASCII_  .equ 53
+parseMatrixScan_  .equ 54
+LCDConfirm_       .equ 55
+getGLCDTerm_      .equ 56
+setGLCDTerm_      .equ 57
+
+APINames2:
+initLCD_          .equ 0  ;Initalise the LCD
+clearGBUF_        .equ 1  ;Clear the Graphics Buffer
+clearGrLCD_       .equ 2  ;Clear the Graphics LCD Screen
+clearTxtLCD_      .equ 3  ;Clear the Text LCD Screen
+setGrMode_        .equ 4  ;Set Graphics Mode
+setTxtMode_       .equ 5  ;Set Text Mode
+drawBox_          .equ 6  ;Draw a rectangle between two points
+drawLine_         .equ 7  ;Draw a line between two points
+drawCircle_       .equ 8  ;Draw a circle from Mid X,Y to Radius
+drawPixel_        .equ 9  ;Draw one pixel at X,Y
+fillBox_          .equ 10 ;Draw a filled rectangle between two points
+fillCircle_       .equ 11 ;Draw a filled circle from Mid X,Y to Radius
+plotToLCD_        .equ 12 ;Display the Graphics Buffer to the LCD Screen
+printString_      .equ 13 ;Print Text on the screen in a given row
+printChars_       .equ 14 ;Print Characters on the screen in a given row and column
+delayUS_          .equ 15 ;Microsecond delay for LCD updates
+delayMS_          .equ 16 ;Millisecond delay for LCD updates
+setBufClear_      .equ 17 ;Clear the Graphics buffer on after Plotting to the screen
+setBufNoClear_    .equ 18 ;Retain the Graphics buffer on after Plotting to the screen
+clearPixel_       .equ 19 ;Remove a Pixel at X,Y
+flipPixel_        .equ 20 ;Flip a Pixel On/Off at X,Y
+drawGraphic_      .equ 21 ;Draw an ASCII charcter or Sprite to the LCD
+invGraphic_       .equ 22 ;Inverse graphics printing
+initTerminal_     .equ 23 ;Initialize the LCD for terminal emulation
+sendCharToLCD_    .equ 24 ;Send an ASCII Character to the LCD
+sendStringToLCD_  .equ 25 ;Send an ASCII String to the LCD
+sendRegToLCD_     .equ 26 ;Send a register to the LCD
+sendHLToLCD_      .equ 27 ;Send register HL to the LCD
+setCursor_        .equ 28 ;Set the graphics cursor
+getCursor_        .equ 29 ;Get the current cursor
+displayCursor_    .equ 30 ;Turn Cursor on or off
+
+
+RTCAPINames:                    ; B register value for RTCAPI call
+checkDS1302_      .equ 00
+resetDS1302_      .equ 01
+getTime_          .equ 02
+setTime_          .equ 03
+getDate_          .equ 04
+setDate_          .equ 05
+getDay_           .equ 06
+setDay_           .equ 07
+get1224Mode_      .equ 08
+set12HrMode_      .equ 09
+set24HrMode_      .equ 10
+readRTCByte_      .equ 11
+writeRTCByte_     .equ 12
+burstRTCRead_     .equ 13
+bcdToBin_         .equ 14
+binToBcd_         .equ 15
+formatTime_       .equ 16
+formatDate_       .equ 17
+RTCSetup_         .equ 18
+
