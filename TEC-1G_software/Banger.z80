@@ -1,0 +1,41 @@
+; Music Banger Demo - By Anonymous
+		
+; Here is an example of pulsing the speaker bit and
+; creating music.  No RAM needed.
+		
+DSCAN:	EQU 0x01 		;DISPLAY CATHODE DRIVER LATCH
+		
+START:	
+		XOR A
+		LD E, A
+		LD D, A
+		LD C, A
+		INC C
+		LD A, 06H
+		SUB C
+		JR Z, START
+		INC DE
+		LD B, A
+		ADD HL, HL
+		DJNZ $ - 1
+		LD H, D
+		LD L, D
+		LD B, C
+		ADD HL, HL
+		DJNZ $ - 1
+		LD A, H
+		OR E
+		ADD A, A
+		LD B, A
+		ADD A, A
+		ADD A, A
+		ADD A, B
+		AND 80H
+		OUT (DSCAN), A
+		LD A, D
+		OR E
+		JR NZ, START + 5
+		JR START + 4
+END:
+        .binto 0025H
+		

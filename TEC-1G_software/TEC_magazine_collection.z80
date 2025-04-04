@@ -1,0 +1,1340 @@
+; TEC Magazine Master ROM
+; -----------------------
+;
+; This ROM is a collection of almost all of the code written for the Talking
+; Electronics Computer.
+;
+; Compiled by Brian Chiha
+; July 2020
+;
+; To use:
+; -------
+; Requires JMON Monitor for the Menu Selection and to be placed at 0x1000 in RAM.  
+; Simply go to address 0x1000 and press 'GO'.  Then use '+' or '-' to select the 
+; program to run and hit 'GO'. 
+;
+; For 8x8 LED programs, connect the 8x8 to ports 05 and 06. 
+;
+; To exit the programs press 'Shift-GO'.  This will exit the current program and
+; go back to the main menu.
+;
+; ROM Contents:
+; -------------
+; #   Address   Name							Reference
+; -   -------	----------------------------	-------------
+; 1.  0x100E	Segment Move 					Issue 11 P 26
+; 2.  0x101D    Segment Cycle					Issue 11 P 20
+; 3.  0x102E    Segment Flash					Issue 11 P 28
+; 4.  0x1044    Segment Move Around #1			Issue 11 P 29
+; 5.  0x109C    Segment Move Around #2			Issue 12 P 16
+; 6.  0x10D3    Segment Move Around #3			Issue 12 P 17
+; 7.  0x1100    Segment Back and Forth			Issue 11 P 28
+; 8.  0x1120	Segment Keyboard Move    		Issue 12 P 17
+; 9.  0x113C    Segment Keyboard Move w Run 	Issue 12 P 18
+; 10. 0x1161	Display two Segments at Once   	Issue 12 P 18
+; 11. 0x11B4    The Box Animation				Issue 14 P 14
+; 12. 0x125C    Aussie Boomerang 				Issue 14 P 14
+; 13. 0x1297    8x8 LED Around 					Issue 11 P 33
+; 14. 0x12E9    8x8 LED Back and Forth 			Issue 11 P 33
+; 15. 0x1311    8x8 LED Fan Out #1 				Issue 11 P 34
+; 16. 0x1323    8x8 LED Fan Out #2				Issue 12 P 26
+; 17. 0x1345	8x8 LED Fan Out #3				Issue 14 P 15
+; 18. 0x1366	8x8 LED Mystery Effect 			Issue 11 P 34
+; 19. 0x13B3    8x8 LED Key Movement    		Issue 11 P 36
+; 20. 0x13E6    8x8 LED Ball Bounce 			Issue 12 P 26
+; 21. 0x1416	8x8 Animation Example 			B Chiha    
+; 22. 0x145F    Aliens Attack					Issue 11 P 36
+; 23. 0x1497	Speaker Oscillator				Issue 12 P 22 
+; 24. 0x14AD	Frequency Sweep					Issue 12 P 22
+; 25. 0x14D9	Space Invaders Sound 			Issue 14 P 14
+; 26. 0x1503    Quick Draw 						Issue 12 P 21
+; 27. 0x152E    TEC Clock 						Issue 12 P 23
+; 28. 0x15C4    Counter #1						Issue 13 P 14
+; 29. 0x15DD	Counter #2						Issue 13 P 15
+; 30. 0x161A	Counter #3						Issue 13 P 16
+
+API_SCAN:   EQU     0x10                ;Mon3 Key Scanner
+API_MENU:   EQU     0x1F                ;Mon3 Menu Driver
+
+            ORG    4000H 
+START:
+            LD HL,MenuCFG
+            LD C,API_MENU                   ;menu driver
+            RST 10H                         ;mon3 API Call
+            RET
+
+;Magazine Code
+;-------------
+
+;-----------------------------;
+;Segment Move - Issue 11 P 26 ;
+;-----------------------------;
+;Move a Seven Segment Display from Right to Left and loop around
+SEGMOV:               
+            LD      A,01H 
+            OUT     (02),A 
+SML1:               
+            OUT     (01),A 
+            CALL    DELAY_M 
+            RLCA
+            CALL    CHKSHIFT     
+            JR      SML1 
+
+;------------------------------;
+;Segment Cycle - Issue 11 P 20 ;
+;------------------------------;
+;Cycle through all 255 positions of the seven segment display
+SEGCYC:               
+            LD      A,3FH     ;Use All Displays
+            OUT     (01),A
+            XOR     B         ;Zero B
+SEGC1:               
+            LD      A,B
+            OUT     (02),A    ;Output B
+            INC     B         ;Increase B
+            CALL    DELAY_Q
+            CALL    CHKSHIFT     
+            JR      SEGC1
+
+;------------------------------;
+;Segment Flash - Issue 11 P 28 ;
+;------------------------------;
+;Turn a Segment On and Off --- Flash it!
+SEGFLH:               
+            LD      A,0FFH 
+            OUT     (02),A    ;All Segments on
+SEGF1:
+            LD      A,01H 
+            OUT     (01),A    ;Activate Segment
+            CALL    DELAY_M
+            XOR     A
+            OUT     (01),A    ;Deactivate Segment
+            CALL    DELAY_M
+            CALL    CHKSHIFT
+            JR      SEGF1
+
+;---------------------------------------;
+;Segment Move Around #1 - Issue 11 P 29 ;
+;---------------------------------------;
+;Move A Segment Around all Seven Segment Displays in a Anticlockwise Direction
+SEGRND1:               
+            LD      A,01H  ;Move from Right to Left
+            OUT     (02),A
+            LD      C,06H  
+            LD      A,01H 
+SEGR11:
+            OUT     (01),A
+            LD      B,A
+            CALL    DELAY_Q
+            CALL    CHKSHIFT
+            LD      A,B
+            RLC     A
+            DEC     C
+            JR      NZ, SEGR11
+
+            LD      A,02H  ;Move Down
+            OUT     (02),A
+            CALL    DELAY_Q
+            CALL    CHKSHIFT
+            LD      A,40H
+            OUT     (02),A
+            CALL    DELAY_Q
+            CALL    CHKSHIFT
+
+            LD      A,80H  ;Move From Left to Right
+            OUT     (02),A
+            LD      C,06H  
+            LD      A,20H 
+SEGR12:
+            OUT     (01),A
+            LD      B,A
+            CALL    DELAY_Q
+            CALL    CHKSHIFT
+            LD      A,B
+            RRC     A
+            DEC     C
+            JR      NZ, SEGR12
+            
+            LD      A,20H ;Move Up
+            OUT     (02),A
+            CALL    DELAY_Q
+            CALL    CHKSHIFT
+            LD      A,08H
+            OUT     (02),A
+            CALL    DELAY_Q
+            CALL    CHKSHIFT
+
+            JR      SEGRND1
+
+;---------------------------------------;
+;Segment Move Around #2 - Issue 12 P 16 ;
+;---------------------------------------;
+;Move A Segment Around a single Seven Segment Display (hard coded)
+SEGRND2:               
+            LD      A,3FH 
+            OUT     (01),A ;First Display
+            LD      A,01H  ;Hard code segment positions
+            CALL    SEGR21
+            LD      A,02H
+            CALL    SEGR21
+            LD      A,04H
+            CALL    SEGR21
+            LD      A,20H
+            CALL    SEGR21
+            LD      A,80H
+            CALL    SEGR21
+            LD      A,40H
+            CALL    SEGR21
+            LD      A,04H
+            CALL    SEGR21
+            LD      A,08H
+            CALL    SEGR21
+            JR      SEGRND2
+SEGR21:
+            OUT     (02),A
+            CALL    DELAY_M
+            CALL    CHKSHIFT
+            RET
+
+;---------------------------------------;
+;Segment Move Around #3 - Issue 12 P 17 ;
+;---------------------------------------;
+;Move A Segment Around a single Seven Segment Display (using lookup table)
+SEGRND3:               
+            LD      C,20H
+SEGR31:
+            LD      A,C 
+            OUT     (01),A
+            CALL    SEGLKP
+            RRC     C
+            BIT     7,C
+            JR      Z,SEGR31
+            JR      SEGRND3
+SEGLKP:
+            LD      HL,SEGTAB ;Table start address
+            LD      B,09H     ;Size of table
+SEGR32:
+            LD      A,(HL)
+            OUT     (02),A
+            CALL    DELAY_Q
+            CALL    CHKSHIFT
+            INC     HL
+            DEC     B
+            JP      NZ,SEGR32
+            RET
+SEGTAB:
+            DB      01H,02H,04H,20H,80H,40H,04H,08H,01H
+
+;---------------------------------------;
+;Segment Back and Forth - Issue 11 P 28 ;
+;---------------------------------------;
+;Move A Segment From Right to Left and Back
+SEGBAF:               
+            LD      A,01H 
+            OUT     (02),A 
+SEGB1:               
+            OUT     (01),A 
+            CALL    DELAY_M 
+            RLCA
+            BIT     6,A       ;On Left Edge? 
+            CALL    CHKSHIFT
+            JR      Z,SEGB1
+SEGB2:
+            RRCA
+            OUT     (01),A
+            CALL    DELAY_M
+            BIT     0,A       ;On Right Edge?
+            JR      Z,SEGB2
+            CALL    CHKSHIFT
+            JR      SEGB1
+
+;------------------------------------------------------;
+;Segment Back and Forth using keybaord - Issue 12 P 17 ;
+;------------------------------------------------------;
+;Move A Segment From Right to Left and Back using Keyboard.  '4' - Left and 'C' - Right
+
+SEGKBD:               
+            LD      A,04H
+            OUT     (02),A
+            LD      B,A
+SEGK1:
+            LD      A,B
+            OUT     (01),A
+SKEYWAIT:
+            RST     08H  ;Get Key input
+            CALL    CHKSHIFT
+SLEFT:
+            CP      04H  ;'4' key
+            JR      NZ,SRIGHT
+            RLC     B    ; Move left
+            JR      SEGK1
+SRIGHT:
+            CP      0CH  ;'C' key
+            JR      NZ,SKEYWAIT
+            RRC     B    ; Move right
+            JR      SEGK1
+
+;---------------------------------------------------------------;
+;Segment Back and Forth with RUN using keybaord - Issue 12 P 18 ;
+;---------------------------------------------------------------;
+; Move Segment With the Keyboard with Auto move. '+' - Left, '4' - Right
+SEGKBR:          
+            LD      A,01H 
+            OUT     (02),A 
+            OUT     (01),A
+            LD      B,A
+SEGKR1:
+            PUSH    BC
+            PUSH    DE
+            LD      C,API_SCAN  ;key scan
+            RST     10H         ;mon3 API Call
+            POP     DE
+            POP     BC
+            JR      Z,SRLEFT    ;key Pressed
+            LD      A,C  ;Previous if a invalid
+SRLEFT:
+            CP      10H
+            JR      NZ,SRRIGHT
+            RLC     B
+            JR      SRMOVE
+SRRIGHT:
+            CP      04H
+            JR      NZ,SEGKR1
+            RRC     B
+SRMOVE:
+            LD      C,A      ;Store current direction (key)
+            LD      A,B
+            OUT     (01),A
+            CALL    DELAY_M
+            CALL    CHKSHIFT
+            JR      SEGKR1
+
+;---------------------------------------------;
+;Display two Segments at once - Issue 12 P 18 ;
+;---------------------------------------------;
+; Display 2 segments at the same time (multiplexing)
+SEGTWO:     	
+			LD     C,05H
+SEGT1:
+			LD     A,01H
+			OUT    (01),A
+			LD     A,0C6H  ;T
+			OUT    (02),A
+			CALL   DELAY_Q
+			CALL   CHKSHIFT
+			CALL   SECOND
+			DEC    C
+			JR     NZ,SEGT1
+
+			LD     C,05H
+SEGT2:
+			LD     A,01H
+			OUT    (01),A
+			LD     A,0C7H  ;E
+			OUT    (02),A
+			CALL   DELAY_Q
+			CALL   CHKSHIFT
+			CALL   SECOND
+			DEC    C
+			JR     NZ,SEGT2
+
+			LD     C,05H
+SEGT3:
+			LD     A,01H
+			OUT    (01),A
+			LD     A,0C3H  ;C
+ 			OUT    (02),A
+			CALL   DELAY_Q
+			CALL   CHKSHIFT
+			CALL   SECOND
+			DEC    C
+			JR     NZ,SEGT3
+			JR     SEGTWO
+SECOND:                       ;Second Segment
+			LD     A,20H
+			OUT    (01),A
+			LD     A,80H
+			OUT    (02),A
+			CALL   DELAY_Q
+			CALL   CHKSHIFT
+			RET
+
+;------------------------;
+;The Box - Issue 14 P 14 ;
+;------------------------;
+;Seven Segment Box movement animation
+SEGBOX:
+            LD      IX,BOXTAB   ;Box Table Data
+            LD      D,1CH       ;Box Table Entry Count, Groups of 4
+            LD      B,00H       ;Full Delay on Screen
+BOX1:
+            LD      C,40H       ;Screen Muliplex Delay
+BOX2:
+            LD      A,(IX+0)    ;Display Data 1,2
+            OUT     (01),A
+            LD      A,(IX+1)
+            OUT     (02),A
+BOX3:       DJNZ    BOX3
+            XOR     A
+            OUT     (02),A      ;Clear Display
+            LD      A,(IX+2)    ;Display Data 3,4
+            OUT     (01),A
+            LD      A,(IX+3)
+            OUT     (02),A
+BOX4:       DJNZ    BOX4
+            CALL    CHKSHIFT
+            DEC     C
+            JR      NZ,BOX2     ;More data to display?
+            INC     IX
+            INC     IX
+            INC     IX
+            INC     IX          ;Move IX to next group of 4
+            DEC     D
+            JR      NZ,BOX1
+            JR      SEGBOX
+BOXTAB:     ;First Byte = Segment, Second Byte = LED's on Segment to light up
+			DB      01H,0E4H,01H,0E4H,01H,0E8H,01H,0E8H
+			DB      01H,0E4H,01H,0E4H,01H,0E2H,01H,0E2H
+			DB      01H,0E4H,01H,0E4H,01H,0E4H,01H,0E4H
+			DB      01H,0E2H,01H,0E2H,01H,0E4H,01H,0E4H
+			DB      01H,0E1H,01H,0E1H,01H,01H,02H,0E0H
+			DB      01H,04H,02H,0E0H,01H,80H,02H,0E0H
+			DB      01H,80H,04H,0A4H,01H,80H,08H,64H
+			DB      01H,80H,10H,0C4H,01H,80H,20H,0E0H
+			DB      02H,80H,20H,0E0H,04H,80H,20H,0E0H
+			DB      08H,80H,20H,0E0H,10H,04H,20H,0E0H
+			DB      20H,0E1H,20H,0E1H,20H,0E4H,20H,0E4H
+			DB      10H,0E4H,10H,0E4H,08H,0E4H,08H,0E4H
+			DB      04H,0E0H,08H,04H,02H,0E0H,08H,04H
+			DB      01H,0E0H,04H,04H,01H,0E0H,02H,04H
+
+;--------------------------;
+;Boomerang - Issue 14 P 14 ;
+;--------------------------;
+;Seven Segment Boomerang animation
+SEGBRG:
+            LD      HL,BRGTAB ;Table
+            LD      B,012H    ;Table Entries
+BRG1:
+            LD      A,(HL)
+            OUT     (01),A    ;First Entry Segment
+            INC     HL
+            LD      A,(HL)
+            OUT     (02),A    ;Second Entry LED's
+            INC     HL
+            CALL    DELAY_M
+            CALL    CHKSHIFT
+            DJNZ    BRG1
+            JR      SEGBRG
+BRGTAB:     ;First Byte = Segment, Second Byte = LED's on Segment to light up
+            DB      01H,09H,02H,03H,04H,06H,08H,0CH
+            DB      10H,09H,20H,03H,20H,0C0H,10H,0A0H
+            DB      08H,24H,04H,44H,02H,0C0H,01H,0A0H
+            DB      20H,6FH,10H,0EAH,08H,0A7H,04H,0A7H
+            DB      02H,28H,01H,0C7H
+
+;-------------------------------;
+;8x8 LED Around - Issue 11 P 33 ;
+;-------------------------------;
+;Move an 8x8 LED around the perimeter of the display
+LEDRND:               
+            LD      A,01H   ;Bottom Left to Right
+            OUT     (06),A
+            LD      C,08H
+            LD      A,01H
+LEDR1:
+            OUT     (05),A
+            CALL    DELAY_Q
+            CALL    CHKSHIFT
+            RLCA
+            DEC     C
+            JR      NZ,LEDR1
+
+            LD      A,80H  ;Right Bottom to Top
+            OUT     (05),A
+            LD      C,07H
+            LD      A,02H
+LEDR2:
+            OUT     (06),A
+            CALL    DELAY_Q
+            CALL    CHKSHIFT
+            RLCA
+            DEC     C
+            JR      NZ,LEDR2
+
+            LD      A,80H ;Top Right to Left
+            OUT     (06),A
+            LD      C,07H
+            LD      A,40H
+LEDR3:
+            OUT     (05),A
+            CALL    DELAY_Q
+            CALL    CHKSHIFT
+            RRCA
+            DEC     C
+            JR      NZ,LEDR3
+
+            LD      A,01H ;Left Top to Bottom
+            OUT     (05),A
+            LD      C,07H
+            LD      A,40H
+LEDR4:
+            OUT     (06),A
+            CALL    DELAY_Q
+            CALL    CHKSHIFT
+            RRCA
+            DEC     C
+            JR      NZ,LEDR4
+
+            JR      LEDRND
+
+;---------------------------------------;
+;8x8 LED Back and Forth - Issue 11 P 33 ;
+;---------------------------------------;
+;Move an 8x8 LED from Left to Right and Increase in depth
+LEDBAF:
+            LD      H,01H
+LEDB1:               
+            LD      A,H 
+            OUT     (05),A
+            LD      C,08H
+            LD      A,01H
+LEDB2:
+            OUT     (06),A
+            CALL    DELAY_F
+            CALL    CHKSHIFT
+            RLCA             ;Move Upwards
+            DEC     C
+            JR      NZ,LEDB2
+
+            LD      C,08H
+            LD      A,80H
+LEDB3: 
+            OUT     (06),A
+            CALL    DELAY_F
+            CALL    CHKSHIFT
+            RRCA             ;Move Across
+            DEC     C
+            JR      NZ,LEDB3
+
+            INC     H        ;Increase Binary view by one
+            JR      LEDB1
+
+;-----------------------------------;
+;8x8 LED Fan Out #1 - Issue 11 P 34 ;
+;-----------------------------------;
+;Fan out the LEDs from bottom left to top right
+LEDFN1:
+            LD      A,01H
+LEDF11:               
+            OUT     (05),A
+            OUT     (06),A
+            RLCA             ;Move A one bit to the left
+            CALL    DELAY_Q
+            CALL    CHKSHIFT
+            INC     A        ;Add one (or set bit 0), This will fill A with bits
+            JR      NZ,LEDF11
+            JR      LEDFN1
+
+;-----------------------------------;
+;8x8 LED Fan Out #2 - Issue 12 P 26 ;
+;-----------------------------------;
+;Fan out the LEDs from bottom left to top right and through
+LEDFN2:
+            LD      A,01H    ;One LED
+LEDF21:               
+            OUT     (05),A   ;Output A
+            OUT     (06),A
+            RLCA             ;Shift A
+            CALL    DELAY_Q
+            CALL    CHKSHIFT
+            INC     A        ;Add 1 to A
+            JR      NZ,LEDF21
+            LD      A,0FEH   ;Full Screen
+LEDF22:
+            OUT     (05),A   ;Output A
+            OUT     (06),A
+            RLCA             ;Shift A
+            CALL    DELAY_Q
+            CALL    CHKSHIFT
+            DEC     A        ;Sub 1 from A
+            JR      NZ,LEDF22
+            JR      LEDF21   ;Start Again
+
+;-----------------------------------;
+;8x8 LED Fan Out #3 - Issue 14 P 15 ;
+;-----------------------------------;
+;Fan out the LEDs from the center to the outside and back using lookup table
+LEDFN3:
+            LD      HL,FANTAB ;Table Reference
+            LD      B,0CH     ;Table Size
+LEDF31:               
+            LD      A,(HL)            
+            OUT     (05),A
+            OUT     (06),A
+            INC     HL
+            CALL    DELAY_Q
+            CALL    CHKSHIFT     
+            DJNZ    LEDF31
+            JR      LEDFN3
+FANTAB:     ;This table is displayed which fans in and fans out
+            DB      18H,3CH,7EH,0FFH,0E7H,0C3H
+            DB      81H,0C3H,0E7H,0FFH,7EH,3CH
+
+;---------------------------------------;
+;8x8 LED Mystery Effect - Issue 11 P 34 ;
+;---------------------------------------;
+;LED Mystery Effect!!!
+LEDMYS:
+            LD      C,20H
+            LD      A,01H
+            OUT     (05),A
+            LD      A,01H
+LEDM1:               
+            OUT     (06),A
+            RLCA            ;Move Up 
+            CALL    LEDMOV
+            DEC     C
+            JR      NZ,LEDM1
+
+            LD      C,20H
+            LD      A,01H
+            OUT     (06),A
+            LD      A,01H
+LEDM2:               
+            OUT     (05),A
+            RLCA            ;Move Across
+            CALL    LEDMOV
+            DEC     C
+            JR      NZ,LEDM2
+
+            LD      C,20H
+            LD      A,01H
+LEDM3:               
+            OUT     (05),A
+            OUT     (06),A
+            RLCA            ;Move Up and Across
+            CALL    LEDMOV
+            DEC     C
+            JR      NZ,LEDM3
+            JR      LEDMYS
+LEDMOV:
+            CALL    DELAY_Q
+            CALL    CHKSHIFT     
+            INC     A
+            BIT     0,A
+            JR      Z, LEDM4            
+            RET
+LEDM4:
+            CALL    DELAY_Q
+            CALL    CHKSHIFT     
+			CALL    DELAY_Q
+            CALL    CHKSHIFT     
+            JR      LEDMOV
+
+;-------------------------------------;
+;8x8 LED Key Movement - Issue 11 P 36 ;
+;-------------------------------------;
+;LED Keyboard Movement Routine. Use '-','5','2' and '0' Keys to move an LED light around
+LEDKBD:
+            LD      BC,0101H
+            LD      A,B
+            OUT     (05),A
+            LD      A,C
+            OUT     (06),A
+LKEYWAIT:
+            RST     08H
+            CALL    CHKSHIFT     
+LLEFT:
+            CP      11H       ;'-' Key Left
+            JR      NZ, LRIGHT
+            RRC     B
+            JR      UPDATEX
+LRIGHT:
+            CP      05H       ;'5' Key Right
+            JR      NZ, LUP
+            RLC     B
+UPDATEX:
+            LD      A,B
+            OUT     (05),A
+            JR      LKEYWAIT
+LUP:
+            CP      02H       ;'2' Key Left
+            JR      NZ, LDOWN
+            RLC     C
+            JR      UPDATEY
+LDOWN:
+            CP      00H       ;'0' Key Right
+            JR      NZ, LKEYWAIT
+            RRC     C
+UPDATEY:
+            LD      A,C
+            OUT     (06),A
+            JR      LKEYWAIT
+
+;------------------------------------;
+;8x8 LED Ball Bounce - Issue 12 P 26 ;
+;------------------------------------;
+;LED Moves up and down from left to right
+;Modified to use bit shifting instead of repeating the same loop 4 times.
+LEDBBL:
+            LD      B,01H    ;Start on bottom row
+LEDBB1:
+            LD      A,B
+            OUT     (05),A
+            LD      C,08H
+            LD      A,01H
+LEDBB2:
+            OUT     (06),A
+            CALL    DELAY_Q
+            CALL    CHKSHIFT     
+            RLC     A        ;Move up one bit
+            DEC     C        ;Do it 8 times
+            JR      NZ,LEDBB2
+            RLC     B        ;Move to next column
+            LD      A,B
+            OUT     (05),A
+            LD      C,08H
+            LD      A,80H    ;Start on top row
+LEDBB3:
+            OUT     (06),A
+            CALL    DELAY_Q
+            CALL    CHKSHIFT     
+            RRC     A        ;Move down one bit
+            DEC     C
+            JR      NZ,LEDBB3
+
+            RLC     B        ;Move to next column
+            JR      LEDBB1   ;Repeat
+
+;------------------------;
+;8x8 Animation - B Chiha ;
+;------------------------;
+;This is my code to animate the 8x8 by swapping page data to the 8x8
+LEDANI:
+            LD      HL,ANIDAT
+            LD      A,(HL)    ;Page count
+            INC     HL
+            LD      C,A
+ANI1:
+            PUSH    BC
+            LD      DE,SCREEN 
+            LD      BC,0008H  
+            LDIR              ;Copy HL Through to screen area
+            LD      B,80H    
+ANI2:
+            PUSH    HL        ;Multiplex the 8x8 
+ANI3:               
+            PUSH    BC
+            LD      B,01H   ;Counter for 8x8
+            LD      HL,SCREEN
+ANI4:               
+            LD      A,(HL)  ;Data
+            OUT     (06),A
+            LD      A,B     ;Column
+            OUT     (05),A
+            LD      B,20H 
+ANI5:       DJNZ    ANI5     ;Wait
+            CALL    CHKSHIFT
+            INC     HL
+            LD      B,A 
+            XOR     A       ;Clear Data
+            OUT     (05),A 
+            RLC     B       ;Next Column
+            JR      NC,ANI4 
+            POP     BC 
+            DJNZ    ANI3    ;Do it again
+            POP     HL 
+            POP     BC
+            DEC     C       ;Next Page
+            JR      NZ,ANI1    ;Do next screen
+            JR      LEDANI
+ANIDAT:     DB      02H ;Page count
+            DB      08H,08H,0EBH,0FCH,0EAH,09H,04H,00H  ;Boogie
+            DB      04H,09H,0EAH,0FCH,0EBH,08H,08H,00H  ;Woogie
+
+;------------------------------;
+;Aliens Attack - Issue 11 P 36 ;
+;------------------------------;
+;Aliens Attack Sound Effect, Uses Self changing code
+ETATTC:
+            LD      HL,ET3+1  ;Updates DE data in code!
+            LD      A,01H
+            LD      (HL),A
+            LD      B,30H
+ET1:
+            CALL    ET5       ;Play Sound
+            INC     (HL)
+            DJNZ    ET1
+            JR      ETATTC
+ET2:		;SOUND  Delay
+            PUSH    AF
+            PUSH    DE
+ET3:
+			LD      DE,0020H
+ET4:
+			DEC     DE
+			LD      A,D
+			OR      E
+			JR      NZ,ET4
+			POP     DE
+			POP     AF
+			CALL    CHKSHIFT
+			RET
+ET5:        ;SOUND Play
+			PUSH    AF
+			PUSH    BC
+			LD      BC,00AAH
+ET6:
+			LD      A,80H
+			OUT     (01),A
+			LD      A,00H
+			OUT     (01),A
+			CALL    ET2
+			DEC     BC
+			LD      A,B
+			OR      C
+			JR      NZ,ET6
+			POP     BC
+			POP     AF
+			RET
+
+;---------------------------;
+;Oscillator - Issue 12 P 22 ;
+;---------------------------;
+;Oscilate the Speaker
+OSCLAT:     	
+            LD     A,80H
+            OUT    (01),A
+            CALL   DELAY_F
+			CALL   CHKSHIFT
+            LD     A,00H
+            OUT    (01),A
+            CALL   DELAY_F
+			CALL   CHKSHIFT
+            JR     OSCLAT
+
+;--------------------------------;
+;Frequency Sweep - Issue 12 P 22 ;
+;--------------------------------;
+;Sweep through different Frequencies
+FREQSP:     	
+            LD     H,0FFH
+            LD     B,H
+FRQ1:
+            LD     A,00H  ;Turn off
+            OUT    (01),A
+            LD     A,80H  ;Turn on
+            OUT    (01),A
+            LD     A,B
+FRQ2:
+            DEC    A      ;Quicken Delay
+            JR     NZ,FRQ2
+			CALL   CHKSHIFT 
+            DJNZ   FRQ1
+
+            LD     B,00H
+FRQ3:
+            LD     A,00H  ;Turn off
+            OUT    (01),A
+            LD     A,80H  ;Turn on
+            OUT    (01),A
+            INC    B      ;Longer Delay
+            LD     A,B
+FRQ4:
+            DEC    A
+            JR     NZ,FRQ4
+            LD     A,H
+            SUB    B
+			CALL   CHKSHIFT
+            JR     NZ,FRQ3
+            JR     FREQSP
+
+;-------------------------------------;
+;Space Invaders Sound - Issue 14 P 14 ;
+;-------------------------------------;
+;Play a shooting space sound when the key '4' is pressed
+SPCINV: 
+            LD      H,0FFH
+            LD      B,01H
+SPC1:
+            INC     B
+            LD      A,80H   ;Toggle Speaker
+            OUT     (01),A
+            CALL    SPCDLY
+            XOR     A
+            OUT     (01),A
+            CALL    SPCDLY
+            PUSH    BC
+            PUSH    DE
+            LD      C,API_SCAN  ;key scan
+            RST     10H         ;mon3 API Call
+            POP     DE
+            POP     BC
+            CP      04H
+            JR      Z,SPCINV  ;Start again if '4' pressed
+
+            DEC     H        ;Just decrease sound
+            JP      NZ,SPC1
+SPC2:
+            CALL    CHKSHIFT
+            PUSH    BC
+            PUSH    DE
+            LD      C,API_SCAN  ;key scan
+            RST     10H         ;mon3 API Call
+            POP     DE
+            POP     BC
+            CP      04H
+            JR      NZ,SPC2
+            JR      SPCINV
+SPCDLY:
+            LD      C,B
+SPC3:
+            DEC     C
+            JR      NZ,SPC3
+            RET
+
+;---------------------------;
+;Quick Draw - Issue 12 P 21 ;
+;---------------------------;
+;Who can press the key faster, When the letter 'G' is shown, Player 1 uses the '+' key
+;and Player 2 uses the 'C' key. Press any button to reset or Shift 'GO' to exit
+QKDRAW:              
+            XOR     A 
+            OUT     (01),A
+            CALL    DELAY_FULL
+            LD      A,0E3H   ;G Letter
+            OUT     (02),A 
+            LD      A,08H 
+            OUT     (01),A 
+QKDL1:               
+            RST     08H      ;Wait and Get Input
+            CP      0CH      ;If C is pressed Jump Right
+            JR      Z,QKDRT
+            CP      10H      ;If + is pressed Jump Left
+            JR      Z,QKDLT   
+            JR      QKDL1 
+QKDRT:               
+            LD      A,01H    ;Right Segment
+            JR      QDEND 
+QKDLT:                
+            LD      A,20H    ;Left Segment
+QDEND:                 
+            OUT     (01),A 
+            LD      A,28H 
+            OUT     (02),A 
+            RST     08H      ;Wait and Get Input
+            CALL    CHKSHIFT     
+            JR      QKDRAW 
+
+;--------------------------;
+;TEC Clock - Issue 12 P 23 ;
+;--------------------------;
+;A Real time Clock.  Works well with Crystal Oscillator set at 3.5795 MHz
+;Initial Time set at 12:00:00.  Uses 0D00 - 0D09 for display and clock data
+SCREEN:     EQU     0D00H      ;Screen Display Start
+SCREEN_E:   EQU     SCREEN+6   ;Screen Display End
+CLKDATA:    EQU     0D07H      ;Time Data
+TECCLK:
+            LD      A,00H        ;Set Time to 12:00:00 
+            LD      (CLKDATA),A 
+            LD      (CLKDATA+1),A 
+            LD      A,12H 
+            LD      (CLKDATA+2),A 
+
+CLKLOOP:               
+            LD      IY,CLKDATA 
+            LD      B,02H 
+CLK1:               
+            LD      A,(IY+0)   ;Convert Seconds and Minutes
+            ADD     A,01H      ;Increase by 1 Second
+            DAA      
+            CP      60H        ;Reset at 60
+            JR      NZ,CLKDIS  ;If not 60 seconds then display clock
+            XOR     A          ;Set Min / Sec to 0
+            LD      (IY+0),A   ;Save updated value
+            INC     IY         ;Inc from Sec to Min to Hour
+            DJNZ    CLK1       ;If here update minutes
+            LD      A,(IY+0)   ;Convert Hours
+            ADD     A,01H      ;Increase hours by one
+            DAA      
+            CP      24H        ;Reset at 24
+            JR      NZ,CLKDIS  ;If not 24 then update clock
+            XOR     A          ;Set Hour to 0
+CLKDIS:                        ;Display the Clock screen
+            LD      (IY+0),A   ;Save update value
+            LD      B,03H 
+            LD      HL,SCREEN_E  ;Work backwards from S->M->H
+            LD      IX,CLKDATA 
+CLK2:               
+            LD      A,(IX+0)   ;Get Clock data (H/M/S)
+            INC     IX 
+            PUSH    BC 
+            PUSH    AF 
+            AND     0FH        ;Convert low nibble from hex to seven segment
+            LD      B,A 
+            CALL    TBLLOOKUP  ;Convert and update display at HL
+            POP     AF 
+            SRL     A          ;Now get the high nibble
+            SRL     A 
+            SRL     A 
+            SRL     A 
+            LD      B,A 
+            CALL    TBLLOOKUP  ;Convert and update display at HL
+            POP     BC 
+            DJNZ    CLK2       ;Do for S, M, then H
+            LD      B,0FCH 
+CLK3:                          ;Multiplex the Screen
+            LD      IX,SCREEN 
+            PUSH    BC 
+            LD      B,07H 
+            LD      C,40H      ;Start from Left (Hr) and go to right (Sec)
+CLK4:               
+            LD      A,(IX+0) 
+            OUT     (02),A 
+            LD      A,C 
+            OUT     (01),A 
+            SRL     C          ;Move to next segment
+            XOR     A 
+            LD      E,87H      ;Timing to keep display on for 1 second
+CLK5:               
+            DEC     E 
+            JR      NZ,CLK5 
+            OUT     (01),A     ;Clear screen
+            INC     IX 
+            DJNZ    CLK4 
+            POP     BC
+            CALL    CHKSHIFT 
+            DJNZ    CLK3 
+            JP      TIMEDELAY  ;More delay for one second display
+TBLLOOKUP:                     ;Convert Hex to Seven Segment
+            LD      DE,HEX2SEG 
+            PUSH    AF 
+            LD      A,E 
+            ADD     A,B 
+            LD      E,A 
+            LD      A,(DE) 
+            LD      (HL),A 
+            DEC     HL 
+            POP     AF 
+            RET      
+TIMEDELAY:           
+            LD      B,27H      ;Timing to keep display on for 1 second 
+CLK6:               
+            DJNZ    CLK6
+            JP      CLKLOOP 
+
+;---------------------------;
+;Counter #1 - Issue 13 P 14 ;
+;---------------------------;
+;Counter from 0-9 example, uses a lookup table to convert from HEX to Seven Segment
+;Use '4' key to increment 
+COUNT1:     	
+            LD     A,01H
+            OUT    (01),A
+            LD     HL,HEX2SEG   ;Look at TEC Clock
+            LD     B,0AH        ;Ten Numbers
+CNT11:
+            LD     A,(HL)
+            OUT    (02),A
+CNT12:
+            RST    08H 
+            CALL   CHKSHIFT     
+            CP     04H          ;Key '4' Pressed
+            JR     NZ,CNT12     ;Loop until '4' key pressed
+            INC    HL           ;Increment Number
+            DJNZ   CNT11
+            JR     COUNT1       ;Once 9 is reached, reset to 0
+
+;---------------------------;
+;Counter #2 - Issue 13 P 15 ;
+;---------------------------;
+;Counter from 00-99 example, uses a lookup table to convert from HEX to Seven Segment
+;Use '4' key to increment. Uses HL for Ones and DE for Tens.  
+COUNT2:     
+            XOR    A
+            LD     DE,HEX2SEG
+CNT21:
+            LD     HL,HEX2SEG
+CNT2PLEX:
+            XOR    A      ;Output HL (Ones) to first segment
+            OUT    (01),A
+            LD     A,(HL)
+            OUT    (02),A
+            LD     A,01H  ;First Segment
+            OUT    (01),A
+            LD     B,10H
+CNT22:      DJNZ   CNT22
+            CALL   CHKSHIFT     
+            XOR    A      ;Output DE (Ones) to first segment
+            OUT    (01),A
+            LD     A,(DE)
+            OUT    (02),A
+            LD     A,02H  ;Second Segment
+            OUT    (01),A
+            LD     B,10H
+CNT23:      DJNZ   CNT23
+            CALL   CHKSHIFT     
+            PUSH    BC
+            PUSH    DE
+            LD      C,API_SCAN  ;key scan
+            RST     10H         ;mon3 API Call
+            POP     DE
+            POP     BC
+            JR     NC,CNT2PLEX
+            CP     04H
+            JR     NZ,CNT2PLEX  ;Loop if '4' not pressed
+            XOR    A
+            INC    HL    ;Increase Ones
+            LD     A,(HL)
+            CP     0FFH  ;If passed 9 increase Tens
+            JR     NZ,CNT2PLEX
+            INC    DE    ;Increase Tens
+            LD     A,(DE)
+            CP     0FFH     ;If not passed 9
+            JR     NZ,CNT21 ;Reset Ones
+            JR     COUNT2   ;Else Restart
+
+;---------------------------;
+;Counter #3 - Issue 13 P 16 ;
+;---------------------------;
+;Counter from 000-999 example, uses a lookup table to convert from HEX to Seven Segment
+;Use '+' key to increment, '-' key to decrement and 'AD' key to clear
+COUNT3:   
+            LD     HL,SCREEN+3
+            XOR    A
+            LD     (HL),A
+            INC    HL
+            LD     (HL),A
+CNT3LOOP:     	
+            LD     BC,SCREEN
+            LD     DE,SCREEN+3
+            LD     A,(DE)
+            CALL   BITE2N
+            INC    DE
+            LD     A,(DE)
+            CALL   NIBBLE
+            LD     HL,SCREEN+2
+            CALL   CNT3PLEX
+            LD     HL,SCREEN+3
+            PUSH    BC
+            PUSH    DE
+            LD      C,API_SCAN  ;key scan
+            RST     10H         ;mon3 API Call
+            POP     DE
+            POP     BC
+            JR     NC,CLEAR
+INCREMENT:
+            CP     10H
+            JR     NZ,DECREMENT
+            LD     A,(HL)
+            INC    A
+            DAA
+            LD     (HL),A
+            JR     NC,CLEAR
+            INC    HL
+            LD     A,(HL)
+            INC    A
+            DAA
+            LD     (HL),A
+            JR     CLEAR
+DECREMENT:
+            CP     11H
+            JR     NZ,RESET
+            LD     A,(HL)
+            DEC    A
+            DAA
+            LD     (HL),A
+            JR     NC,CLEAR
+            INC    HL
+            LD     A,(HL)
+            DEC    A
+            DAA
+            LD     (HL),A
+            JR     CLEAR
+RESET:
+            CP     13H
+            JR     NZ,CLEAR
+            XOR    A
+            LD     (HL),A
+            INC    HL
+            LD     (HL),A
+CLEAR:
+            LD     A,0FFH
+            JR     CNT3LOOP
+BITE2N:
+            PUSH   AF
+            CALL   NIBBLE
+            POP    AF
+            RRA
+            RRA
+            RRA
+            RRA
+            CALL   NIBBLE
+            RET
+NIBBLE:
+            AND    0FH
+            LD     HL,HEX2SEG
+            ADD    A,L
+            LD     L,A
+            LD     A,(HL)
+            LD     (BC),A
+            INC    BC
+            RET 
+CNT3PLEX:
+            LD     B,04H
+CNT31:
+            LD     A,(HL)
+            OUT    (02),A
+            LD     A,B
+            OUT    (01),A
+            LD     B,50H
+CNT32:      DJNZ   CNT32
+            CALL   CHKSHIFT     
+            DEC    HL
+            LD     B,A
+            XOR    A
+            OUT    (01),A
+            RRC    B
+            JR     NC,CNT31
+            RET
+
+;------------------;
+; Utility Routines ;
+;------------------;
+;The following are general utility routines that are used across all programs
+
+;General Delay Routine, Really Fast Timer Delay
+DELAY_RF:               
+            PUSH    BC 
+            LD      B,02H
+            JR      DELAY
+;General Delay Routine, Fast Timer Delay
+DELAY_F:               
+            PUSH    BC 
+            LD      B,20H
+            JR      DELAY
+;General Delay Routine, Quick Timer Delay
+DELAY_Q:               
+            PUSH    BC 
+            LD      B,40H
+            JR      DELAY
+;General Delay Routine, Mid Timer Delay
+DELAY_M:               
+            PUSH    BC 
+            LD      B,0AAH 
+            JR      DELAY
+
+;Delay Routine (Actual)
+DELAY: 
+            LD      C,0FFH 
+D1:                  
+            DEC     C 
+            JR      NZ,D1 
+            DJNZ    DELAY
+            POP     BC 
+            RET       
+
+;General Delay Routine, Full 16 byte Delay
+DELAY_FULL:
+            LD      DE,0000H 
+D3:               
+            DEC     DE 
+            LD      A,D 
+            OR      E 
+            JR      NZ,D3
+            RET 
+
+;Menu Return checks if a Shift 'Go' has been pressed.  If so then jump back to action
+CHKSHIFT:
+            PUSH    AF
+            IN      A,(03)   ;Check for key pressed
+            BIT     6,A
+            JR      NZ,CHKS1 ;Exit if no key pressed
+            IN      A,(00)   ;Get actual key
+            BIT     5,A      ;Has shift been pressed?
+            JR      NZ,CHKS1 ;Exit if shift not pressed
+            AND     1FH      ;Mask unwanted bits
+            CP      12H      ;"GO" pressed
+            JR      NZ,CHKS1
+            POP     AF       ;Restore Stack
+            POP     BC       ;Fake POP to remove PC as we aren't returning
+            JP      START     ;GOTO Menu
+CHKS1:
+            POP     AF
+            RET
+
+;Hex to Seven Segment Lookup table that converts 0x00-0x09 its Visual equivilant 
+HEX2SEG:    ;0-9 in seven segments
+            DB      0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,0AFH
+            DB      0FFH ;This is only used for Counter #2 (Because it's inefficient!) 
+
+;Menu Command String
+MenuCFG:
+        .db 30
+        .db "TECMAG"    ;7segment Text
+           ;"                   " <- Max LCD entry width
+        .db " TEC Magazine Code ",0
+        .db "Segment Move",0
+        .dw SEGMOV
+        .db "Segment Cycle",0
+        .dw SEGCYC
+        .db "Segment Flash",0
+        .dw SEGFLH
+        .db "Segment Around #1",0
+        .dw SEGRND1
+        .db "Segment Around #2",0
+        .dw SEGRND2
+        .db "Segment Around #3",0
+        .dw SEGRND3
+        .db "Segment Kit",0
+        .dw SEGBAF
+        .db "Segment Keybd Move",0
+        .dw SEGKBD
+        .db "Segment Ky Move Run",0
+        .dw SEGKBR
+        .db "Segment Display Two",0
+        .dw SEGTWO
+        .db "Segment Box Anim.",0
+        .dw SEGBOX
+        .db "Segment Boomerang",0
+        .dw SEGBRG
+
+        .db "8x8 LED Around",0
+        .dw LEDRND
+        .db "8x8 LED Kit",0
+        .dw LEDBAF
+        .db "8x8 LED Fanout #1",0
+        .dw LEDFN1
+        .db "8x8 LED Fanout #2",0
+        .dw LEDFN2
+        .db "8x8 LED Fanout #3",0
+        .dw LEDFN3
+        .db "8x8 LED Mystery",0
+        .dw LEDMYS
+        .db "8x8 LED Keybd Move",0
+        .dw LEDKBD
+        .db "8x8 LED Ball Bounce",0
+        .dw LEDBBL
+        .db "8x8 LED Animation",0
+        .dw LEDANI
+
+        .db "Sound Aliens Attack",0
+        .dw ETATTC
+        .db "Sound Oscilation",0
+        .dw OSCLAT
+        .db "Sound Freq. Sweep",0
+        .dw FREQSP
+        .db "Sound Space Invader",0
+        .dw SPCINV
+
+        .db "Misc. Quick Draw",0
+        .dw QKDRAW
+        .db "Misc. TEC Clock",0
+        .dw TECCLK
+        .db "Misc. Counter 0-9",0
+        .dw COUNT1
+        .db "Misc. Counter 0-99",0
+        .dw COUNT2
+        .db "Misc. Counter 0-999",0
+        .dw COUNT3

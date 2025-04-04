@@ -1,0 +1,169 @@
+;Readme.txt (program) for PATA file collection
+
+;Use LCD Terminal
+API_LCMD:       .equ    0FH
+API_S2LCD:      .equ    0DH
+API_SCAN:       .equ    10H
+KEY_PLUS:       .equ    10H
+KEY_MINUS:      .equ    11H
+KEY_ADDR:       .equ    13H
+INDEX:          .equ    5000H
+MAX_PAGE:       .equ    20
+
+        org 4000H
+start:
+        ;save index
+        xor a
+        ld (INDEX),a
+        ;set up terminal
+display:
+        ld b,01H
+        ld c,API_LCMD                   ;init LCD
+        rst 10H
+        ;push text to screen
+        ld a,(INDEX)
+        add a,a
+        ld hl,text
+        add a,l
+        ld l,a
+        jr nc,$+3
+        inc h
+        ld a,(hl)
+        inc hl
+        ld h,(hl)
+        ld l,a
+        ld c,API_S2LCD
+        rst 10H
+        ;get key
+get_key:
+        ld c,API_SCAN           ;key scan
+        rst 10H
+        jr c,plus
+        jr get_key
+plus:
+        ld hl,INDEX
+        cp KEY_PLUS
+        jr nz,minus
+        ld a,MAX_PAGE
+        cp (hl)
+        jr z,get_key
+        inc (hl)
+        jr display
+minus:
+        cp KEY_MINUS
+        jr nz,addr
+        xor a
+        cp (hl)
+        jr z,get_key
+        dec (hl)
+        jr display
+addr:
+        cp KEY_ADDR
+        jr nz,get_key
+        ret
+text1:
+;           "01234567890123456789"
+        .db "Ready Z80 Collection"
+        .db "Press +/- to Scroll "
+        .db "--------------------"
+        .db "Press AD to Exit    ",0
+text2:
+        .db "All HEX files load  "
+        .db "TMon and Fastforw   "
+        .db "at 4000H except Mint"
+        .db "which load at 1000H ",0
+text3:
+        .db "Applications        "
+        .db 165,"TBASIC.HEX Tiny    "
+        .db "--------------------"
+        .db "Basic, use GLCD/Keyb",0
+text4:
+        .db "or serial terminal  "
+        .db "monitor, start 1000H"
+        .db 165,"TMON.HEX terminal ",0
+text5:
+        .db 165,"MINT.HEX stack base"
+        .db "terminal,start 1000H"
+        .db "language, use serial",0
+text6:
+        .db "LDC/Segment Games   "
+        .db 165,"GAMES.HEX various  "
+        .db "--------------------"
+        .db "seven segment games ",0
+text7:
+        .db 165,"LANDER.HEX lunar   "
+        .db 165,"LCDRUN.HEX LCD Jump"
+        .db "lander by F. Nichols"
+        .db "press '+' to jump   ",0
+text8:
+        .db "GLCD Programs       "
+        .db 165,"GLCDTerm.HEX term  "
+        .db "--------------------"
+        .db "emulator, use keybrd",0
+text9:
+        .db 165,"GLCD_PRG.HEX       "
+        .db "3D Rotations   3000H"
+        .db "Alfred Neuman  4000H"
+        .db "Maze Generator 2000H",0
+text10:
+        .db 165,"FROGGER.HEX classic"
+        .db "instructions on LCD "
+        .db "frogger remake,     ",0
+text11:
+        .db "8x8 LED Matrix Games"
+        .db 165,"GOL.HEX Game of    "
+        .db "--------------------"
+        .db "Life, use hexpad    ",0
+text12:
+        .db 165,"INVADERS.HEX Space "
+        .db 165,"MAGICSQ.HEX magic  "
+        .db "invaders, Keys 4,6,+"
+        .db "square, use hexpad  ",0
+text13:
+        .db 165,"MAZEMAN.HEX find   "
+        .db "start to win        " 
+        .db "globes, return to   "
+        .db 165,"SNAKE.HEX ",7EH," 0,2,5,1",0
+        .db 00H
+text14:
+        .db 165,"INVADER.HEX By Cam "
+        .db 165,"MAZE.HEX By Cam   "
+        .db "Sheppard, Keys 4,6,+"
+        .db "Sheepard, Win at U-1",0
+text15:
+        .db "Music Files         "
+        .db 165,"TUNE_1-5.BIN load &"
+        .db "--------------------"
+        .db "use music routine   ",0
+text16:
+        .db 165,"BANGER.BIN amazing "
+        .db "sounds in 26 bytes  "
+        .db "bit banging dance   ",0
+text17:
+        .db "Interactive Fiction "
+        .db "run at 2000H, uses  "
+        .db "--------------------"
+        .db "Matrix Keyboard     ",0
+text18:
+        .db 165,"IF_CATS.HEX        "
+        .db 165,"IF_DT.HEX          "
+        .db "Catseye             "
+        .db "Dragon and the Troll",0
+text19:
+        .db 165,"IF_WUMP.HEX        "
+        .db "Hunt the Wumpus     "
+        .db "Clasic games of     ",0
+text20:
+        .db "Other Programs      "
+        .db 165,"MON3CODE.HEX typein"
+        .db "--------------------"
+        .db "code from Mon3 guide",0
+text21:
+        .db 165,"TECMAG.HEX magazine"
+        .db 165,"FASTFORW.HEX code  "
+        .db "code, issues 10-15  "
+        .db "stepper, J Robinson ",0
+
+text:   .dw text1,text2,text3,text4,text5,text6,text7,text8
+        .dw text9,text10,text11,text12,text13,text14,text15
+        .dw text16,text17,text18,text19,text20,text21

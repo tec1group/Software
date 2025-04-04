@@ -1,0 +1,740 @@
+0000                             ;Snake
+0000                             ;requires 8x8 led matrix
+0000                             ;Best enjoyed at 4mhz
+0000                             ;Use Port 3&4 for 8x8 matrix
+0000                             ; 
+0000                             ;Modded for the TEC-1G by B. Chiha
+0000                             ; 
+0000                DISPLAY:   EQU   5000H   
+0000                SNAKELEN:   EQU   5009H   
+0000                DIRECTION:   EQU   500AH   
+0000                RANDOM:   EQU   500Bh   
+0000                FRAME:    EQU   500Ch   ;dimming for fruit - not used
+0000                FRUITPRESENT:   EQU   500Dh   ;If fruit is on the screen,dont generate new xy
+0000                SPEED:    EQU   5010h   ; to 0811h
+0000                MOVEMADE:   EQU   5020h   
+0000                HISTORY:   EQU   5080h   
+0000                PORT5:    EQU   05H   
+0000                PORT6:    EQU   06H   
+0000                             ; 
+4000                          .ORG   4000h   
+4000                             ; 
+4000                COLDBOOT:      
+4000   CD CA 41               CALL   CLEARVRAM   
+4003   B7                     OR   a   
+4004   32 20 50               LD   (MoveMade),a   ;only one direction change per snek tick
+4007                             ; 
+4007   32 0A 50               LD   (Direction),a   ;direction of snake
+400A                             ; 
+400A   3E 05                  LD   a,5h   ;Speed 0500h
+400C   32 10 50               LD   (Speed),a   
+400F   3E 00                  LD   a,0   
+4011   32 11 50               LD   (Speed + 1),a   
+4014                             ; 
+4014   CD 3F 41               CALL   ClearBrain   
+4017                             ; 
+4017   3E 33                  LD   a,33h   ;starting position x=3, y=3
+4019   32 80 50               LD   (History),a   ;64 byte snake "memory" - where its been
+401C                             ; 
+401C   3E 02                  LD   a,2   
+401E   32 09 50               LD   (SnakeLen),a   ;snake length
+4021                             ; 
+4021   ED 5F                  LD   a,r   
+4023   E6 77                  AND   77h   ;using the dram refresh counter as a rnd number
+4025   32 0B 50               LD   (Random),a   ;truncated to 0-7, 0-7
+4028                             ; 
+4028   3E 01                  LD   a,1   
+402A   32 0D 50               LD   (FruitPresent),a   ;fruit is drawn
+402D                             ; 
+402D   CD A4 40               CALL   MakeFruit   ; draw the fruit
+4030                             ; 
+4030   C3 7B 42               JP   Main   ;Main Program Thread
+4033                             ; 
+4033                NMI:         ;called every keypress Input A= key pressed
+4033   F5                     PUSH   AF   
+4034   C5                     PUSH   BC   
+4035   D5                     PUSH   DE   
+4036   E5                     PUSH   HL   
+4037                             ; 
+4037                             ;            LD      a,(MoveMade)
+4037                             ;            CP      0
+4037                             ;            JP      nz,EndInt
+4037                             ; 
+4037                             ;            LD      a,1
+4037                             ;            LD      (MoveMade),a
+4037                             ; 
+4037                             ; 
+4037   FE 00                  CP   0   ;left
+4039   CA 4E 40               JP   z,LeftPressed   
+403C   FE 02                  CP   2   ; 
+403E   CA 5E 40               JP   z,RightPressed   
+4041   FE 05                  CP   5   ; 
+4043   CA 6E 40               JP   z,UpPressed   
+4046   FE 01                  CP   1   ; 
+4048   CA 7E 40               JP   z,DownPressed   
+404B                             ; 
+404B   C3 8B 40               JP   EndInt   
+404E                             ; 
+404E                LEFTPRESSED:      
+404E   3A 0A 50               LD   a,(Direction)   
+4051   FE 00                  CP   0   ;Test for Right cos snake cant reverse
+4053   CA 8B 40               JP   z,EndInt   
+4056   3E 03                  LD   a,3   ;Left value
+4058   32 0A 50               LD   (Direction),a   
+405B   C3 8B 40               JP   EndInt   
+405E                             ; 
+405E                RIGHTPRESSED:      
+405E   3A 0A 50               LD   a,(Direction)   
+4061   FE 03                  CP   3   ;Test for Left cos snake cant reverse
+4063   CA 8B 40               JP   z,EndInt   
+4066   3E 00                  LD   a,0   ;Right value
+4068   32 0A 50               LD   (Direction),a   
+406B   C3 8B 40               JP   EndInt   
+406E                             ; 
+406E                UPPRESSED:      
+406E   3A 0A 50               LD   a,(Direction)   
+4071   FE 02                  CP   2   ;Test for Down cos snake cant reverse
+4073   CA 8B 40               JP   z,EndInt   
+4076   3E 01                  LD   a,1   ;Right value
+4078   32 0A 50               LD   (Direction),a   
+407B   C3 8B 40               JP   EndInt   
+407E                             ; 
+407E                DOWNPRESSED:      
+407E   3A 0A 50               LD   a,(Direction)   
+4081   FE 01                  CP   1   ;Test for Down cos snake cant reverse
+4083   CA 8B 40               JP   z,EndInt   
+4086   3E 02                  LD   a,2   ;Right value
+4088   32 0A 50               LD   (Direction),a   
+408B                             ; 
+408B                             ; 
+408B                             ; 
+408B                ENDINT:      
+408B                             ; 
+408B   3A 0D 50               LD   a,(FruitPresent)   
+408E   FE 00                  CP   0   
+4090   C2 9F 40               JP   nz,EI2   
+4093                             ; 
+4093   ED 5F                  LD   a,r   
+4095   E6 77                  AND   077h   
+4097   32 0B 50               LD   (Random),a   
+409A   3E 01                  LD   a,1   
+409C   32 0D 50               LD   (FruitPresent),a   
+409F                EI2:         
+409F   E1                     POP   HL   
+40A0   D1                     POP   DE   
+40A1   C1                     POP   BC   
+40A2   F1                     POP   AF   
+40A3   C9                     RET      
+40A4                             ; 
+40A4                             ; 
+40A4                             ;            LD      a,(Direction)
+40A4                             ; 
+40A4                             ; 
+40A4                MAKEFRUIT:      ;random in (Random)
+40A4                             ; 
+40A4   3A 0B 50               LD   a,(Random)   
+40A7   4F                     LD   c,a   
+40A8                             ;check if fruit lands on snek
+40A8   21 80 50               LD   hl,History   
+40AB   3A 09 50               LD   a,(SnakeLen)   
+40AE   3D                     DEC   a   
+40AF   47                     LD   b,a   
+40B0                MF1:         
+40B0   7E                     LD   a,(hl)   
+40B1   B9                     CP   c   
+40B2   CA BA 40               JP   z,Crush   
+40B5   23                     INC   hl   
+40B6   05                     DEC   b   
+40B7   20 F7                  JR   nz,MF1   
+40B9   C9                     RET      
+40BA                CRUSH:       ;fruit is on snake.
+40BA   ED 5F                  LD   a,r   ;get new rnd value
+40BC   E6 77                  AND   77h   
+40BE   32 0B 50               LD   (Random),a   
+40C1   C3 A4 40               JP   MakeFruit   
+40C4                             ; 
+40C4                TESTFRUIT:      ;is snake eating fruit?
+40C4   3A 0B 50               LD   a,(Random)   
+40C7   4F                     LD   c,a   
+40C8   21 80 50               LD   hl,History   
+40CB   3A 09 50               LD   a,(SnakeLen)   
+40CE   3D                     DEC   a   
+40CF   47                     LD   b,a   
+40D0                TF1:         
+40D0   23                     INC   hl   
+40D1   7E                     LD   a,(hl)   
+40D2   B9                     CP   c   
+40D3   CA DA 40               JP   z,GrowSnek   
+40D6   05                     DEC   b   
+40D7   20 F7                  JR   nz,TF1   
+40D9   C9                     RET      
+40DA                GROWSNEK:      ;yes
+40DA   3A 09 50               LD   a,(SnakeLen)   
+40DD   3C                     INC   a   
+40DE   32 09 50               LD   (SnakeLen),a   
+40E1                             ; 
+40E1                             ;increase speed
+40E1   3A 10 50               LD   a,(Speed)   
+40E4   67                     LD   H,a   
+40E5   3A 11 50               LD   a,(Speed + 1)   
+40E8   6F                     LD   L,a   
+40E9   B7                     OR   a   
+40EA   11 19 00               LD   de,25   
+40ED   ED 52                  SBC   hl,de   
+40EF   7C                     LD   a,h   
+40F0   32 10 50               LD   (Speed),a   
+40F3   7D                     LD   a,L   
+40F4   32 11 50               LD   (Speed + 1),a   
+40F7                             ; 
+40F7   CD A4 40               CALL   MakeFruit   
+40FA   C9                     RET      
+40FB                             ; 
+40FB                TESTCOLLISSIOON:      ;test newhead with body
+40FB   21 80 50               LD   hl,History   
+40FE                             ; 
+40FE   7E                     LD   a,(hl)   ;snake head
+40FF   4F                     LD   c,a   
+4100   3A 09 50               LD   a,(SnakeLen)   
+4103   3D                     DEC   a   
+4104   47                     LD   b,a   
+4105                TC1:         
+4105   23                     INC   hl   
+4106   7E                     LD   a,(hl)   
+4107   B9                     CP   c   
+4108   CA 0F 41               JP   z,Ouch   
+410B   05                     DEC   b   
+410C   20 F7                  JR   nz,TC1   
+410E   C9                     RET      
+410F                OUCH:        
+410F   3E FF                  LD   a,0ffH   
+4111   D3 05                  OUT   (PORT5),a   
+4113   D3 06                  OUT   (PORT6),a   
+4115   01 FF FF               LD   bc,0FFFFh   
+4118                O1:          
+4118   0D                     DEC   c   
+4119   20 FD                  JR   nz,O1   
+411B   05                     DEC   b   
+411C   20 FA                  JR   nz,O1   
+411E                             ; 
+411E   3E 00                  LD   a,00H   
+4120   D3 05                  OUT   (PORT5),a   
+4122   D3 06                  OUT   (PORT6),a   
+4124   01 FF FF               LD   bc,0FFFFh   
+4127                O2:          
+4127   0D                     DEC   c   
+4128   20 FD                  JR   nz,O2   
+412A   05                     DEC   b   
+412B   20 FA                  JR   nz,O2   
+412D                             ; 
+412D   3E FF                  LD   a,0ffH   
+412F   D3 05                  OUT   (PORT5),a   
+4131   D3 06                  OUT   (PORT6),a   
+4133   01 FF FF               LD   bc,0FFFFh   
+4136                O3:          
+4136   0D                     DEC   c   
+4137   20 FD                  JR   nz,O3   
+4139   05                     DEC   b   
+413A   20 FA                  JR   nz,O3   
+413C                             ; 
+413C   C3 00 40               JP   COLDBOOT   ;restart
+413F                             ; 
+413F                CLEARBRAIN:      ;the snakes memory
+413F   21 80 50               LD   HL,History   
+4142   06 40                  LD   b,64   
+4144   AF                     XOR   a   
+4145                CB1:         
+4145   77                     LD   (HL),a   
+4146   23                     INC   hl   
+4147   05                     DEC   b   
+4148   20 FB                  JR   nz,CB1   
+414A   C9                     RET      
+414B                             ; 
+414B                BRAIN2FIELD:      ;update the playing field
+414B   CD CA 41               CALL   ClearVram   
+414E                             ;draw each snake memory to display
+414E   21 80 50               LD   HL,History   
+4151   3A 09 50               LD   a,(SnakeLen)   
+4154   47                     LD   b,a   
+4155                B2F1:        
+4155   7E                     LD   a,(HL)   
+4156   23                     INC   HL   
+4157   CD 42 42               CALL   PixOn   
+415A   05                     DEC   b   
+415B   20 F8                  JR   nz,B2F1   
+415D   C9                     RET      
+415E                             ; 
+415E                BRAINSHIFT:      ;move the array
+415E                             ;0900h contains the Head
+415E                             ;shift the head down to make a new head
+415E                             ;0900 > 0901 etc
+415E                             ;we'll need to do this from the bottom up
+415E                             ; 
+415E                             ; 
+415E   21 C0 50               LD   HL,History + 40H   
+4161   11 BF 50               LD   DE,History + 3FH   
+4164   06 40                  LD   b,64   
+4166                BS1:         
+4166   1A                     LD   a,(DE)   
+4167   77                     LD   (HL),a   
+4168   2B                     DEC   HL   
+4169   1B                     DEC   De   
+416A   05                     DEC   b   
+416B   20 F9                  JR   nz,BS1   
+416D   C9                     RET      
+416E                             ; 
+416E                NEWHEAD:      ;grow a new head in direction
+416E                             ; 
+416E   3E 00                  LD   a,0   
+4170   32 20 50               LD   (MoveMade),a   ; enable new key input
+4173                             ; 
+4173   3A 0A 50               LD   a,(Direction)   
+4176   FE 00                  CP   0h   
+4178   CA 99 41               JP   z,HeadRight   
+417B   FE 01                  CP   1h   
+417D   CA 8B 41               JP   z,HeadUp   
+4180   FE 02                  CP   2h   
+4182   CA A7 41               JP   z,HeadDown   
+4185   FE 03                  CP   3h   
+4187   CA B8 41               JP   z,HeadLeft   
+418A                             ; 
+418A   C9                     RET      
+418B                             ; 
+418B                             ; 
+418B                HEADUP:      
+418B   21 80 50               LD   HL,History   
+418E   7E                     LD   a,(HL)   
+418F   C6 01                  ADD   a,1h   
+4191   CB 5F                  BIT   3,a   
+4193   28 02                  JR   z,HU1   
+4195   E6 F7                  AND   0F7h   
+4197                HU1:         
+4197   77                     LD   (HL),a   
+4198   C9                     RET      
+4199                             ; 
+4199                HEADRIGHT:      
+4199   21 80 50               LD   HL,History   
+419C   7E                     LD   a,(HL)   
+419D   C6 10                  ADD   a,10h   
+419F   CB 7F                  BIT   7,a   
+41A1   28 02                  JR   z,HR1   
+41A3   E6 7F                  AND   7Fh   
+41A5                HR1:         
+41A5   77                     LD   (HL),a   
+41A6   C9                     RET      
+41A7                             ; 
+41A7                HEADDOWN:      
+41A7   21 80 50               LD   HL,History   
+41AA   7E                     LD   a,(HL)   
+41AB   4F                     LD   c,a   ;c is orig
+41AC   E6 70                  AND   70h   
+41AE   47                     LD   b,a   ; b is upper nibble
+41AF   79                     LD   a,c   
+41B0   E6 0F                  AND   0Fh   
+41B2   3D                     DEC   a   
+41B3   E6 07                  AND   07h   
+41B5   B0                     OR   b   
+41B6   77                     LD   (HL),a   
+41B7   C9                     RET      
+41B8                             ; 
+41B8                HEADLEFT:      
+41B8   21 80 50               LD   HL,History   
+41BB   7E                     LD   a,(HL)   
+41BC   4F                     LD   c,a   ;c is orig
+41BD   E6 07                  AND   07h   
+41BF   47                     LD   b,a   ; b is lower nibble
+41C0   79                     LD   a,c   
+41C1   E6 F0                  AND   0F0h   
+41C3   D6 10                  SUB   10h   
+41C5   E6 70                  AND   70h   
+41C7   B0                     OR   b   
+41C8   77                     LD   (HL),a   
+41C9   C9                     RET      
+41CA                             ; 
+41CA                CLEARVRAM:      
+41CA   AF                     XOR   a   
+41CB   32 00 50               LD   (Display),a   ;matrix buffer
+41CE   32 01 50               LD   (Display + 1),a   
+41D1   32 02 50               LD   (Display + 2),a   
+41D4   32 03 50               LD   (Display + 3),a   
+41D7   32 04 50               LD   (Display + 4),a   
+41DA   32 05 50               LD   (Display + 5),a   
+41DD   32 06 50               LD   (Display + 6),a   
+41E0   32 07 50               LD   (Display + 7),a   
+41E3   C9                     RET      
+41E4                             ; 
+41E4                             ;Routines:
+41E4                REDRAW:      
+41E4                             ; 
+41E4                             ; 0800h left column
+41E4                             ; bit 0 bottom row.
+41E4                             ; 
+41E4                             ; 
+41E4                             ; 
+41E4                             ;VRAM in 0800, 8 bytes
+41E4   E5                     PUSH   HL   
+41E5   21 00 50               LD   HL,Display   
+41E8   7E                     LD   a,(HL)   
+41E9   D3 06                  OUT   (PORT6),a   
+41EB   3E 01                  LD   a,1   
+41ED   D3 05                  OUT   (PORT5),a   
+41EF   23                     INC   hl   
+41F0   AF                     XOR   a   
+41F1   D3 05                  OUT   (PORT5),a   
+41F3                             ; 
+41F3   7E                     LD   a,(HL)   
+41F4   D3 06                  OUT   (PORT6),a   
+41F6   3E 02                  LD   a,2   
+41F8   D3 05                  OUT   (PORT5),a   
+41FA   23                     INC   hl   
+41FB   AF                     XOR   a   
+41FC   D3 05                  OUT   (PORT5),a   
+41FE                             ; 
+41FE   7E                     LD   a,(HL)   
+41FF   D3 06                  OUT   (PORT6),a   
+4201   3E 04                  LD   a,4   
+4203   D3 05                  OUT   (PORT5),a   
+4205   23                     INC   hl   
+4206   AF                     XOR   a   
+4207   D3 05                  OUT   (PORT5),a   
+4209                             ; 
+4209   7E                     LD   a,(HL)   
+420A   D3 06                  OUT   (PORT6),a   
+420C   3E 08                  LD   a,8   
+420E   D3 05                  OUT   (PORT5),a   
+4210   23                     INC   hl   
+4211   AF                     XOR   a   
+4212   D3 05                  OUT   (PORT5),a   
+4214                             ; 
+4214   7E                     LD   a,(HL)   
+4215   D3 06                  OUT   (PORT6),a   
+4217   3E 10                  LD   a,10h   
+4219   D3 05                  OUT   (PORT5),a   
+421B   23                     INC   hl   
+421C   AF                     XOR   a   
+421D   D3 05                  OUT   (PORT5),a   
+421F                             ; 
+421F   7E                     LD   a,(HL)   
+4220   D3 06                  OUT   (PORT6),a   
+4222   3E 20                  LD   a,20h   
+4224   D3 05                  OUT   (PORT5),a   
+4226   23                     INC   hl   
+4227   AF                     XOR   a   
+4228   D3 05                  OUT   (PORT5),a   
+422A                             ; 
+422A   7E                     LD   a,(HL)   
+422B   D3 06                  OUT   (PORT6),a   
+422D   3E 40                  LD   a,40h   
+422F   D3 05                  OUT   (PORT5),a   
+4231   23                     INC   hl   
+4232   AF                     XOR   a   
+4233   D3 05                  OUT   (PORT5),a   
+4235                             ; 
+4235   7E                     LD   a,(HL)   
+4236   D3 06                  OUT   (PORT6),a   
+4238   3E 80                  LD   a,80h   
+423A   D3 05                  OUT   (PORT5),a   
+423C   23                     INC   hl   
+423D   AF                     XOR   a   
+423E   D3 05                  OUT   (PORT5),a   
+4240                             ; 
+4240   E1                     POP   HL   
+4241   C9                     RET      
+4242                             ; 
+4242                PIXON:       ;A - High Nibble = X, Low Nibble = Y
+4242   E5                     PUSH   HL   
+4243   C5                     PUSH   BC   
+4244   26 50                  LD   H,50h   
+4246   47                     LD   b,a   
+4247   E6 F0                  AND   0F0h   
+4249   1F                     RRA      
+424A   1F                     RRA      
+424B   1F                     RRA      
+424C   1F                     RRA      
+424D   6F                     LD   L,A   
+424E   78                     LD   a,b   
+424F   E6 0F                  AND   0Fh   
+4251   47                     LD   b,a   
+4252   04                     INC   b   
+4253                             ; 
+4253   3E 01                  LD   a,1   
+4255   05                     DEC   b   
+4256   28 1C                  JR   z,POdone   
+4258   17                     RLA      
+4259   05                     DEC   b   
+425A   28 18                  JR   z,POdone   
+425C   17                     RLA      
+425D   05                     DEC   b   
+425E   28 14                  JR   z,POdone   
+4260   17                     RLA      
+4261   05                     DEC   b   
+4262   28 10                  JR   z,POdone   
+4264   17                     RLA      
+4265   05                     DEC   b   
+4266   28 0C                  JR   z,POdone   
+4268   17                     RLA      
+4269   05                     DEC   b   
+426A   28 08                  JR   z,POdone   
+426C   17                     RLA      
+426D   05                     DEC   b   
+426E   28 04                  JR   z,POdone   
+4270   17                     RLA      
+4271   05                     DEC   b   
+4272   28 00                  JR   z,POdone   
+4274                             ; 
+4274                PODONE:      
+4274                             ; 
+4274   47                     LD   b,a   
+4275   7E                     LD   a,(hl)   
+4276   B0                     OR   b   
+4277   77                     LD   (HL),a   
+4278   C1                     POP   BC   
+4279   E1                     POP   HL   
+427A   C9                     RET      
+427B                             ; 
+427B                MAIN:        
+427B   0E 10                  LD   C,10H   ;key routine
+427D   D7                     RST   10H   
+427E   CC 33 40               CALL   Z,NMI   ;key new and pressed
+4281   CD 4B 41               CALL   Brain2Field   
+4284   3A 10 50               LD   a,(Speed)   ;speed registers
+4287   47                     LD   b,a   
+4288   3A 11 50               LD   a,(Speed + 1)   
+428B   4F                     LD   c,a   
+428C                M1:          
+428C   CD E4 41               CALL   ReDraw   
+428F   0D                     DEC   c   
+4290   C2 8C 42               JP   nz,M1   
+4293   05                     DEC   b   
+4294   C2 8C 42               JP   nz,M1   
+4297                             ; 
+4297   3A 10 50               LD   a,(Speed)   
+429A   47                     LD   b,a   
+429B   3A 11 50               LD   a,(Speed + 1)   
+429E   4F                     LD   c,a   
+429F                M2:          
+429F   3A 0B 50               LD   A,(Random)   
+42A2   CD 42 42               CALL   PixOn   ;draw the fruit
+42A5   CD E4 41               CALL   ReDraw   
+42A8   0D                     DEC   c   
+42A9   C2 9F 42               JP   nz,M2   
+42AC   05                     DEC   b   
+42AD   C2 9F 42               JP   nz,M2   
+42B0                             ; 
+42B0                             ; 
+42B0                             ; 
+42B0   CD 5E 41               CALL   BrainShift   
+42B3   CD 6E 41               CALL   NewHead   
+42B6   CD FB 40               CALL   TestCollissioon   
+42B9   CD C4 40               CALL   TestFruit   
+42BC                             ; 
+42BC   C3 7B 42               JP   Main   
+42BF                             ; 
+42BF   53 6E 61 6B 65 20 42 79 20 42 65 6E 20 47 72 69 6D 6D 65 74 74 DB   "Snake By Ben Grimmett"   
+42D4                          .END      
+
+
+DISPLAY:            5000 DEFINED AT LINE 8
+                    > USED AT LINE 355
+                    > USED AT LINE 356
+                    > USED AT LINE 357
+                    > USED AT LINE 358
+                    > USED AT LINE 359
+                    > USED AT LINE 360
+                    > USED AT LINE 361
+                    > USED AT LINE 362
+                    > USED AT LINE 375
+SNAKELEN:           5009 DEFINED AT LINE 9
+                    > USED AT LINE 40
+                    > USED AT LINE 139
+                    > USED AT LINE 160
+                    > USED AT LINE 172
+                    > USED AT LINE 174
+                    > USED AT LINE 197
+                    > USED AT LINE 256
+DIRECTION:          500A DEFINED AT LINE 10
+                    > USED AT LINE 27
+                    > USED AT LINE 79
+                    > USED AT LINE 83
+                    > USED AT LINE 87
+                    > USED AT LINE 91
+                    > USED AT LINE 95
+                    > USED AT LINE 99
+                    > USED AT LINE 103
+                    > USED AT LINE 107
+                    > USED AT LINE 290
+RANDOM:             500B DEFINED AT LINE 11
+                    > USED AT LINE 44
+                    > USED AT LINE 119
+                    > USED AT LINE 135
+                    > USED AT LINE 153
+                    > USED AT LINE 157
+                    > USED AT LINE 515
+FRAME:              500C DEFINED AT LINE 12
+FRUITPRESENT:       500D DEFINED AT LINE 13
+                    > USED AT LINE 47
+                    > USED AT LINE 113
+                    > USED AT LINE 121
+SPEED:              5010 DEFINED AT LINE 14
+                    > USED AT LINE 30
+                    > USED AT LINE 32
+                    > USED AT LINE 177
+                    > USED AT LINE 179
+                    > USED AT LINE 185
+                    > USED AT LINE 187
+                    > USED AT LINE 499
+                    > USED AT LINE 501
+                    > USED AT LINE 510
+                    > USED AT LINE 512
+MOVEMADE:           5020 DEFINED AT LINE 15
+                    > USED AT LINE 25
+                    > USED AT LINE 288
+HISTORY:            5080 DEFINED AT LINE 16
+                    > USED AT LINE 37
+                    > USED AT LINE 138
+                    > USED AT LINE 159
+                    > USED AT LINE 193
+                    > USED AT LINE 242
+                    > USED AT LINE 255
+                    > USED AT LINE 273
+                    > USED AT LINE 274
+                    > USED AT LINE 304
+                    > USED AT LINE 315
+                    > USED AT LINE 326
+                    > USED AT LINE 340
+PORT5:              0005 DEFINED AT LINE 17
+                    > USED AT LINE 210
+                    > USED AT LINE 220
+                    > USED AT LINE 230
+                    > USED AT LINE 379
+                    > USED AT LINE 382
+                    > USED AT LINE 387
+                    > USED AT LINE 390
+                    > USED AT LINE 395
+                    > USED AT LINE 398
+                    > USED AT LINE 403
+                    > USED AT LINE 406
+                    > USED AT LINE 411
+                    > USED AT LINE 414
+                    > USED AT LINE 419
+                    > USED AT LINE 422
+                    > USED AT LINE 427
+                    > USED AT LINE 430
+                    > USED AT LINE 435
+                    > USED AT LINE 438
+PORT6:              0006 DEFINED AT LINE 18
+                    > USED AT LINE 211
+                    > USED AT LINE 221
+                    > USED AT LINE 231
+                    > USED AT LINE 377
+                    > USED AT LINE 385
+                    > USED AT LINE 393
+                    > USED AT LINE 401
+                    > USED AT LINE 409
+                    > USED AT LINE 417
+                    > USED AT LINE 425
+                    > USED AT LINE 433
+COLDBOOT:           4000 DEFINED AT LINE 22
+                    > USED AT LINE 239
+NMI:                4033 DEFINED AT LINE 53
+                    > USED AT LINE 497
+LEFTPRESSED:        404E DEFINED AT LINE 78
+                    > USED AT LINE 68
+RIGHTPRESSED:       405E DEFINED AT LINE 86
+                    > USED AT LINE 70
+UPPRESSED:          406E DEFINED AT LINE 94
+                    > USED AT LINE 72
+DOWNPRESSED:        407E DEFINED AT LINE 102
+                    > USED AT LINE 74
+ENDINT:             408B DEFINED AT LINE 111
+                    > USED AT LINE 76
+                    > USED AT LINE 81
+                    > USED AT LINE 84
+                    > USED AT LINE 89
+                    > USED AT LINE 92
+                    > USED AT LINE 97
+                    > USED AT LINE 100
+                    > USED AT LINE 105
+EI2:                409F DEFINED AT LINE 122
+                    > USED AT LINE 115
+MAKEFRUIT:          40A4 DEFINED AT LINE 133
+                    > USED AT LINE 49
+                    > USED AT LINE 154
+                    > USED AT LINE 189
+MF1:                40B0 DEFINED AT LINE 142
+                    > USED AT LINE 148
+CRUSH:              40BA DEFINED AT LINE 150
+                    > USED AT LINE 145
+TESTFRUIT:          40C4 DEFINED AT LINE 156
+                    > USED AT LINE 528
+TF1:                40D0 DEFINED AT LINE 163
+                    > USED AT LINE 169
+GROWSNEK:           40DA DEFINED AT LINE 171
+                    > USED AT LINE 167
+TESTCOLLISSIOON:    40FB DEFINED AT LINE 192
+                    > USED AT LINE 527
+TC1:                4105 DEFINED AT LINE 200
+                    > USED AT LINE 206
+OUCH:               410F DEFINED AT LINE 208
+                    > USED AT LINE 204
+O1:                 4118 DEFINED AT LINE 213
+                    > USED AT LINE 215
+                    > USED AT LINE 217
+O2:                 4127 DEFINED AT LINE 223
+                    > USED AT LINE 225
+                    > USED AT LINE 227
+O3:                 4136 DEFINED AT LINE 233
+                    > USED AT LINE 235
+                    > USED AT LINE 237
+CLEARBRAIN:         413F DEFINED AT LINE 241
+                    > USED AT LINE 34
+CB1:                4145 DEFINED AT LINE 245
+                    > USED AT LINE 249
+BRAIN2FIELD:        414B DEFINED AT LINE 252
+                    > USED AT LINE 498
+B2F1:               4155 DEFINED AT LINE 258
+                    > USED AT LINE 263
+BRAINSHIFT:         415E DEFINED AT LINE 266
+                    > USED AT LINE 525
+BS1:                4166 DEFINED AT LINE 276
+                    > USED AT LINE 282
+NEWHEAD:            416E DEFINED AT LINE 285
+                    > USED AT LINE 526
+HEADUP:             418B DEFINED AT LINE 303
+                    > USED AT LINE 294
+HU1:                4197 DEFINED AT LINE 310
+                    > USED AT LINE 308
+HEADRIGHT:          4199 DEFINED AT LINE 314
+                    > USED AT LINE 292
+HR1:                41A5 DEFINED AT LINE 321
+                    > USED AT LINE 319
+HEADDOWN:           41A7 DEFINED AT LINE 325
+                    > USED AT LINE 296
+HEADLEFT:           41B8 DEFINED AT LINE 339
+                    > USED AT LINE 298
+CLEARVRAM:          41CA DEFINED AT LINE 353
+                    > USED AT LINE 23
+                    > USED AT LINE 253
+REDRAW:             41E4 DEFINED AT LINE 366
+                    > USED AT LINE 504
+                    > USED AT LINE 517
+PIXON:              4242 DEFINED AT LINE 443
+                    > USED AT LINE 261
+                    > USED AT LINE 516
+PODONE:             4274 DEFINED AT LINE 484
+                    > USED AT LINE 461
+                    > USED AT LINE 464
+                    > USED AT LINE 467
+                    > USED AT LINE 470
+                    > USED AT LINE 473
+                    > USED AT LINE 476
+                    > USED AT LINE 479
+                    > USED AT LINE 482
+MAIN:               427B DEFINED AT LINE 494
+                    > USED AT LINE 51
+                    > USED AT LINE 530
+M1:                 428C DEFINED AT LINE 503
+                    > USED AT LINE 506
+                    > USED AT LINE 508
+M2:                 429F DEFINED AT LINE 514
+                    > USED AT LINE 519
+                    > USED AT LINE 521

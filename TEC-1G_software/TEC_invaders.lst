@@ -1,0 +1,1279 @@
+0000                             ; TEC_Invaders, TEC-1G Space Invaders game by Cameron Sheppard
+0000                             ; ------------------------------------------------------------
+4000                          .ORG   04000h   
+4000   21 A1 45               LD   hl,ramData   
+4003   AF                     XOR   a   
+4004   77                     LD   (hl),a   
+4005   23                     INC   hl   
+4006   36 01                  LD   (hl),001h   
+4008   23                     INC   hl   
+4009   36 03                  LD   (hl),003h   
+400B   23                     INC   hl   
+400C   36 03                  LD   (hl),003h   
+400E   23                     INC   hl   
+400F   36 15                  LD   (hl),015h   
+4011   23                     INC   hl   
+4012   36 20                  LD   (hl),020h   
+4014   2E C7                  LD   l,0c7h   
+4016   77                     LD   (hl),a   
+4017   2E CA                  LD   l,0cah   
+4019   77                     LD   (hl),a   
+401A   2E CC                  LD   l,0cch   
+401C   77                     LD   (hl),a   
+401D   2E E6                  LD   l,0e6h   
+401F   36 96                  LD   (hl),096h   
+4021   23                     INC   hl   
+4022   06 03                  LD   b,003h   
+4024                L0924H:      
+4024   36 93                  LD   (hl),093h   
+4026   23                     INC   hl   
+4027   10 FB                  DJNZ   l0924h   
+4029   CD 93 44               CALL   sub_0d93h   
+402C   1E 90                  LD   e,090h   
+402E                L092EH:      
+402E   2E D0                  LD   l,0d0h   
+4030   36 60                  LD   (hl),060h   
+4032   23                     INC   hl   
+4033   7B                     LD   a,e   
+4034   77                     LD   (hl),a   
+4035   CD 4F 44               CALL   sub_0d4fh   
+4038   7B                     LD   a,e   
+4039   D6 10                  SUB   010h   
+403B   5F                     LD   e,a   
+403C   FE 50                  CP   050h   
+403E   20 EE                  JR   nz,l092eh   
+4040   3E 90                  LD   a,090h   
+4042                L0942H:      
+4042   06 FF                  LD   b,0ffh   
+4044                L0944H:      
+4044   10 FE                  DJNZ   l0944h   
+4046   3D                     DEC   a   
+4047   20 F9                  JR   nz,l0942h   
+4049   2E D1                  LD   l,0d1h   
+404B   36 80                  LD   (hl),080h   
+404D   2B                     DEC   hl   
+404E   36 70                  LD   (hl),070h   
+4050   CD 4F 44               CALL   sub_0d4fh   
+4053   1E 02                  LD   e,002h   
+4055                L0955H:      
+4055   2E D0                  LD   l,0d0h   
+4057   36 D0                  LD   (hl),0d0h   
+4059   23                     INC   hl   
+405A   36 60                  LD   (hl),060h   
+405C   CD 4F 44               CALL   sub_0d4fh   
+405F   1D                     DEC   e   
+4060   20 F3                  JR   nz,l0955h   
+4062   2E CA                  LD   l,0cah   
+4064   34                     INC   (hl)   
+4065   23                     INC   hl   
+4066   36 50                  LD   (hl),050h   
+4068   CD C7 40               CALL   sub_09c7h   
+406B   2B                     DEC   hl   
+406C   36 00                  LD   (hl),000h   
+406E                L096EH:      
+406E   06 10                  LD   b,010h   
+4070   2E A7                  LD   l,0a7h   
+4072                L0972H:      
+4072   7E                     LD   a,(hl)   
+4073   D3 05                  OUT   (005h),a   
+4075   23                     INC   hl   
+4076   7E                     LD   a,(hl)   
+4077   D3 06                  OUT   (006h),a   
+4079   CD 43 44               CALL   sub_0d43h   
+407C   23                     INC   hl   
+407D   10 F3                  DJNZ   l0972h   
+407F   7E                     LD   a,(hl)   
+4080   D3 05                  OUT   (005h),a   
+4082   3E 80                  LD   a,080h   
+4084   D3 06                  OUT   (006h),a   
+4086   CD 43 44               CALL   sub_0d43h   
+4089   23                     INC   hl   
+408A   AF                     XOR   a   
+408B   BE                     CP   (hl)   
+408C   28 0A                  JR   z,l0998h   
+408E   23                     INC   hl   
+408F   7E                     LD   a,(hl)   
+4090   D3 05                  OUT   (005h),a   
+4092   7A                     LD   a,d   
+4093   D3 06                  OUT   (006h),a   
+4095   CD 43 44               CALL   sub_0d43h   
+4098                L0998H:      
+4098   79                     LD   a,c   
+4099   D3 05                  OUT   (005h),a   
+409B   3E 01                  LD   a,001h   
+409D   D3 06                  OUT   (006h),a   
+409F   CD 43 44               CALL   sub_0d43h   
+40A2   3E 04                  LD   a,004h   
+40A4   D3 01                  OUT   (001h),a   
+40A6   3E EB                  LD   a,0ebh   
+40A8   D3 02                  OUT   (002h),a   
+40AA   CD 43 44               CALL   sub_0d43h   
+40AD   3E 01                  LD   a,001h   
+40AF   2E E6                  LD   l,0e6h   
+40B1   06 04                  LD   b,004h   
+40B3   58                     LD   e,b   
+40B4   18 01                  JR   l09b7h   
+40B6                L09B6H:      
+40B6   7B                     LD   a,e   
+40B7                L09B7H:      
+40B7   D3 01                  OUT   (001h),a   
+40B9   E5                     PUSH   hl   
+40BA   6E                     LD   l,(hl)   
+40BB   7E                     LD   a,(hl)   
+40BC   D3 02                  OUT   (002h),a   
+40BE   E1                     POP   hl   
+40BF   CD 43 44               CALL   sub_0d43h   
+40C2   23                     INC   hl   
+40C3   CB 03                  RLC   e   
+40C5   10 EF                  DJNZ   l09b6h   
+40C7                SUB_09C7H:      
+40C7   2E CA                  LD   l,0cah   
+40C9   AF                     XOR   a   
+40CA   BE                     CP   (hl)   
+40CB   28 06                  JR   z,l09d3h   
+40CD   23                     INC   hl   
+40CE   35                     DEC   (hl)   
+40CF   BE                     CP   (hl)   
+40D0   20 9C                  JR   nz,l096eh   
+40D2   C9                     RET      
+40D3                L09D3H:      
+40D3   2E CC                  LD   l,0cch   
+40D5   BE                     CP   (hl)   
+40D6   20 96                  JR   nz,l096eh   
+40D8   23                     INC   hl   
+40D9   BE                     CP   (hl)   
+40DA   20 15                  JR   nz,l09f1h   
+40DC   2E CA                  LD   l,0cah   
+40DE   34                     INC   (hl)   
+40DF   23                     INC   hl   
+40E0   36 30                  LD   (hl),030h   
+40E2   CD C7 40               CALL   sub_09c7h   
+40E5   2B                     DEC   hl   
+40E6   36 00                  LD   (hl),000h   
+40E8   2E A2                  LD   l,0a2h   
+40EA   34                     INC   (hl)   
+40EB   CD 93 44               CALL   sub_0d93h   
+40EE   C3 6E 40               JP   l096eh   
+40F1                L09F1H:      
+40F1   2E C8                  LD   l,0c8h   
+40F3   BE                     CP   (hl)   
+40F4   28 41                  JR   z,l0a37h   
+40F6   2E A7                  LD   l,0a7h   
+40F8   1E E5                  LD   e,0e5h   
+40FA                L09FAH:      
+40FA   06 03                  LD   b,003h   
+40FC                L09FCH:      
+40FC   3A C9 45               LD   a,(ramData+40)   
+40FF   BE                     CP   (hl)   
+4100   20 0D                  JR   nz,l0a0fh   
+4102   23                     INC   hl   
+4103   7A                     LD   a,d   
+4104   BE                     CP   (hl)   
+4105   20 09                  JR   nz,l0a10h   
+4107   AF                     XOR   a   
+4108   77                     LD   (hl),a   
+4109   2B                     DEC   hl   
+410A   77                     LD   (hl),a   
+410B   6B                     LD   l,e   
+410C   35                     DEC   (hl)   
+410D   18 0C                  JR   l0a1bh   
+410F                L0A0FH:      
+410F   23                     INC   hl   
+4110                L0A10H:      
+4110   23                     INC   hl   
+4111   10 E9                  DJNZ   l09fch   
+4113   1D                     DEC   e   
+4114   3E E1                  LD   a,0e1h   
+4116   BB                     CP   e   
+4117   20 E1                  JR   nz,l09fah   
+4119   18 1C                  JR   l0a37h   
+411B                L0A1BH:      
+411B   2E C8                  LD   l,0c8h   
+411D   36 00                  LD   (hl),000h   
+411F   2E CD                  LD   l,0cdh   
+4121   35                     DEC   (hl)   
+4122   23                     INC   hl   
+4123   7E                     LD   a,(hl)   
+4124   1E 04                  LD   e,004h   
+4126   93                     SUB   e   
+4127   77                     LD   (hl),a   
+4128   1E 01                  LD   e,001h   
+412A   CD 80 44               CALL   sub_0d80h   
+412D   2E D0                  LD   l,0d0h   
+412F   36 FF                  LD   (hl),0ffh   
+4131   23                     INC   hl   
+4132   36 10                  LD   (hl),010h   
+4134   CD 4F 44               CALL   sub_0d4fh   
+4137                L0A37H:      
+4137   2E C8                  LD   l,0c8h   
+4139   BE                     CP   (hl)   
+413A   28 36                  JR   z,l0a72h   
+413C   2B                     DEC   hl   
+413D   3A C9 45               LD   a,(ramData+40)   
+4140   BE                     CP   (hl)   
+4141   20 2E                  JR   nz,$+48   
+4143   7A                     LD   a,d   
+4144   FE 80                  CP   080h   
+4146   20 29                  JR   nz,$+43   
+4148   AF                     XOR   a   
+4149   77                     LD   (hl),a   
+414A   2E A1                  LD   l,0a1h   
+414C   77                     LD   (hl),a   
+414D   2E A5                  LD   l,0a5h   
+414F   36 50                  LD   (hl),050h   
+4151   06 05                  LD   b,005h   
+4153                L0A53H:      
+4153   C5                     PUSH   bc   
+4154   1E 01                  LD   e,001h   
+4156   CD 80 44               CALL   sub_0d80h   
+4159   2E D0                  LD   l,0d0h   
+415B   36 10                  LD   (hl),010h   
+415D   23                     INC   hl   
+415E   36 FF                  LD   (hl),0ffh   
+4160   CD 4F 44               CALL   sub_0d4fh   
+4163   2E CA                  LD   l,0cah   
+4165   34                     INC   (hl)   
+4166   23                     INC   hl   
+4167   36 04                  LD   (hl),004h   
+4169   CD C7 40               CALL   sub_09c7h   
+416C   C1                     POP   bc   
+416D   10 E4                  DJNZ   l0a53h   
+416F   2B                     DEC   hl   
+4170   36 00                  LD   (hl),000h   
+4172                L0A72H:      
+4172   06 04                  LD   b,004h   
+4174   2E C6                  LD   l,0c6h   
+4176                L0A76H:      
+4176   3E 01                  LD   a,001h   
+4178   BE                     CP   (hl)   
+4179   20 07                  JR   nz,l0a82h   
+417B   2B                     DEC   hl   
+417C   79                     LD   a,c   
+417D   BE                     CP   (hl)   
+417E   28 08                  JR   z,l0a88h   
+4180   18 01                  JR   l0a83h   
+4182                L0A82H:      
+4182   2B                     DEC   hl   
+4183                L0A83H:      
+4183   2B                     DEC   hl   
+4184   10 F0                  DJNZ   l0a76h   
+4186   18 54                  JR   l0adch   
+4188                L0A88H:      
+4188   2E C8                  LD   l,0c8h   
+418A   36 00                  LD   (hl),000h   
+418C   4E                     LD   c,(hl)   
+418D   2E CA                  LD   l,0cah   
+418F   34                     INC   (hl)   
+4190   23                     INC   hl   
+4191   36 30                  LD   (hl),030h   
+4193   2E D0                  LD   l,0d0h   
+4195   36 60                  LD   (hl),060h   
+4197   23                     INC   hl   
+4198   36 E0                  LD   (hl),0e0h   
+419A   CD 4F 44               CALL   sub_0d4fh   
+419D   CD C7 40               CALL   sub_09c7h   
+41A0   2E E6                  LD   l,0e6h   
+41A2   35                     DEC   (hl)   
+41A3   2E A4                  LD   l,0a4h   
+41A5   35                     DEC   (hl)   
+41A6   AF                     XOR   a   
+41A7   BE                     CP   (hl)   
+41A8   20 1D                  JR   nz,l0ac7h   
+41AA   2E CA                  LD   l,0cah   
+41AC   77                     LD   (hl),a   
+41AD   1E 40                  LD   e,040h   
+41AF                L0AAFH:      
+41AF   2E D0                  LD   l,0d0h   
+41B1   36 60                  LD   (hl),060h   
+41B3   23                     INC   hl   
+41B4   7B                     LD   a,e   
+41B5   77                     LD   (hl),a   
+41B6   CD 4F 44               CALL   sub_0d4fh   
+41B9   7B                     LD   a,e   
+41BA   C6 10                  ADD   a,010h   
+41BC   5F                     LD   e,a   
+41BD   FE 90                  CP   090h   
+41BF   20 EE                  JR   nz,l0aafh   
+41C1   2E CC                  LD   l,0cch   
+41C3   34                     INC   (hl)   
+41C4   C3 6E 40               JP   l096eh   
+41C7                L0AC7H:      
+41C7   06 04                  LD   b,004h   
+41C9   2E BF                  LD   l,0bfh   
+41CB                L0ACBH:      
+41CB   77                     LD   (hl),a   
+41CC   23                     INC   hl   
+41CD   23                     INC   hl   
+41CE   10 FB                  DJNZ   l0acbh   
+41D0   0E 01                  LD   c,001h   
+41D2   2E CB                  LD   l,0cbh   
+41D4   36 40                  LD   (hl),040h   
+41D6   CD C7 40               CALL   sub_09c7h   
+41D9   2B                     DEC   hl   
+41DA   36 00                  LD   (hl),000h   
+41DC                L0ADCH:      
+41DC   2E CF                  LD   l,0cfh   
+41DE   35                     DEC   (hl)   
+41DF   AF                     XOR   a   
+41E0   BE                     CP   (hl)   
+41E1   20 79                  JR   nz,l0b5ch   
+41E3   2E A5                  LD   l,0a5h   
+41E5   35                     DEC   (hl)   
+41E6   2E D0                  LD   l,0d0h   
+41E8   36 05                  LD   (hl),005h   
+41EA   23                     INC   hl   
+41EB   36 FF                  LD   (hl),0ffh   
+41ED   CD 4F 44               CALL   sub_0d4fh   
+41F0   2E A0                  LD   l,0a0h   
+41F2   BE                     CP   (hl)   
+41F3   20 3A                  JR   nz,l0b2fh   
+41F5   06 0C                  LD   b,00ch   
+41F7   2E A7                  LD   l,0a7h   
+41F9   3E 80                  LD   a,080h   
+41FB                L0AFBH:      
+41FB   BE                     CP   (hl)   
+41FC   28 08                  JR   z,l0b06h   
+41FE   CB 06                  RLC   (hl)   
+4200   23                     INC   hl   
+4201   23                     INC   hl   
+4202   10 F7                  DJNZ   l0afbh   
+4204   18 51                  JR   l0b57h   
+4206                L0B06H:      
+4206   2E A0                  LD   l,0a0h   
+4208   34                     INC   (hl)   
+4209   18 03                  JR   l0b0eh   
+420B                L0B0BH:      
+420B   2E A0                  LD   l,0a0h   
+420D   35                     DEC   (hl)   
+420E                L0B0EH:      
+420E   06 0C                  LD   b,00ch   
+4210   2E A8                  LD   l,0a8h   
+4212   3E 02                  LD   a,002h   
+4214                L0B14H:      
+4214   BE                     CP   (hl)   
+4215   28 06                  JR   z,l0b1dh   
+4217   23                     INC   hl   
+4218   23                     INC   hl   
+4219   10 F9                  DJNZ   l0b14h   
+421B   18 06                  JR   l0b23h   
+421D                L0B1DH:      
+421D   CD 64 44               CALL   sub_0d64h   
+4220   2E CC                  LD   l,0cch   
+4222   34                     INC   (hl)   
+4223                L0B23H:      
+4223   06 0C                  LD   b,00ch   
+4225   2E A8                  LD   l,0a8h   
+4227                L0B27H:      
+4227   CB 0E                  RRC   (hl)   
+4229   23                     INC   hl   
+422A   23                     INC   hl   
+422B   10 FA                  DJNZ   l0b27h   
+422D   18 28                  JR   l0b57h   
+422F                L0B2FH:      
+422F   5F                     LD   e,a   
+4230   2E B9                  LD   l,0b9h   
+4232                L0B32H:      
+4232   06 03                  LD   b,003h   
+4234   3E 01                  LD   a,001h   
+4236                L0B36H:      
+4236   BE                     CP   (hl)   
+4237   28 D2                  JR   z,l0b0bh   
+4239   CB 0E                  RRC   (hl)   
+423B   23                     INC   hl   
+423C   23                     INC   hl   
+423D   10 F7                  DJNZ   l0b36h   
+423F   1C                     INC   e   
+4240   BB                     CP   e   
+4241   20 04                  JR   nz,l0b47h   
+4243   2E B3                  LD   l,0b3h   
+4245   18 EB                  JR   l0b32h   
+4247                L0B47H:      
+4247   3C                     INC   a   
+4248   BB                     CP   e   
+4249   20 04                  JR   nz,l0b4fh   
+424B   2E AD                  LD   l,0adh   
+424D   18 E3                  JR   l0b32h   
+424F                L0B4FH:      
+424F   3C                     INC   a   
+4250   BB                     CP   e   
+4251   20 04                  JR   nz,l0b57h   
+4253   2E A7                  LD   l,0a7h   
+4255   18 DB                  JR   l0b32h   
+4257                L0B57H:      
+4257   2E CE                  LD   l,0ceh   
+4259   7E                     LD   a,(hl)   
+425A   23                     INC   hl   
+425B   77                     LD   (hl),a   
+425C                L0B5CH:      
+425C   2E A1                  LD   l,0a1h   
+425E   AF                     XOR   a   
+425F   BE                     CP   (hl)   
+4260   28 27                  JR   z,l0b89h   
+4262   3E 80                  LD   a,080h   
+4264   D3 01                  OUT   (001h),a   
+4266   AF                     XOR   a   
+4267   D3 01                  OUT   (001h),a   
+4269   2E A6                  LD   l,0a6h   
+426B   35                     DEC   (hl)   
+426C   BE                     CP   (hl)   
+426D   20 29                  JR   nz,l0b98h   
+426F   2E C7                  LD   l,0c7h   
+4271   3E 80                  LD   a,080h   
+4273   BE                     CP   (hl)   
+4274   20 0B                  JR   nz,l0b81h   
+4276   36 00                  LD   (hl),000h   
+4278   2E A1                  LD   l,0a1h   
+427A   35                     DEC   (hl)   
+427B   2E A5                  LD   l,0a5h   
+427D   36 50                  LD   (hl),050h   
+427F   18 17                  JR   l0b98h   
+4281                L0B81H:      
+4281   CB 06                  RLC   (hl)   
+4283   2E A6                  LD   l,0a6h   
+4285   36 20                  LD   (hl),020h   
+4287   18 0F                  JR   l0b98h   
+4289                L0B89H:      
+4289   2E A5                  LD   l,0a5h   
+428B   BE                     CP   (hl)   
+428C   20 0A                  JR   nz,l0b98h   
+428E   23                     INC   hl   
+428F   36 20                  LD   (hl),020h   
+4291   2E A1                  LD   l,0a1h   
+4293   34                     INC   (hl)   
+4294   2E C7                  LD   l,0c7h   
+4296   36 01                  LD   (hl),001h   
+4298                L0B98H:      
+4298   DB 03                  IN   a,(003h)   
+429A   CB 77                  BIT   6,a   
+429C   20 0D                  JR   nz,l0babh   
+429E   DB 00                  IN   a,(000h)   
+42A0   E6 1F                  AND   01fh   
+42A2   5F                     LD   e,a   
+42A3   2E EA                  LD   l,0eah   
+42A5   AF                     XOR   a   
+42A6   BE                     CP   (hl)   
+42A7   20 3B                  JR   nz,l0be4h   
+42A9   18 06                  JR   l0bb1h   
+42AB                L0BABH:      
+42AB   2E EA                  LD   l,0eah   
+42AD   36 00                  LD   (hl),000h   
+42AF   18 33                  JR   l0be4h   
+42B1                L0BB1H:      
+42B1   34                     INC   (hl)   
+42B2   3E 04                  LD   a,004h   
+42B4   BB                     CP   e   
+42B5   20 07                  JR   nz,l0bbeh   
+42B7   3E 01                  LD   a,001h   
+42B9   B9                     CP   c   
+42BA   28 0E                  JR   z,l0bcah   
+42BC   CB 09                  RRC   c   
+42BE                L0BBEH:      
+42BE   3E 06                  LD   a,006h   
+42C0   BB                     CP   e   
+42C1   20 07                  JR   nz,l0bcah   
+42C3   3E 80                  LD   a,080h   
+42C5   B9                     CP   c   
+42C6   28 02                  JR   z,l0bcah   
+42C8   CB 01                  RLC   c   
+42CA                L0BCAH:      
+42CA   2E C8                  LD   l,0c8h   
+42CC   AF                     XOR   a   
+42CD   BE                     CP   (hl)   
+42CE   20 14                  JR   nz,l0be4h   
+42D0   3E 10                  LD   a,010h   
+42D2   BB                     CP   e   
+42D3   20 0F                  JR   nz,l0be4h   
+42D5   34                     INC   (hl)   
+42D6   23                     INC   hl   
+42D7   71                     LD   (hl),c   
+42D8   16 02                  LD   d,002h   
+42DA   2E D0                  LD   l,0d0h   
+42DC   36 20                  LD   (hl),020h   
+42DE   23                     INC   hl   
+42DF   36 30                  LD   (hl),030h   
+42E1   CD 4F 44               CALL   sub_0d4fh   
+42E4                L0BE4H:      
+42E4   2E C8                  LD   l,0c8h   
+42E6   AF                     XOR   a   
+42E7   BE                     CP   (hl)   
+42E8   28 16                  JR   z,l0c00h   
+42EA   7A                     LD   a,d   
+42EB   FE 80                  CP   080h   
+42ED   20 06                  JR   nz,l0bf5h   
+42EF   36 00                  LD   (hl),000h   
+42F1   2E A3                  LD   l,0a3h   
+42F3   18 09                  JR   l0bfeh   
+42F5                L0BF5H:      
+42F5   2E A3                  LD   l,0a3h   
+42F7   35                     DEC   (hl)   
+42F8   AF                     XOR   a   
+42F9   BE                     CP   (hl)   
+42FA   20 04                  JR   nz,l0c00h   
+42FC   CB 02                  RLC   d   
+42FE                L0BFEH:      
+42FE   36 03                  LD   (hl),003h   
+4300                L0C00H:      
+4300   2E D2                  LD   l,0d2h   
+4302   AF                     XOR   a   
+4303   BE                     CP   (hl)   
+4304   28 12                  JR   z,l0c18h   
+4306   23                     INC   hl   
+4307   35                     DEC   (hl)   
+4308   BE                     CP   (hl)   
+4309   20 45                  JR   nz,l0c50h   
+430B   2E C0                  LD   l,0c0h   
+430D   3C                     INC   a   
+430E   BE                     CP   (hl)   
+430F   20 37                  JR   nz,l0c48h   
+4311   AF                     XOR   a   
+4312   77                     LD   (hl),a   
+4313   32 D2 45               LD   (ramData+49),a   
+4316   18 38                  JR   l0c50h   
+4318                L0C18H:      
+4318   23                     INC   hl   
+4319   23                     INC   hl   
+431A   35                     DEC   (hl)   
+431B   BE                     CP   (hl)   
+431C   20 32                  JR   nz,l0c50h   
+431E   23                     INC   hl   
+431F   7E                     LD   a,(hl)   
+4320   2B                     DEC   hl   
+4321   77                     LD   (hl),a   
+4322   2E E2                  LD   l,0e2h   
+4324   AF                     XOR   a   
+4325   BE                     CP   (hl)   
+4326   28 28                  JR   z,l0c50h   
+4328   2E D2                  LD   l,0d2h   
+432A   34                     INC   (hl)   
+432B   06 02                  LD   b,002h   
+432D   2E BE                  LD   l,0beh   
+432F                L0C2FH:      
+432F   BE                     CP   (hl)   
+4330   28 06                  JR   z,l0c38h   
+4332   7E                     LD   a,(hl)   
+4333   32 C0 45               LD   (ramData+31),a   
+4336   18 0A                  JR   l0c42h   
+4338                L0C38H:      
+4338   2B                     DEC   hl   
+4339   2B                     DEC   hl   
+433A   10 F3                  DJNZ   l0c2fh   
+433C   2E BA                  LD   l,0bah   
+433E   7E                     LD   a,(hl)   
+433F   2E C0                  LD   l,0c0h   
+4341   77                     LD   (hl),a   
+4342                L0C42H:      
+4342   2E B9                  LD   l,0b9h   
+4344   7E                     LD   a,(hl)   
+4345   2E BF                  LD   l,0bfh   
+4347   77                     LD   (hl),a   
+4348                L0C48H:      
+4348   2E C0                  LD   l,0c0h   
+434A   CB 0E                  RRC   (hl)   
+434C   2E D3                  LD   l,0d3h   
+434E   36 1B                  LD   (hl),01bh   
+4350                L0C50H:      
+4350   2E D6                  LD   l,0d6h   
+4352   AF                     XOR   a   
+4353   BE                     CP   (hl)   
+4354   28 12                  JR   z,l0c68h   
+4356   23                     INC   hl   
+4357   35                     DEC   (hl)   
+4358   BE                     CP   (hl)   
+4359   20 45                  JR   nz,l0ca0h   
+435B   2E C2                  LD   l,0c2h   
+435D   3C                     INC   a   
+435E   BE                     CP   (hl)   
+435F   20 37                  JR   nz,l0c98h   
+4361   AF                     XOR   a   
+4362   77                     LD   (hl),a   
+4363   32 D6 45               LD   (ramData+53),a   
+4366   18 38                  JR   l0ca0h   
+4368                L0C68H:      
+4368   23                     INC   hl   
+4369   23                     INC   hl   
+436A   35                     DEC   (hl)   
+436B   BE                     CP   (hl)   
+436C   20 32                  JR   nz,l0ca0h   
+436E   23                     INC   hl   
+436F   7E                     LD   a,(hl)   
+4370   2B                     DEC   hl   
+4371   77                     LD   (hl),a   
+4372   2E E3                  LD   l,0e3h   
+4374   AF                     XOR   a   
+4375   BE                     CP   (hl)   
+4376   28 28                  JR   z,l0ca0h   
+4378   2E D6                  LD   l,0d6h   
+437A   34                     INC   (hl)   
+437B   06 02                  LD   b,002h   
+437D   2E B8                  LD   l,0b8h   
+437F                L0C7FH:      
+437F   BE                     CP   (hl)   
+4380   28 06                  JR   z,l0c88h   
+4382   7E                     LD   a,(hl)   
+4383   32 C2 45               LD   (ramData+33),a   
+4386   18 0A                  JR   l0c92h   
+4388                L0C88H:      
+4388   2B                     DEC   hl   
+4389   2B                     DEC   hl   
+438A   10 F3                  DJNZ   l0c7fh   
+438C   2E B4                  LD   l,0b4h   
+438E   7E                     LD   a,(hl)   
+438F   2E C2                  LD   l,0c2h   
+4391   77                     LD   (hl),a   
+4392                L0C92H:      
+4392   2E B3                  LD   l,0b3h   
+4394   7E                     LD   a,(hl)   
+4395   2E C1                  LD   l,0c1h   
+4397   77                     LD   (hl),a   
+4398                L0C98H:      
+4398   2E C2                  LD   l,0c2h   
+439A   CB 0E                  RRC   (hl)   
+439C   2E D7                  LD   l,0d7h   
+439E   36 1B                  LD   (hl),01bh   
+43A0                L0CA0H:      
+43A0   2E DA                  LD   l,0dah   
+43A2   AF                     XOR   a   
+43A3   BE                     CP   (hl)   
+43A4   28 12                  JR   z,l0cb8h   
+43A6   23                     INC   hl   
+43A7   35                     DEC   (hl)   
+43A8   BE                     CP   (hl)   
+43A9   20 45                  JR   nz,l0cf0h   
+43AB   2E C4                  LD   l,0c4h   
+43AD   3C                     INC   a   
+43AE   BE                     CP   (hl)   
+43AF   20 37                  JR   nz,l0ce8h   
+43B1   AF                     XOR   a   
+43B2   77                     LD   (hl),a   
+43B3   32 DA 45               LD   (ramData+57),a   
+43B6   18 38                  JR   l0cf0h   
+43B8                L0CB8H:      
+43B8   23                     INC   hl   
+43B9   23                     INC   hl   
+43BA   35                     DEC   (hl)   
+43BB   BE                     CP   (hl)   
+43BC   20 32                  JR   nz,l0cf0h   
+43BE   23                     INC   hl   
+43BF   7E                     LD   a,(hl)   
+43C0   2B                     DEC   hl   
+43C1   77                     LD   (hl),a   
+43C2   2E E4                  LD   l,0e4h   
+43C4   AF                     XOR   a   
+43C5   BE                     CP   (hl)   
+43C6   28 28                  JR   z,l0cf0h   
+43C8   2E DA                  LD   l,0dah   
+43CA   34                     INC   (hl)   
+43CB   06 02                  LD   b,002h   
+43CD   2E B2                  LD   l,0b2h   
+43CF                L0CCFH:      
+43CF   BE                     CP   (hl)   
+43D0   28 06                  JR   z,l0cd8h   
+43D2   7E                     LD   a,(hl)   
+43D3   32 C4 45               LD   (ramData+35),a   
+43D6   18 0A                  JR   l0ce2h   
+43D8                L0CD8H:      
+43D8   2B                     DEC   hl   
+43D9   2B                     DEC   hl   
+43DA   10 F3                  DJNZ   l0ccfh   
+43DC   2E AE                  LD   l,0aeh   
+43DE   7E                     LD   a,(hl)   
+43DF   2E C4                  LD   l,0c4h   
+43E1   77                     LD   (hl),a   
+43E2                L0CE2H:      
+43E2   2E AD                  LD   l,0adh   
+43E4   7E                     LD   a,(hl)   
+43E5   2E C3                  LD   l,0c3h   
+43E7   77                     LD   (hl),a   
+43E8                L0CE8H:      
+43E8   2E C4                  LD   l,0c4h   
+43EA   CB 0E                  RRC   (hl)   
+43EC   2E DB                  LD   l,0dbh   
+43EE   36 1B                  LD   (hl),01bh   
+43F0                L0CF0H:      
+43F0   2E DE                  LD   l,0deh   
+43F2   AF                     XOR   a   
+43F3   BE                     CP   (hl)   
+43F4   28 12                  JR   z,l0d08h   
+43F6   23                     INC   hl   
+43F7   35                     DEC   (hl)   
+43F8   BE                     CP   (hl)   
+43F9   20 45                  JR   nz,l0d40h   
+43FB   2E C6                  LD   l,0c6h   
+43FD   3C                     INC   a   
+43FE   BE                     CP   (hl)   
+43FF   20 37                  JR   nz,l0d38h   
+4401   AF                     XOR   a   
+4402   77                     LD   (hl),a   
+4403   32 DE 0E               LD   (00edeh),a   
+4406   18 38                  JR   l0d40h   
+4408                L0D08H:      
+4408   23                     INC   hl   
+4409   23                     INC   hl   
+440A   35                     DEC   (hl)   
+440B   BE                     CP   (hl)   
+440C   20 32                  JR   nz,l0d40h   
+440E   23                     INC   hl   
+440F   7E                     LD   a,(hl)   
+4410   2B                     DEC   hl   
+4411   77                     LD   (hl),a   
+4412   2E E5                  LD   l,0e5h   
+4414   AF                     XOR   a   
+4415   BE                     CP   (hl)   
+4416   28 28                  JR   z,l0d40h   
+4418   2E DE                  LD   l,0deh   
+441A   34                     INC   (hl)   
+441B   06 02                  LD   b,002h   
+441D   2E AC                  LD   l,0ach   
+441F                L0D1FH:      
+441F   BE                     CP   (hl)   
+4420   28 06                  JR   z,l0d28h   
+4422   7E                     LD   a,(hl)   
+4423   32 C6 45               LD   (ramData+37),a   
+4426   18 0A                  JR   l0d32h   
+4428                L0D28H:      
+4428   2B                     DEC   hl   
+4429   2B                     DEC   hl   
+442A   10 F3                  DJNZ   l0d1fh   
+442C   2E A8                  LD   l,0a8h   
+442E   7E                     LD   a,(hl)   
+442F   2E C6                  LD   l,0c6h   
+4431   77                     LD   (hl),a   
+4432                L0D32H:      
+4432   2E A7                  LD   l,0a7h   
+4434   7E                     LD   a,(hl)   
+4435   2E C5                  LD   l,0c5h   
+4437   77                     LD   (hl),a   
+4438                L0D38H:      
+4438   2E C6                  LD   l,0c6h   
+443A   CB 0E                  RRC   (hl)   
+443C   2E DF                  LD   l,0dfh   
+443E   36 1B                  LD   (hl),01bh   
+4440                L0D40H:      
+4440   C3 6E 40               JP   l096eh   
+4443                SUB_0D43H:      
+4443   C5                     PUSH   bc   
+4444   06 E0                  LD   b,0E0h   ;speed of game
+4446                L0D46H:      
+4446   10 FE                  DJNZ   l0d46h   
+4448   AF                     XOR   a   
+4449   D3 06                  OUT   (006h),a   
+444B   D3 02                  OUT   (002h),a   
+444D   C1                     POP   bc   
+444E   C9                     RET      
+444F                SUB_0D4FH:      
+444F   2E D1                  LD   l,0d1h   
+4451   3E 80                  LD   a,080h   
+4453   D3 01                  OUT   (001h),a   
+4455   46                     LD   b,(hl)   
+4456                L0D56H:      
+4456   10 FE                  DJNZ   l0d56h   
+4458   AF                     XOR   a   
+4459   D3 01                  OUT   (001h),a   
+445B   46                     LD   b,(hl)   
+445C                L0D5CH:      
+445C   10 FE                  DJNZ   l0d5ch   
+445E   2B                     DEC   hl   
+445F   35                     DEC   (hl)   
+4460   BE                     CP   (hl)   
+4461   20 EC                  JR   nz,sub_0d4fh   
+4463   C9                     RET      
+4464                SUB_0D64H:      
+4464   1E 00                  LD   e,000h   
+4466                L0D66H:      
+4466   3E 80                  LD   a,080h   
+4468   D3 01                  OUT   (001h),a   
+446A   AF                     XOR   a   
+446B   D3 01                  OUT   (001h),a   
+446D   06 00                  LD   b,000h   
+446F                L0D6FH:      
+446F   10 FE                  DJNZ   l0d6fh   
+4471   21 6E 0D               LD   hl,00d6eh   
+4474   34                     INC   (hl)   
+4475   20 EF                  JR   nz,l0d66h   
+4477   1C                     INC   e   
+4478   7B                     LD   a,e   
+4479   FE 07                  CP   007h   
+447B   20 E9                  JR   nz,l0d66h   
+447D   26 45                  LD   h,045h   
+447F   C9                     RET      
+4480                SUB_0D80H:      
+4480   2E E7                  LD   l,0e7h   
+4482   3E 9D                  LD   a,09dh   
+4484   06 03                  LD   b,003h   
+4486                L0D86H:      
+4486   34                     INC   (hl)   
+4487   BE                     CP   (hl)   
+4488   20 05                  JR   nz,l0d8fh   
+448A   36 93                  LD   (hl),093h   
+448C   23                     INC   hl   
+448D   10 F7                  DJNZ   l0d86h   
+448F                L0D8FH:      
+448F   1D                     DEC   e   
+4490   20 EE                  JR   nz,sub_0d80h   
+4492   C9                     RET      
+4493                SUB_0D93H:      
+4493   1E 04                  LD   e,004h   
+4495   06 03                  LD   b,003h   
+4497   2E A7                  LD   l,0a7h   
+4499   3E 08                  LD   a,008h   
+449B   CD B1 44               CALL   sub_0db1h   
+449E                L0D9EH:      
+449E   1D                     DEC   e   
+449F   28 08                  JR   z,l0da9h   
+44A1   1F                     RRA      
+44A2   06 03                  LD   b,003h   
+44A4   CD B1 44               CALL   sub_0db1h   
+44A7   18 F5                  JR   l0d9eh   
+44A9                L0DA9H:      
+44A9   06 04                  LD   b,004h   
+44AB   AF                     XOR   a   
+44AC   CD B1 44               CALL   sub_0db1h   
+44AF   18 06                  JR   l0db7h   
+44B1                SUB_0DB1H:      
+44B1   77                     LD   (hl),a   
+44B2   23                     INC   hl   
+44B3   23                     INC   hl   
+44B4   10 FB                  DJNZ   sub_0db1h   
+44B6   C9                     RET      
+44B7                L0DB7H:      
+44B7   2E A0                  LD   l,0a0h   
+44B9   77                     LD   (hl),a   
+44BA   2E C8                  LD   l,0c8h   
+44BC   77                     LD   (hl),a   
+44BD   23                     INC   hl   
+44BE   77                     LD   (hl),a   
+44BF   2E CD                  LD   l,0cdh   
+44C1   36 0C                  LD   (hl),00ch   
+44C3   0E 01                  LD   c,001h   
+44C5   51                     LD   d,c   
+44C6   5F                     LD   e,a   
+44C7   2E D2                  LD   l,0d2h   
+44C9   CD D5 44               CALL   sub_0dd5h   
+44CC   1E 1B                  LD   e,01bh   
+44CE   2E D3                  LD   l,0d3h   
+44D0   CD D5 44               CALL   sub_0dd5h   
+44D3   18 0A                  JR   l0ddfh   
+44D5                SUB_0DD5H:      
+44D5   06 04                  LD   b,004h   
+44D7                L0DD7H:      
+44D7   3E 04                  LD   a,004h   
+44D9   73                     LD   (hl),e   
+44DA   85                     ADD   a,l   
+44DB   6F                     LD   l,a   
+44DC   10 F9                  DJNZ   l0dd7h   
+44DE   C9                     RET      
+44DF                L0DDFH:      
+44DF   2E E2                  LD   l,0e2h   
+44E1   06 04                  LD   b,004h   
+44E3                L0DE3H:      
+44E3   36 03                  LD   (hl),003h   
+44E5   23                     INC   hl   
+44E6   10 FB                  DJNZ   l0de3h   
+44E8   3E 04                  LD   a,004h   
+44EA   CD 88 45               CALL   sub_0e88h   
+44ED   AF                     XOR   a   
+44EE   B8                     CP   b   
+44EF   28 21                  JR   z,l0e12h   
+44F1   3E 34                  LD   a,034h   
+44F3   CD 5D 45               CALL   sub_0e5dh   
+44F6   1E 40                  LD   e,040h   
+44F8   CD 63 45               CALL   sub_0e63h   
+44FB   2E D4                  LD   l,0d4h   
+44FD   3E 25                  LD   a,025h   
+44FF   CD 81 45               CALL   sub_0e81h   
+4502   3E 46                  LD   a,046h   
+4504   CD 81 45               CALL   sub_0e81h   
+4507   3E 20                  LD   a,020h   
+4509   CD 81 45               CALL   sub_0e81h   
+450C   3E 14                  LD   a,014h   
+450E   CD 81 45               CALL   sub_0e81h   
+4511   C9                     RET      
+4512                L0E12H:      
+4512   3E 08                  LD   a,008h   
+4514   CD 88 45               CALL   sub_0e88h   
+4517   AF                     XOR   a   
+4518   B8                     CP   b   
+4519   28 21                  JR   z,l0e3ch   
+451B   3E 33                  LD   a,033h   
+451D   CD 5D 45               CALL   sub_0e5dh   
+4520   1E 20                  LD   e,020h   
+4522   CD 63 45               CALL   sub_0e63h   
+4525   2E D4                  LD   l,0d4h   
+4527   3E 33                  LD   a,033h   
+4529   CD 81 45               CALL   sub_0e81h   
+452C   3E 14                  LD   a,014h   
+452E   CD 81 45               CALL   sub_0e81h   
+4531   3E 24                  LD   a,024h   
+4533   CD 81 45               CALL   sub_0e81h   
+4536   3E 0E                  LD   a,00eh   
+4538   CD 81 45               CALL   sub_0e81h   
+453B   C9                     RET      
+453C                L0E3CH:      
+453C   3E 32                  LD   a,032h   
+453E   CD 5D 45               CALL   sub_0e5dh   
+4541   1E 10                  LD   e,010h   
+4543   CD 63 45               CALL   sub_0e63h   
+4546   2E D4                  LD   l,0d4h   
+4548   3E 33                  LD   a,033h   
+454A   CD 81 45               CALL   sub_0e81h   
+454D   3E 24                  LD   a,024h   
+454F   CD 81 45               CALL   sub_0e81h   
+4552   3E 35                  LD   a,035h   
+4554   CD 81 45               CALL   sub_0e81h   
+4557   3E 12                  LD   a,012h   
+4559   CD 81 45               CALL   sub_0e81h   
+455C   C9                     RET      
+455D                SUB_0E5DH:      
+455D   2E CE                  LD   l,0ceh   
+455F   77                     LD   (hl),a   
+4560   23                     INC   hl   
+4561   77                     LD   (hl),a   
+4562   C9                     RET      
+4563                SUB_0E63H:      
+4563   2E A8                  LD   l,0a8h   
+4565   CD 77 45               CALL   sub_0e77h   
+4568   CB 0B                  RRC   e   
+456A   2E AA                  LD   l,0aah   
+456C   CD 77 45               CALL   sub_0e77h   
+456F   CB 0B                  RRC   e   
+4571   2E AC                  LD   l,0ach   
+4573   CD 77 45               CALL   sub_0e77h   
+4576   C9                     RET      
+4577                SUB_0E77H:      
+4577   06 04                  LD   b,004h   
+4579                L0E79H:      
+4579   3E 06                  LD   a,006h   
+457B   73                     LD   (hl),e   
+457C   85                     ADD   a,l   
+457D   6F                     LD   l,a   
+457E   10 F9                  DJNZ   l0e79h   
+4580   C9                     RET      
+4581                SUB_0E81H:      
+4581   77                     LD   (hl),a   
+4582   23                     INC   hl   
+4583   77                     LD   (hl),a   
+4584   23                     INC   hl   
+4585   23                     INC   hl   
+4586   23                     INC   hl   
+4587   C9                     RET      
+4588                SUB_0E88H:      
+4588   06 04                  LD   b,004h   
+458A   2E A2                  LD   l,0a2h   
+458C                L0E8CH:      
+458C   BE                     CP   (hl)   
+458D   28 03                  JR   z,l0e92h   
+458F   3D                     DEC   a   
+4590   10 FA                  DJNZ   l0e8ch   
+4592                L0E92H:      
+4592   C9                     RET      
+4593   EB 28 CD AD 2E A7 E7   DB   0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H   ;0123456
+459A   29 EF AF FD FD FF 00   DB   29H,0EFH,0AFH,0FDH,0FDH,0FFH,00H   ;789
+45A1                RAMDATA:      
+45A1                          .END      
+45A1                          .BINFROM   4000H   
+45A1                          .BINTO   45A0H   
+
+
+L0924H:             4024 DEFINED AT LINE 29
+                    > USED AT LINE 32
+L092EH:             402E DEFINED AT LINE 35
+                    > USED AT LINE 46
+L0942H:             4042 DEFINED AT LINE 48
+                    > USED AT LINE 53
+L0944H:             4044 DEFINED AT LINE 50
+                    > USED AT LINE 51
+L0955H:             4055 DEFINED AT LINE 60
+                    > USED AT LINE 67
+L096EH:             406E DEFINED AT LINE 75
+                    > USED AT LINE 139
+                    > USED AT LINE 144
+                    > USED AT LINE 158
+                    > USED AT LINE 301
+                    > USED AT LINE 754
+L0972H:             4072 DEFINED AT LINE 78
+                    > USED AT LINE 86
+L0998H:             4098 DEFINED AT LINE 102
+                    > USED AT LINE 95
+L09B6H:             40B6 DEFINED AT LINE 118
+                    > USED AT LINE 130
+L09B7H:             40B7 DEFINED AT LINE 120
+                    > USED AT LINE 117
+SUB_09C7H:          40C7 DEFINED AT LINE 131
+                    > USED AT LINE 72
+                    > USED AT LINE 152
+                    > USED AT LINE 240
+                    > USED AT LINE 276
+                    > USED AT LINE 313
+L09D3H:             40D3 DEFINED AT LINE 141
+                    > USED AT LINE 135
+L09F1H:             40F1 DEFINED AT LINE 159
+                    > USED AT LINE 147
+L09FAH:             40FA DEFINED AT LINE 165
+                    > USED AT LINE 190
+L09FCH:             40FC DEFINED AT LINE 167
+                    > USED AT LINE 186
+L0A0FH:             410F DEFINED AT LINE 182
+                    > USED AT LINE 170
+L0A10H:             4110 DEFINED AT LINE 184
+                    > USED AT LINE 174
+L0A1BH:             411B DEFINED AT LINE 192
+                    > USED AT LINE 181
+L0A37H:             4137 DEFINED AT LINE 209
+                    > USED AT LINE 162
+                    > USED AT LINE 191
+L0A53H:             4153 DEFINED AT LINE 227
+                    > USED AT LINE 242
+L0A72H:             4172 DEFINED AT LINE 245
+                    > USED AT LINE 212
+L0A76H:             4176 DEFINED AT LINE 248
+                    > USED AT LINE 261
+L0A82H:             4182 DEFINED AT LINE 257
+                    > USED AT LINE 251
+L0A83H:             4183 DEFINED AT LINE 259
+                    > USED AT LINE 256
+L0A88H:             4188 DEFINED AT LINE 263
+                    > USED AT LINE 255
+L0AAFH:             41AF DEFINED AT LINE 287
+                    > USED AT LINE 298
+L0AC7H:             41C7 DEFINED AT LINE 302
+                    > USED AT LINE 283
+L0ACBH:             41CB DEFINED AT LINE 305
+                    > USED AT LINE 309
+L0ADCH:             41DC DEFINED AT LINE 316
+                    > USED AT LINE 262
+L0AFBH:             41FB DEFINED AT LINE 335
+                    > USED AT LINE 341
+L0B06H:             4206 DEFINED AT LINE 343
+                    > USED AT LINE 337
+L0B0BH:             420B DEFINED AT LINE 347
+                    > USED AT LINE 382
+L0B0EH:             420E DEFINED AT LINE 350
+                    > USED AT LINE 346
+L0B14H:             4214 DEFINED AT LINE 354
+                    > USED AT LINE 359
+L0B1DH:             421D DEFINED AT LINE 361
+                    > USED AT LINE 356
+L0B23H:             4223 DEFINED AT LINE 365
+                    > USED AT LINE 360
+L0B27H:             4227 DEFINED AT LINE 368
+                    > USED AT LINE 372
+L0B2FH:             422F DEFINED AT LINE 374
+                    > USED AT LINE 331
+L0B32H:             4232 DEFINED AT LINE 377
+                    > USED AT LINE 391
+                    > USED AT LINE 397
+                    > USED AT LINE 403
+L0B36H:             4236 DEFINED AT LINE 380
+                    > USED AT LINE 386
+L0B47H:             4247 DEFINED AT LINE 392
+                    > USED AT LINE 389
+L0B4FH:             424F DEFINED AT LINE 398
+                    > USED AT LINE 395
+L0B57H:             4257 DEFINED AT LINE 404
+                    > USED AT LINE 342
+                    > USED AT LINE 373
+                    > USED AT LINE 401
+L0B5CH:             425C DEFINED AT LINE 409
+                    > USED AT LINE 321
+L0B81H:             4281 DEFINED AT LINE 432
+                    > USED AT LINE 425
+L0B89H:             4289 DEFINED AT LINE 437
+                    > USED AT LINE 413
+L0B98H:             4298 DEFINED AT LINE 447
+                    > USED AT LINE 421
+                    > USED AT LINE 431
+                    > USED AT LINE 436
+                    > USED AT LINE 440
+L0BABH:             42AB DEFINED AT LINE 459
+                    > USED AT LINE 450
+L0BB1H:             42B1 DEFINED AT LINE 463
+                    > USED AT LINE 458
+L0BBEH:             42BE DEFINED AT LINE 472
+                    > USED AT LINE 467
+L0BCAH:             42CA DEFINED AT LINE 480
+                    > USED AT LINE 470
+                    > USED AT LINE 475
+                    > USED AT LINE 478
+L0BE4H:             42E4 DEFINED AT LINE 497
+                    > USED AT LINE 457
+                    > USED AT LINE 462
+                    > USED AT LINE 484
+                    > USED AT LINE 487
+L0BF5H:             42F5 DEFINED AT LINE 508
+                    > USED AT LINE 504
+L0BFEH:             42FE DEFINED AT LINE 515
+                    > USED AT LINE 507
+L0C00H:             4300 DEFINED AT LINE 517
+                    > USED AT LINE 501
+                    > USED AT LINE 513
+L0C18H:             4318 DEFINED AT LINE 534
+                    > USED AT LINE 521
+L0C2FH:             432F DEFINED AT LINE 552
+                    > USED AT LINE 561
+L0C38H:             4338 DEFINED AT LINE 558
+                    > USED AT LINE 554
+L0C42H:             4342 DEFINED AT LINE 566
+                    > USED AT LINE 557
+L0C48H:             4348 DEFINED AT LINE 571
+                    > USED AT LINE 529
+L0C50H:             4350 DEFINED AT LINE 576
+                    > USED AT LINE 525
+                    > USED AT LINE 533
+                    > USED AT LINE 539
+                    > USED AT LINE 547
+L0C68H:             4368 DEFINED AT LINE 593
+                    > USED AT LINE 580
+L0C7FH:             437F DEFINED AT LINE 611
+                    > USED AT LINE 620
+L0C88H:             4388 DEFINED AT LINE 617
+                    > USED AT LINE 613
+L0C92H:             4392 DEFINED AT LINE 625
+                    > USED AT LINE 616
+L0C98H:             4398 DEFINED AT LINE 630
+                    > USED AT LINE 588
+L0CA0H:             43A0 DEFINED AT LINE 635
+                    > USED AT LINE 584
+                    > USED AT LINE 592
+                    > USED AT LINE 598
+                    > USED AT LINE 606
+L0CB8H:             43B8 DEFINED AT LINE 652
+                    > USED AT LINE 639
+L0CCFH:             43CF DEFINED AT LINE 670
+                    > USED AT LINE 679
+L0CD8H:             43D8 DEFINED AT LINE 676
+                    > USED AT LINE 672
+L0CE2H:             43E2 DEFINED AT LINE 684
+                    > USED AT LINE 675
+L0CE8H:             43E8 DEFINED AT LINE 689
+                    > USED AT LINE 647
+L0CF0H:             43F0 DEFINED AT LINE 694
+                    > USED AT LINE 643
+                    > USED AT LINE 651
+                    > USED AT LINE 657
+                    > USED AT LINE 665
+L0D08H:             4408 DEFINED AT LINE 711
+                    > USED AT LINE 698
+L0D1FH:             441F DEFINED AT LINE 729
+                    > USED AT LINE 738
+L0D28H:             4428 DEFINED AT LINE 735
+                    > USED AT LINE 731
+L0D32H:             4432 DEFINED AT LINE 743
+                    > USED AT LINE 734
+L0D38H:             4438 DEFINED AT LINE 748
+                    > USED AT LINE 706
+L0D40H:             4440 DEFINED AT LINE 753
+                    > USED AT LINE 702
+                    > USED AT LINE 710
+                    > USED AT LINE 716
+                    > USED AT LINE 724
+SUB_0D43H:          4443 DEFINED AT LINE 755
+                    > USED AT LINE 84
+                    > USED AT LINE 91
+                    > USED AT LINE 101
+                    > USED AT LINE 107
+                    > USED AT LINE 112
+                    > USED AT LINE 127
+L0D46H:             4446 DEFINED AT LINE 758
+                    > USED AT LINE 759
+SUB_0D4FH:          444F DEFINED AT LINE 765
+                    > USED AT LINE 41
+                    > USED AT LINE 58
+                    > USED AT LINE 65
+                    > USED AT LINE 208
+                    > USED AT LINE 235
+                    > USED AT LINE 275
+                    > USED AT LINE 293
+                    > USED AT LINE 328
+                    > USED AT LINE 496
+                    > USED AT LINE 780
+L0D56H:             4456 DEFINED AT LINE 770
+                    > USED AT LINE 771
+L0D5CH:             445C DEFINED AT LINE 775
+                    > USED AT LINE 776
+SUB_0D64H:          4464 DEFINED AT LINE 782
+                    > USED AT LINE 362
+L0D66H:             4466 DEFINED AT LINE 784
+                    > USED AT LINE 794
+                    > USED AT LINE 798
+L0D6FH:             446F DEFINED AT LINE 790
+                    > USED AT LINE 791
+SUB_0D80H:          4480 DEFINED AT LINE 801
+                    > USED AT LINE 203
+                    > USED AT LINE 230
+                    > USED AT LINE 814
+L0D86H:             4486 DEFINED AT LINE 805
+                    > USED AT LINE 811
+L0D8FH:             448F DEFINED AT LINE 812
+                    > USED AT LINE 808
+SUB_0D93H:          4493 DEFINED AT LINE 816
+                    > USED AT LINE 33
+                    > USED AT LINE 157
+L0D9EH:             449E DEFINED AT LINE 822
+                    > USED AT LINE 828
+L0DA9H:             44A9 DEFINED AT LINE 829
+                    > USED AT LINE 824
+SUB_0DB1H:          44B1 DEFINED AT LINE 834
+                    > USED AT LINE 821
+                    > USED AT LINE 827
+                    > USED AT LINE 832
+                    > USED AT LINE 838
+L0DB7H:             44B7 DEFINED AT LINE 840
+                    > USED AT LINE 833
+SUB_0DD5H:          44D5 DEFINED AT LINE 858
+                    > USED AT LINE 853
+                    > USED AT LINE 856
+L0DD7H:             44D7 DEFINED AT LINE 860
+                    > USED AT LINE 865
+L0DDFH:             44DF DEFINED AT LINE 867
+                    > USED AT LINE 857
+L0DE3H:             44E3 DEFINED AT LINE 870
+                    > USED AT LINE 873
+L0E12H:             4512 DEFINED AT LINE 893
+                    > USED AT LINE 878
+L0E3CH:             453C DEFINED AT LINE 913
+                    > USED AT LINE 898
+SUB_0E5DH:          455D DEFINED AT LINE 928
+                    > USED AT LINE 880
+                    > USED AT LINE 900
+                    > USED AT LINE 915
+SUB_0E63H:          4563 DEFINED AT LINE 934
+                    > USED AT LINE 882
+                    > USED AT LINE 902
+                    > USED AT LINE 917
+SUB_0E77H:          4577 DEFINED AT LINE 944
+                    > USED AT LINE 936
+                    > USED AT LINE 939
+                    > USED AT LINE 942
+L0E79H:             4579 DEFINED AT LINE 946
+                    > USED AT LINE 951
+SUB_0E81H:          4581 DEFINED AT LINE 953
+                    > USED AT LINE 885
+                    > USED AT LINE 887
+                    > USED AT LINE 889
+                    > USED AT LINE 891
+                    > USED AT LINE 905
+                    > USED AT LINE 907
+                    > USED AT LINE 909
+                    > USED AT LINE 911
+                    > USED AT LINE 920
+                    > USED AT LINE 922
+                    > USED AT LINE 924
+                    > USED AT LINE 926
+SUB_0E88H:          4588 DEFINED AT LINE 961
+                    > USED AT LINE 875
+                    > USED AT LINE 895
+L0E8CH:             458C DEFINED AT LINE 964
+                    > USED AT LINE 968
+L0E92H:             4592 DEFINED AT LINE 969
+                    > USED AT LINE 966
+RAMDATA:            45A1 DEFINED AT LINE 974
+                    > USED AT LINE 6
+                    > USED AT LINE 168
+                    > USED AT LINE 214
+                    > USED AT LINE 532
+                    > USED AT LINE 556
+                    > USED AT LINE 591
+                    > USED AT LINE 615
+                    > USED AT LINE 650
+                    > USED AT LINE 674
+                    > USED AT LINE 733

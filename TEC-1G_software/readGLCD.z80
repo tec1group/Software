@@ -1,0 +1,192 @@
+;Readme.txt (program) for PATA file collection
+
+;Use GLCD Terminal
+API_PLOT:       .equ    0CH
+API_DRAW:       .equ    15H
+API_INIT:       .equ    17H
+API_C2T:        .equ    18H
+API_S2T:        .equ    19H
+API_CURS:       .equ    1EH
+API_SCAN:       .equ    10H
+KEY_PLUS:       .equ    10H
+KEY_MINUS:      .equ    11H
+KEY_ADDR:       .equ    13H
+INDEX:          .equ    5000H
+MAX_PAGE:       .equ    8
+
+        org 4000H
+start:
+        ;save index
+        xor a
+        ld (INDEX),a
+        ;set up terminal
+display:
+        ld a,API_INIT                   ;init terminal
+        rst 18H
+        ld a,API_CURS                   ;remove cursor
+        ld c,1                          ;cursor off
+        rst 18H
+        ;push text to screen
+        ld a,(INDEX)
+        add a,a
+        ld hl,text
+        add a,l
+        ld l,a
+        jr nc,$+3
+        inc h
+        ld a,(hl)
+        inc hl
+        ld h,(hl)
+        ld l,a
+        push hl
+        pop de
+        ld c,0
+        ld a,API_S2T
+        rst 18H
+        ;if first page, print bottom right character
+        ld a,(INDEX)
+        or a
+        jr nz,get_key
+        ld d,0A9H
+        ld a,API_DRAW
+        rst 18H
+        ld a,API_PLOT
+        rst 18H
+        ;get key
+get_key:
+        ld c,API_SCAN           ;key scan
+        rst 10H
+        jr c,plus
+        jr get_key
+plus:
+        ld hl,INDEX
+        cp KEY_PLUS
+        jr nz,minus
+        ld a,MAX_PAGE
+        cp (hl)
+        jr z,get_key
+        inc (hl)
+        jr display
+minus:
+        cp KEY_MINUS
+        jr nz,addr
+        xor a
+        cp (hl)
+        jr z,get_key
+        dec (hl)
+        jr display
+addr:
+        cp KEY_ADDR
+        jr nz,get_key
+        ret
+text1:
+;           "01234567890123456789 "
+        .db 0A6H,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH
+        .db 0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0ACH
+        .db 0A5H,"     Ready Z80     ",0A5H
+        .db 0A5H,"  Code Collection  ",0A5H
+        .db 0A7H,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH
+        .db 0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0ADH
+        .db 0A5H," Plus and Minus to ",0A5H
+        .db 0A5H," scroll and AD to  ",0A5H
+        .db 0A5H," exit.  Enjoy... ",17H," ",0A5H
+        ; .db 0A5H,"  Plus and Minus   ",0A5H
+        ; .db 0A5H,"   to scroll and   ",0A5H
+        ; .db 0A5H,"     AD to exit    ",0A5H
+        .db 0A7H,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AEH
+        .db 0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0ADH
+        .db 0A5H,"  ",0E8H,0E9H,0EAH,0EBH,"   ",0A5H,"  ",0ECH,0EDH," ",0EEH,0EFH,"  ",0A5H
+        .db 0A3H,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0ABH
+        .db 0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH,0AAH
+        .db 00H
+text2:
+        .db "Applications         "
+        .db "-------------------- "
+        .db 6," TBASIC.HEX Tiny    "
+        .db "Basic, use GLCD/Keyb "
+        .db "or serial terminal   "
+        .db 6," TMON.HEX terminal  "
+        .db "monitor, start 1000H "
+        .db 6," MINT.HEX stack     "
+        .db "language, use serial "
+        .db "terminal,start 1000H"
+        .db 00H
+text3:
+        .db "LDC/Segment Games    "
+        .db "-------------------- "
+        .db 6," GAMES.HEX various  "
+        .db "seven segment games  "
+        .db 6," LANDER.HEX lunar   "
+        .db "lander by F. Nichols "
+        .db 6," LCDRUN.HEX Load    "
+        .db "Runner. Press '+' to "
+        .db "jump over obstacles  "
+        .db 00H
+text4:
+        .db "GLCD Programs        "
+        .db "-------------------- "
+        .db 6," GLCDTerm.HEX term  "
+        .db "emulator, use keybrd "
+        .db 6," GLCD_PRG.HEX 3 prgs"
+        .db "Alfred Neuman  4000H "
+        .db "3D Rotations   3000H "
+        .db "Maze Generator 2000H "
+        .db 6," FROGGER.HEX classic"
+        .db "frogger remake      "
+        .db 00H
+text5:
+        .db "8x8 LED Matrix Games "
+        .db "-------------------- "
+        .db 6," GOL.HEX Conway Game"
+        .db "of Life, use hexpad  "
+        .db 6," INVADERS.HEX Space "
+        .db "invaders, Keys 4,6,+ "
+        .db 6," MAGICSQ.HEX magic  "
+        .db "square, use hexpad   "
+        .db 6," MAZEMAN.HEX        "
+        .db "collect all orbs    "
+        .db 00H
+text6:
+        .db "8x8 LED Matrix Games "
+        .db "-------------------- "
+        .db 6," SNAKE.HEX ",216,"0,2,5,1  "
+        .db "by Ben Grimmet       "
+        .db 6," INVADER.HEX by Cam "
+        .db "Sheppard, 4,6,+ keys "
+        .db 6," MAZE2.HEX by Cam   "
+        .db "Sheppard, win at U-1"
+        .db 00H
+text7:
+        .db "Music Files          "
+        .db "-------------------- "
+        .db 6," TUNE_1-5.BIN load &"
+        .db "use music routine    "
+        .db 6," BANGER.BIN amazing "
+        .db "bit banging dance    "
+        .db "sounds in 26 bytes   "
+        .db 00H
+text8:
+        .db "Interactive Fiction  "
+        .db "-------------------- "
+        .db "run at 2000H Requires"
+        .db "Matrix Keyboard      "
+        .db 6," IF_CATS.HEX        "
+        .db "Catseye              "
+        .db 6," IF_DT.HEX          "
+        .db "Dragon and the Troll "
+        .db 6," IF_WUMP.HEX        "
+        .db "Hunt the Wumpus     "
+        .db 00H
+text9:
+        .db "Other Programs       "
+        .db "-------------------- "
+        .db 6," MON3CODE.HEX sample"
+        .db "code from Mon3 guide "
+        .db 6," TECMAG.HEX magazine"
+        .db "code, issues 10-15   "
+        .db 6," FASTFORW.HEX code  "
+        .db "stepper, J Robinson  "
+        .db "start at 1000H       "
+        .db 00H
+
+text:   .dw text1,text2,text3,text4,text5,text6,text7,text8,text9

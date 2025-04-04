@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>TEC-1G Software Collection</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="tec-1g-software-collection">TEC-1G Software Collection</h1>
+<p>This is a detailed list of most of the publicly available software written for the TEC-1.</p>
+<p>The following programs have been adapted for the TEC-1G.  Unless specified, code was written by Brian Chiha.</p>
+<h2 id="usage">Usage</h2>
+<p>Most of the files are in Intel HEX format.  When loaded via the <strong>MON3</strong> Intel HEX loader, the files will placed at  address <code>4000H</code>.  Any exceptions to this, are mentioned in the program details below</p>
+<p>Binary files can be loaded using the Import Binary File menu routine.  A Start and end address is needed.  Each of these files have their file size displayed in their detail.</p>
+<h2 id="applications">Applications</h2>
+<h3 id="tiny-basic">Tiny Basic</h3>
+<p><code>TBASIC.HEX</code> - Tiny Basic for the TEC-1G.</p>
+<p>This is a TEC-1-specific version of Tiny Basic.  It requires a Serial Terminal connection to the FTDI.  Code and data entry are to be done through the serial terminal.</p>
+<p>If Using <code>Mon3 v1.5</code>  or greater and a Graphical LCD installed with full matrix keyboard.  &quot;Toggle GLCD Term&quot; can be selected from the Settings menu and Tiny Basic will work directly from the TEC, eliminating the serial connection.</p>
+<p>See the latest <code>Mon3 User Guide</code> for more information.</p>
+<h3 id="terminal-monitor">Terminal Monitor</h3>
+<p><code>TMON.HEX</code> - Terminal Monitor for the TEC-1G. Loads at address <code>1000H</code>.  By Craig Hart.</p>
+<p>A simple terminal based monitor program for the TEC-1G.  Uses the Serial Terminal connection to the FTDI.</p>
+<p>See the latest <code>Mon3 User Guide</code> for more information.</p>
+<h3 id="mint">MINT</h3>
+<p><code>MINT.HEX</code> - A stack-based Forth-like language specifically designed for the TEC-1 Z80 Computers.  Loads at address <code>1000H</code>.  By Ken Boak, John Hardy and Craig Jones.</p>
+<p>Uses the Serial Terminal connection to the FTDI.</p>
+<p>The MINT version included is v1.1.  There is extensive documentation on MINT on its own GitHub <a href="https://github.com/orgMINT">(https://github.com/orgMINT)</a> page.</p>
+<h2 id="20x4-lcd-and-seven-segment-games">20x4 LCD and Seven Segment Games</h2>
+<h3 id="game-collection">Game Collection</h3>
+<p><code>GAMES.HEX</code> - various games developed for the seven segment display and LCD screen.</p>
+<p>Games can be selected via a menu.  The games are:</p>
+<ul>
+<li>
+<p><strong>Segment Target Game</strong>. By S Clarke. Moving segment winds around the display.  When it is at the fourth display segment from the left and the bottom segment is lit, Press any key.  If successful, a number will briefly be displayed showing the number of rounds passed...  Try to get to 50 rounds!</p>
+</li>
+<li>
+<p><strong>Simon</strong>.  By J. Robertson.  This is a game of Simon Says.  The bottom of four segments will light up and make a tone.  The segments correspond to the keys 0,4,8 and C on the keypad.  Each round the sequence gets longer.  Try to make 7 rounds.  Press <code>GO</code> to play another game.</p>
+</li>
+<li>
+<p><strong>Dodgy</strong>.  This game's mission is to avoid objects that are being fired at the player.  The player is on the left-most display segment as a single dash.  Use the <code>3</code> key to move down and the <code>7</code> key to move up.  If an object is struck, its game over and the distance traveled is displayed.</p>
+</li>
+<li>
+<p><strong>Spiroid Aliens</strong>. By M Allison.  This is a full re-write of the Spiroid Aliens game published in TE Magazine issue 12.  Try to match the Alien character to a number 0,1,2 or 3 to destroy it.  At least 11 of the 16 Aliens must be destroyed to win.</p>
+</li>
+<li>
+<p><strong>NIM</strong>. Classic match pick up game.  Start with 23 Matches.  Press either 1, 2 or 3 to pick the required number of matches.  The game alternates between the Player and the Computer.  The aim is not to pick up the last match.</p>
+</li>
+<li>
+<p><strong>Lunar Lander</strong>.  Land the lander safely.  The Segments display the Amount of Fuel remaining on the Left and the Landers Altitude on the Right.  To burn fuel and slow the descent, press the <code>+</code> key.  The middle segments indicate how close the lunar surface is.</p>
+</li>
+<li>
+<p><strong>Master Mind</strong>.  This is a classic game of Mastermind.  Except, instead of using colours, a series of four numbers is to be worked out.  Press any key to set the answer.  Next, enter 4 numbers between <code>0-9</code>.  When all four numbers have been entered, the computer will check these numbers against the correct sequence.  The right two segments will display the result.  The left-most digit is the number of correct numbers in the correct spot.  The right-most digit is the number of correct numbers but in the incorrect spot.</p>
+</li>
+</ul>
+<h3 id="lunar-lander">Lunar Lander</h3>
+<p><code>LANDER.HEX</code> - Classic Lunar Lander game.  By Fred Nichols</p>
+<p>Uses the LCD screen.  Instructions to play the game are given in the game.</p>
+<h3 id="tec-runner">TEC Runner</h3>
+<p><code>LCDRUN.HEX</code> - Load running Jumping game.</p>
+<p>The runner is on the left, coming towards the runner from the right are walls.  By pressing the <code>Plus</code> button, the runner will attempt to jump on a wall.  Timing is everything.  Every time the runner jumps, the game gets faster.  How far you can travel without loosing your head.</p>
+<h2 id="graphical-lcd-glcd-programs">Graphical LCD (GLCD) Programs</h2>
+<h3 id="terminal-emulator">Terminal Emulator</h3>
+<p><code>GLCDTERM.HEX</code> - Terminal Emulator for the GLCD.  Requires full matrix keyboard.  Type characters on the GLCD using the keyboard.  Use Arrows to scroll up to 10 lines.  Ctrl-A to turn cursor on, Ctrl-B to turn cursor off, Ctrl-C to toggle inverse text and Ctrl-D to Exit.</p>
+<h3 id="glcd-library-demo-programs">GLCD Library demo programs.</h3>
+<p><code>GLCD_PRG.HEX</code> - Three great GLCD programs.</p>
+<ul>
+<li><code>2000H</code> - Maze generation.  Watch as a little bot generates a maze using the recursive backtracking algorithm.</li>
+<li><code>3000H</code> - 3D Rotation demo.  Select the model to rotate, and use keys 4,8,C to rotate along the (x,y,z) axis.  +/- to zoom and 0 to return.</li>
+<li><code>4000H</code> - Line Drawing Alfred E. Neuman, Quick load at <code>4022H</code></li>
+</ul>
+<h3 id="frogger-for-the-tec">Frogger for the TEC</h3>
+<p><code>FROGGER.HEX</code> - Classic Frogger remake.</p>
+<p>Instructions are within the game.  Can use HexPad, Matrix Keyboard or Joystick.</p>
+<h3 id="elementary-cellular-automation">Elementary Cellular Automation</h3>
+<p><code>CELLULAR.HEX</code> - One Dimensional array cell repetition.</p>
+<p>Based a particular Bit rule, the cells neighbors are viewed and then determined if the cell exists or not in the next cycle.  Cycles are displayed downwards.</p>
+<p>Use the Plus or Minus keys to cycle through the different rules.  Rule number is displayed on the seven segments.  Initial rule number can be set at address <code>4001H</code>.</p>
+<h2 id="8x8-led-matrix-games">8x8 LED Matrix Games</h2>
+<h3 id="conways-game-of-life">Conway's Game of Life</h3>
+<p><code>GOL.HEX</code> - Cellular Automata Game of Life.</p>
+<p>This demonstrates Conways Game of Life on the 8x8.  19 Set patterns are provided and can be selected by pressing different keys on the keypad.  Key 0 will generated a random starting pattern.</p>
+<h3 id="space-invaders-1">Space Invaders 1</h3>
+<p><code>INVADER.HEX</code> - Original TAPE game by Cameron Sheppard</p>
+<p>Game published on issue 15 of the TE Magazine.  Follows the standard Space Invaders game.  Player is on the bottom row.  Group of 3x4 aliens hover above and can drop bombs.  Top row contains a flying saucer.</p>
+<p>Use keys 4 and 6 to move left and right and Plus to shoot.  Score is displayed on the seven segments and number of lives left.</p>
+<h3 id="space-invaders-2">Space Invaders 2</h3>
+<p><code>INVADERS.HEX</code> - My version of the game</p>
+<p>I reversed engineered the Invaders game based off its documentation.  I did this because only recently the original game has been retrieved off the tape.  This is what I came up with.  It uses similar controls as the original.</p>
+<h3 id="maze-game-1">Maze Game 1</h3>
+<p><code>MAZE.HEX</code> - Original TAPE game by Cameron Sheppard.</p>
+<p>Move around the maze using keys 1,6,4 and 9.  X and Y coordinates are shown on the seven segments.  To win reach to location <code>U-1</code>.</p>
+<h3 id="maze-game-2">Maze Game 2</h3>
+<p><code>MAZEMAN.HEX</code> - My version of the game</p>
+<p>This was my interpretation of the Maze game.  Move your character around the maze, picking up glowing orbs.  Map coordinates and orbs left are shown on the seven segments.  To win pick up all orbs and return to the starting position.  Note: orbs flash on and off.</p>
+<h3 id="magic-square">Magic Square</h3>
+<p><code>MAGICSQ.HEX</code> - Create a magic square, by Jim Robertson.</p>
+<p>Using the 8x8, create a hollow square.  Using keys 4,5,6,8,9,A,C,D and E, manipulate the lights.  The keys will flip multiple lights on and off at the same time.  Learn how the keys work to win the game.</p>
+<h3 id="snake">Snake</h3>
+<p><code>SNAKE.HEX</code> - Classic Snake game by Ben Grimmett</p>
+<p>Move your snake and eat food.  Food makes you grow and don't run into yourself.  Use keys 0,2,5 and 1.</p>
+<h2 id="music-files">Music Files</h2>
+<h3 id="tec-music-demo">TEC Music Demo</h3>
+<p><code>TUNE_1.BIN</code>, <code>TUNE_2.BIN</code>, <code>TUNE_3.BIN</code>, <code>TUNE_4.BIN</code>, <code>TUNE_5.BIN</code> - Tune data files</p>
+<p>Load these files into any RAM location.  Then from the Main Menu, select 'Music Routine'.  Then enter the address that the file was loaded at.</p>
+<h3 id="banger">Banger</h3>
+<p><code>BANGER.BIN</code> - Techno beats</p>
+<p>This small program (26 bytes) can make some impressing beats.</p>
+<h2 id="interactive-fiction">Interactive Fiction</h2>
+<p>These are text adventure games that require the GLCD and the Matrix Keyboard.  All games load at <code>2000H</code>.</p>
+<h3 id="the-inform7-games">The Inform7 Games</h3>
+<ul>
+<li><code>IF_CATS.HEX</code> - Catseye</li>
+<li><code>IF_DT.HEX</code> - Dragon and the Troll</li>
+<li><code>IF_WUMP.HEX</code> - Hunt the Wumpus</li>
+<li><code>IF_AL1.HEX</code> - Adventureland Disk 1 (Requires Expansion RAM with 32K RAM Memory).  Load into lower RAM memory.</li>
+<li><code>IF_AL2.HEX</code> - Adventureland Disk 2 (Requires Expansion RAM with 32K RAM Memory) <strong>Must</strong> be loaded to upper RAM.  Press <code>Fn-E</code> and load file.  Once loaded Press <code>Fn-E</code> to set RAM to lower memory.</li>
+</ul>
+<h2 id="other-programs">Other Programs</h2>
+<h3 id="monitor-3-code-examples">Monitor 3 Code Examples</h3>
+<p><code>MON3CODE.HEX</code> - All example key in code found in the Monitor 3 User Guide.</p>
+<p>Uses a menu to select the program.  AD key to exit.</p>
+<h3 id="tec-magazine-code">TEC Magazine Code</h3>
+<p><code>TECMAG.HEX</code> - Most example code from issues 10-15 of the Talking Electronics Magazine.</p>
+<p>Uses a menu to select the program.  Press <code>Fn-GO</code> to exit the program and return back to the menu.</p>
+<h3 id="fast-forward">Fast Forward</h3>
+<p><code>FASTFORW.HEX</code> - A Code stepper by Jim Robertson</p>
+<p>This program loads at <code>1000H</code>.  When running, the program will step through addresses displaying the contents of the address.  It was used to hand write down code without pressing +/-.  Keys A-F change various speeds and directions and 0-9 continues at slow speed forward.  Change lines <code>1001H-1002H</code> to the first address you want displayed.  IE: <code>00, 40</code> will start at address <code>4000H</code>.</p>
+
+            
+            
+        </body>
+        </html>

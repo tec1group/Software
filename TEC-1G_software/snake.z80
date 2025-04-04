@@ -1,0 +1,533 @@
+;Snake
+;requires 8x8 led matrix
+;Best enjoyed at 4mhz
+;Use Port 3&4 for 8x8 matrix
+;
+;Modded for the TEC-1G by B. Chiha
+		
+		DISPLAY EQU 5000H
+		SNAKELEN EQU 5009H
+		DIRECTION EQU 500AH
+		RANDOM EQU 500Bh
+		FRAME EQU 500Ch ;dimming for fruit - not used
+		FRUITPRESENT EQU 500Dh ;If fruit is on the screen,dont generate new xy
+		SPEED EQU 5010h ; to 0811h
+		MOVEMADE EQU 5020h
+		HISTORY EQU 5080h
+		PORT5 EQU 05H
+		PORT6 EQU 06H
+		
+		.ORG 4000h
+		
+COLDBOOT:	
+		CALL CLEARVRAM
+		OR a
+		LD (MoveMade), a ;only one direction change per snek tick
+		
+		LD (Direction), a ;direction of snake
+		
+		LD a, 5h 		;Speed 0500h
+		LD (Speed), a
+		LD a, 0
+		LD (Speed + 1), a
+		
+		CALL ClearBrain
+;
+		LD a, 33h 		;starting position x=3, y=3
+		LD (History), a ;64 byte snake "memory" - where its been
+;
+		LD a, 2
+		LD (SnakeLen), a ;snake length
+;
+		LD a, r
+		AND 77h 		;using the dram refresh counter as a rnd number
+		LD (Random), a 	;truncated to 0-7, 0-7
+		
+		LD a, 1
+		LD (FruitPresent), a ;fruit is drawn
+;
+		CALL MakeFruit 	; draw the fruit
+;
+		JP Main 		;Main Program Thread
+;
+NMI:					;called every keypress Input A= key pressed
+		PUSH AF
+		PUSH BC
+		PUSH DE
+		PUSH HL
+;
+;            LD      a,(MoveMade)
+;            CP      0
+;            JP      nz,EndInt
+;
+;            LD      a,1
+;            LD      (MoveMade),a
+;
+		
+		CP 0 			;left
+		JP z, LeftPressed
+		CP 2 			;
+		JP z, RightPressed
+		CP 5 			;
+		JP z, UpPressed
+		CP 1 			;
+		JP z, DownPressed
+;
+		JP EndInt
+		
+LEFTPRESSED:	
+		LD a, (Direction)
+		CP 0 			;Test for Right cos snake cant reverse
+		JP z, EndInt
+		LD a, 3 		;Left value
+		LD (Direction), a
+		JP EndInt
+;
+RIGHTPRESSED:	
+		LD a, (Direction)
+		CP 3 			;Test for Left cos snake cant reverse
+		JP z, EndInt
+		LD a, 0 		;Right value
+		LD (Direction), a
+		JP EndInt
+		
+UPPRESSED:	
+		LD a, (Direction)
+		CP 2 			;Test for Down cos snake cant reverse
+		JP z, EndInt
+		LD a, 1 		;Right value
+		LD (Direction), a
+		JP EndInt
+		
+DOWNPRESSED:	
+		LD a, (Direction)
+		CP 1 			;Test for Down cos snake cant reverse
+		JP z, EndInt
+		LD a, 2 		;Right value
+		LD (Direction), a
+		
+		
+		
+ENDINT:	
+		
+		LD a, (FruitPresent)
+		CP 0
+		JP nz, EI2
+;
+		LD a, r
+		AND 077h
+		LD (Random), a
+		LD a, 1
+		LD (FruitPresent), a
+EI2:	
+		POP HL
+		POP DE
+		POP BC
+		POP AF
+		RET
+		
+;
+;            LD      a,(Direction)
+;
+		
+MAKEFRUIT:					;random in (Random)
+		
+		LD a, (Random)
+		LD c, a
+;check if fruit lands on snek
+		LD hl, History
+		LD a, (SnakeLen)
+		DEC a
+		LD b, a
+MF1:	
+		LD a, (hl)
+		CP c
+		JP z, Crush
+		INC hl
+		DEC b
+		JR nz, MF1
+		RET
+CRUSH:					;fruit is on snake.
+		LD a, r 		;get new rnd value
+		AND 77h
+		LD (Random), a
+		JP MakeFruit
+;
+TESTFRUIT:					;is snake eating fruit?
+		LD a, (Random)
+		LD c, a
+		LD hl, History
+		LD a, (SnakeLen)
+		DEC a
+		LD b, a
+TF1:	
+		INC hl
+		LD a, (hl)
+		CP c
+		JP z, GrowSnek
+		DEC b
+		JR nz, TF1
+		RET
+GROWSNEK:					;yes
+		LD a, (SnakeLen)
+		INC a
+		LD (SnakeLen), a
+		
+;increase speed
+		LD a, (Speed)
+		LD H, a
+		LD a, (Speed + 1)
+		LD L, a
+		OR a
+		LD de, 25
+		SBC hl, de
+		LD a, h
+		LD (Speed), a
+		LD a, L
+		LD (Speed + 1), a
+;
+		CALL MakeFruit
+		RET
+		
+TESTCOLLISSIOON:					;test newhead with body
+		LD hl, History
+;
+		LD a, (hl) 		;snake head
+		LD c, a
+		LD a, (SnakeLen)
+		DEC a
+		LD b, a
+TC1:	
+		INC hl
+		LD a, (hl)
+		CP c
+		JP z, Ouch
+		DEC b
+		JR nz, TC1
+		RET
+OUCH:	
+		LD a, 0ffH
+		OUT (PORT5), a
+		OUT (PORT6), a
+		LD bc, 0FFFFh
+O1:		
+		DEC c
+		JR nz, O1
+		DEC b
+		JR nz, O1
+		
+		LD a, 00H
+		OUT (PORT5), a
+		OUT (PORT6), a
+		LD bc, 0FFFFh
+O2:		
+		DEC c
+		JR nz, O2
+		DEC b
+		JR nz, O2
+		
+		LD a, 0ffH
+		OUT (PORT5), a
+		OUT (PORT6), a
+		LD bc, 0FFFFh
+O3:		
+		DEC c
+		JR nz, O3
+		DEC b
+		JR nz, O3
+		
+		JP COLDBOOT 	;restart
+		
+CLEARBRAIN:					;the snakes memory
+		LD HL, History
+		LD b, 64
+		XOR a
+CB1:	
+		LD (HL), a
+		INC hl
+		DEC b
+		JR nz, CB1
+		RET
+		
+BRAIN2FIELD:					;update the playing field
+		CALL ClearVram
+;draw each snake memory to display
+		LD HL, History
+		LD a, (SnakeLen)
+		LD b, a
+B2F1:	
+		LD a, (HL)
+		INC HL
+		CALL PixOn
+		DEC b
+		JR nz, B2F1
+		RET
+		
+BRAINSHIFT:					;move the array
+;0900h contains the Head
+;shift the head down to make a new head
+;0900 > 0901 etc
+;we'll need to do this from the bottom up
+;
+		
+		LD HL, History + 40H
+		LD DE, History + 3FH
+		LD b, 64
+BS1:	
+		LD a, (DE)
+		LD (HL), a
+		DEC HL
+		DEC De
+		DEC b
+		JR nz, BS1
+		RET
+;
+NEWHEAD:					;grow a new head in direction
+		
+		LD a, 0
+		LD (MoveMade), a ; enable new key input
+		
+		LD a, (Direction)
+		CP 0h
+		JP z, HeadRight
+		CP 1h
+		JP z, HeadUp
+		CP 2h
+		JP z, HeadDown
+		CP 3h
+		JP z, HeadLeft
+;
+		RET
+;
+		
+HEADUP:	
+		LD HL, History
+		LD a, (HL)
+		ADD a, 1h
+		BIT 3, a
+		JR z, HU1
+		AND 0F7h
+HU1:	
+		LD (HL), a
+		RET
+		
+HEADRIGHT:	
+		LD HL, History
+		LD a, (HL)
+		ADD a, 10h
+		BIT 7, a
+		JR z, HR1
+		AND 7Fh
+HR1:	
+		LD (HL), a
+		RET
+;
+HEADDOWN:	
+		LD HL, History
+		LD a, (HL)
+		LD c, a 		;c is orig
+		AND 70h
+		LD b, a 		; b is upper nibble
+		LD a, c
+		AND 0Fh
+		DEC a
+		AND 07h
+		OR b
+		LD (HL), a
+		RET
+;
+HEADLEFT:	
+		LD HL, History
+		LD a, (HL)
+		LD c, a 		;c is orig
+		AND 07h
+		LD b, a 		; b is lower nibble
+		LD a, c
+		AND 0F0h
+		SUB 10h
+		AND 70h
+		OR b
+		LD (HL), a
+		RET
+;
+CLEARVRAM:	
+		XOR a
+		LD (Display), a ;matrix buffer
+		LD (Display + 1), a
+		LD (Display + 2), a
+		LD (Display + 3), a
+		LD (Display + 4), a
+		LD (Display + 5), a
+		LD (Display + 6), a
+		LD (Display + 7), a
+		RET
+		
+;Routines:
+REDRAW:	
+;
+; 0800h left column
+; bit 0 bottom row.
+;
+;
+;
+;VRAM in 0800, 8 bytes
+		PUSH HL
+		LD HL, Display
+		LD a, (HL)
+		OUT (PORT6), a
+		LD a, 1
+		OUT (PORT5), a
+		INC hl
+		XOR a
+		OUT (PORT5), a
+;
+		LD a, (HL)
+		OUT (PORT6), a
+		LD a, 2
+		OUT (PORT5), a
+		INC hl
+		XOR a
+		OUT (PORT5), a
+;
+		LD a, (HL)
+		OUT (PORT6), a
+		LD a, 4
+		OUT (PORT5), a
+		INC hl
+		XOR a
+		OUT (PORT5), a
+;
+		LD a, (HL)
+		OUT (PORT6), a
+		LD a, 8
+		OUT (PORT5), a
+		INC hl
+		XOR a
+		OUT (PORT5), a
+;
+		LD a, (HL)
+		OUT (PORT6), a
+		LD a, 10h
+		OUT (PORT5), a
+		INC hl
+		XOR a
+		OUT (PORT5), a
+;
+		LD a, (HL)
+		OUT (PORT6), a
+		LD a, 20h
+		OUT (PORT5), a
+		INC hl
+		XOR a
+		OUT (PORT5), a
+;
+		LD a, (HL)
+		OUT (PORT6), a
+		LD a, 40h
+		OUT (PORT5), a
+		INC hl
+		XOR a
+		OUT (PORT5), a
+;
+		LD a, (HL)
+		OUT (PORT6), a
+		LD a, 80h
+		OUT (PORT5), a
+		INC hl
+		XOR a
+		OUT (PORT5), a
+;
+		POP HL
+		RET
+		
+PIXON:					;A - High Nibble = X, Low Nibble = Y
+		PUSH HL
+		PUSH BC
+		LD H, 50h
+		LD b, a
+		AND 0F0h
+		RRA
+		RRA
+		RRA
+		RRA
+		LD L, A
+		LD a, b
+		AND 0Fh
+		LD b, a
+		INC b
+;
+		LD a, 1
+		DEC b
+		JR z, POdone
+		RLA
+		DEC b
+		JR z, POdone
+		RLA
+		DEC b
+		JR z, POdone
+		RLA
+		DEC b
+		JR z, POdone
+		RLA
+		DEC b
+		JR z, POdone
+		RLA
+		DEC b
+		JR z, POdone
+		RLA
+		DEC b
+		JR z, POdone
+		RLA
+		DEC b
+		JR z, POdone
+;
+PODONE:	
+;
+		LD b, a
+		LD a, (hl)
+		OR b
+		LD (HL), a
+		POP BC
+		POP HL
+		RET
+;
+MAIN:	
+		LD C, 10H 		;key routine
+		RST 10H
+		CALL Z, NMI 		;key new and pressed
+		CALL Brain2Field
+		LD a, (Speed) 	;speed registers
+		LD b, a
+		LD a, (Speed + 1)
+		LD c, a
+M1:		
+		CALL ReDraw
+		DEC c
+		JP nz, M1
+		DEC b
+		JP nz, M1
+		
+		LD a, (Speed)
+		LD b, a
+		LD a, (Speed + 1)
+		LD c, a
+M2:		
+		LD A, (Random)
+		CALL PixOn 		;draw the fruit
+		CALL ReDraw
+		DEC c
+		JP nz, M2
+		DEC b
+		JP nz, M2
+		
+		
+		
+		CALL BrainShift
+		CALL NewHead
+		CALL TestCollissioon
+		CALL TestFruit
+		
+		JP Main
+		
+		DB      "Snake By Ben Grimmett"
+		.END

@@ -1,0 +1,1117 @@
+; TEC GAMES
+; ---------
+;
+; These games can be used on the TEC with no add ons.  They are coded
+; to be used with MON3 and running at 4MHz
+;
+;IO Port ASSIGNMENTS
+DSCAN:      EQU     0x01                                ;DISPLAY CATHODE DRIVER LATCH
+DSEGMENT:   EQU     0x02                                ;DISPLAY SEGMENT DRIVER LATCH
+API_BEEP:   EQU     0x03                ;Mon3 Beep
+API_A2SG:   EQU     0x04                ;Mon3 Convert A to 7Seg
+API_SCAN:   EQU     0x10                ;Mon3 Key Scanner
+API_MENU:   EQU     0x1F                ;Mon3 Menu Driver
+API_NOTE:   EQU     0x22                ;Mon3 Play Note
+API_TUNE:   EQU     0x23                ;Mon3 Play Tune
+
+            ORG    4000H 
+GAMES:
+            LD A,R
+            LD (RANDNO),A                   ;seed rng
+            LD HL,gamesMenuCFG
+            LD C,API_MENU                   ;menu driver
+            RST 10H                         ;mon3 API Call
+            RET
+
+; Segment Game by Jim Robinson
+; This game the player is to press any key when a moving target is in 
+; the bottom segment on the 3rd LED segment from the right.  On each 
+; hit the moving segment restarts and moves faster.
+;
+;    A D D R E S S       D A T A
+;  --   --   --   --     --   --
+; |  | |  | |  | |  |   |  | |  |
+;  --   --   --   --     --   --
+; |  | |  | |  | |  |   |  | |  |
+;  --   --   --   --     --   --
+;                 ^^
+;                 ||
+;          This segment lit up
+
+SEGHIT:
+
+SEGSCORE:   EQU     5000H ;Score in HEX              (1-byte)
+SEGSPEED:   EQU     5001H ;Speed variable            (1-byte)
+
+            LD      DE,0A000H 
+            LD      (SEGSPEED),DE  ;Initial Speed
+            XOR     A 
+            LD      (SEGSCORE),A   ;Initial Score is 0
+SH1:
+            LD      HL,SEGDTBL  ;Segment table lookup
+SH2:
+            LD      A,(HL) 
+            LD      B,A         ;LED to Use
+            INC     HL 
+            LD      A,(HL) 
+            LD      C,A         ;Segment to Use
+            INC     HL 
+            LD      A,B         ;Check if last segment which is 0xFF
+            CP      0FFH        ;Its game over if zero
+            JR      Z,SH6 
+            OUT     (DSCAN),A      ;Light up LED and Segment
+            LD      A,C 
+            OUT     (DSEGMENT),A 
+            CALL    SH3      ;Delay the movement
+            CALL    SH5      ;Check for key hit
+            CP      12H      ;If segment is hit, KEYCHK returns 12H in A register
+            JR      Z,SH1   ;Reset Segments and do it again
+            JR      SH2      ;Display next Segment
+SH3: 
+            LD      DE,(SEGSPEED) 
+SH4:        DEC     DE 
+            LD      A,D 
+            OR      A           ;Check if 0 
+            RET     Z           ;Delay is done, exit
+            JR      SH4         ;Keep decreasing to delay
+SH5: 
+            PUSH    BC
+            PUSH    DE
+            LD      C,API_SCAN  ;key scan
+            RST     10H         ;mon3 API Call
+            POP     DE
+            POP     BC
+            RET     NZ          ;Return if no key hit
+            LD      A,B         ;Check if LED is on Third from RIGHT 
+            CP      04H 
+            RET     NZ          ;Exit if not
+            LD      A,C         ;Check if Bottom Segment is LIT
+            CP      80H  
+            RET     NZ          ;Exit if not
+
+            LD      A,(SEGSCORE)   ;Update Score
+            INC     A
+            DAA                 ;Adjust for BCD addition 
+            LD      (SEGSCORE),A   ;Save Score
+
+            LD      C,A         ;Save for Scan
+            CALL    SH7        ;Display Score
+            LD      DE,(SEGSPEED)  ;Load Speed
+            DEC     D           ;Reduce Speed by 1 
+            DEC     D           ;Reduce Speed by 1 
+            LD      (SEGSPEED),DE  
+            LD      A,12H       ;Tell main loop that segment was hit to reset segments 
+            RET
+SH6:      
+            LD      DE,0FF00H    ;Some random address 
+            LD      (SEGSPEED),DE  ;Set it to Speed (assume FF)
+            LD      A,0BFH 
+            OUT     (DSCAN),A      ;Light up all LEDS and speaker
+            LD      A,85H 
+            OUT     (DSEGMENT),A      ;Light up horizontal segments only 
+            CALL    SH3 
+            RET                 ;Quit
+SH7:        LD      B,80H       ;Multiplex
+SH8:        PUSH    BC
+            XOR     A           
+            OUT     (DSEGMENT),A
+            LD      A,01H
+            OUT     (DSCAN),A
+            LD      A,C
+            CALL    SH11
+            LD      B,00H
+SH9:        DJNZ    SH9
+            XOR     A
+            OUT     (DSEGMENT),A
+            LD      A,02H
+            OUT     (DSCAN),A
+            LD      A,C
+            RRCA
+            RRCA
+            RRCA
+            RRCA
+            CALL    SH11
+            LD      B,00H
+SH10:       DJNZ    SH10
+            XOR     A
+            OUT     (DSCAN),A
+            POP     BC
+            DJNZ    SH8
+            RET
+SH11:
+            AND     0FH        ;Mask high nibble
+            LD      HL,SEGTBL
+            ADD     A,L
+            LD      L,A
+            LD      A,(HL)     ;Get Segment
+            OUT     (DSEGMENT),A     ;Display number
+            RET
+
+            ;Data for Segments, First Byte is LED to select (Port 1),
+            ;and second byte is Segment to light up (Port 2)
+SEGDTBL:    DB      20H,01H,10H,01H,08H,01H,04H,01H
+            DB      04H,08H,04H,04H,08H,04H,10H,04H
+            DB      20H,04H,20H,40H,20H,80H,10H,80H
+            DB      08H,80H,04H,80H,02H,80H,01H,80H,0FFH
+SEGTBL:     DB      0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,2FH
+
+SIMON:
+;SIMON Game written by Jim Robertson
+;-----------------------------------
+; The 4 LED Segments from the right represent keys 0,4,8,C.
+; The segments light up and the order they light up represents the
+; keys to press.
+;
+; Modified by B Chiha to auto populate random numbers at startup.
+;
+            CALL    SMRAND      ;Set up random numbers from 5000 to 50FF
+            LD      A,R         ;Get random number for random table lookup
+            LD      L,A         ;at 50xx
+SM1:
+            LD      C,01H
+            CALL    SM12
+            LD      H,50H
+SM2:
+            LD      B,C         ;Working counter
+            PUSH    HL
+SM3:
+            LD      A,(HL)      ;Get Random value
+            CALL    SM15
+            INC     L
+            CALL    SM12       ;Call delay which shortens on each call
+            DJNZ    SM3
+            POP     HL
+            LD      B,C
+            PUSH    HL
+SM4:
+            CALL    SM18
+            JR      NZ,SM4   ;No key pressed
+            CP      04H         ;Compare with 4 to see if valid key
+            JR      NC,SM4
+            PUSH    HL
+            LD      HL,SMTBL   ;Display Table
+            ADD     A,L
+            LD      L,A
+            LD      A,(HL)      ;Get display value based on key press
+            POP     HL
+            CP      (HL)        ;Compare key pressed with value in lookup
+            JR      NZ,SM6
+            CALL    SM15
+            INC     L
+SM5:
+            CALL    SM18    ;Get another key
+            JR      Z,SM5   ;Loop until key released
+            DJNZ    SM4
+            POP     HL
+            CALL    SM12
+            INC     C
+            JR      SM2        ;Jump back to start of game
+SM6:
+            LD      A,30H       ;Incorrect answer
+            CALL    SM15
+            LD      B,C
+            XOR     A
+SM7:
+            INC     A
+            DAA
+            DJNZ    SM7
+            DEC     A
+            DAA
+            LD      C,A
+SM8:        XOR     A           ;Multiplex
+            OUT     (DSEGMENT),A
+            LD      A,04H
+            OUT     (DSCAN),A
+            LD      A,C
+            CALL    SM11
+            LD      B,00H
+SM9:        DJNZ    SM9
+            XOR     A
+            OUT     (DSEGMENT),A
+            LD      A,08H
+            OUT     (DSCAN),A
+            LD      A,C
+            RRCA
+            RRCA
+            RRCA
+            RRCA
+            CALL    SM11
+            LD      B,00H
+SM10:       DJNZ    SM10
+            CALL    SM18
+            INC     D
+            CP      12H        ;Check if GO pressed
+            JR      NZ,SM8    ;Keep scanning until GO pressed
+            LD      L,D        ;Put random number in L
+            XOR     A
+            OUT     (DSCAN),A
+            CALL    SM15
+            JR      SM1
+SM11:
+            AND     0FH        ;Mask high nibble
+            LD      HL,SEGTBL
+            ADD     A,L
+            LD      L,A
+            LD      A,(HL)     ;Get Segment
+            OUT     (DSEGMENT),A     ;Display number
+            RET
+SM12:
+            LD      DE,8000H
+            LD      A,C        ;Frame count
+            RLCA
+            RLCA
+SM13:
+            DEC     D
+            DEC     A
+            JR      NZ,SM13
+SM14:
+            DEC     DE
+            LD      A,D
+            OR      E
+            JR      NZ,SM14
+            LD      A,04H
+            OUT     (DSEGMENT),A
+            RET
+SM15:
+            PUSH    HL
+            PUSH    DE
+            PUSH    BC
+            LD      C,A
+            RLCA
+            ADD     A,18H
+            LD      HL,06E0H
+            LD      B,A
+            LD      A,C
+            LD      DE,0001H
+            LD      C,B
+            AND     0FH
+SM16:
+            OUT     (DSCAN),A     ;Display value
+            LD      B,C
+SM17:       DJNZ    SM17
+            XOR     80H        ;Toggle speaker bit
+            SBC     HL,DE
+            JR      NZ,SM16
+            POP     BC
+            POP     DE
+            POP     HL
+            LD      A,04H      ;G segment
+            OUT     (DSEGMENT),A
+            XOR     A
+            OUT     (DSCAN),A
+            RET
+SM18:
+            PUSH    BC
+            PUSH    DE
+            LD      C,API_SCAN  ;key scan
+            RST     10H         ;mon3 API Call
+            POP     DE
+            POP     BC
+            RET     NZ         ;No key pressed
+            LD      E,A
+            XOR     A          ;Clear flags
+            LD      A,E
+            RET
+
+SMTBL:      DB      08H,04H,02H,01H
+
+;Here is the random number generator that puts 1,2,4 and 8 in memory
+;between 0B00 and 0BFF.  Call this routine first
+SMRAND:
+            LD      B,00H
+            LD      HL,5000H
+            LD      D,00010001B  ;(rotating 1 bits)
+RG1:
+            LD      A,R
+RG2:
+            RLC     D
+            DEC     A
+            JR      NZ,RG2
+            LD      A,D
+            AND     0FH
+            LD      (HL),A      ;Store randome number
+            INC     HL
+            PUSH    AF          ;Waste time to move R on a bit
+            POP     AF
+            DJNZ    RG1
+            RET
+
+;Memory Locations
+DOSCREEN:   EQU     5000H 	        ;Game Screen Data 6 Bytes
+DOSCREND:   EQU     DOSCREEN+5         ;End of Screen
+DODISTVL:   EQU     5006H            ;Distance Traveled 2 Bytes
+DOPLAYPOS:  EQU     5008H            ;Player Position 1 Byte
+DOKEYPRE:   EQU     5009H            ;Key press flag 1 Byte
+DOSPEED:    EQU     500AH            ;Speed of update
+;Constants
+KEY_UP:     EQU     07H              ;Up Key Constant
+KEY_DN:     EQU     03H              ;Down Key Constant
+DODGY:
+
+            LD      B,0AH          ;Do 10 times
+            LD      HL,DOSCREEN       ;Set HL to First RAM location
+            XOR     A               ;Zero A
+DO1:
+            LD      (HL),A          ;Clear  Data
+            INC     HL
+            DJNZ    DO1             ;Repeat
+            LD      C,0
+DOGAME:
+;SHIFT TERRAIN
+            DEC     C               ;Decrease Delay and if
+            JR      NZ, DO6         ;Zero shift terrain else just scan displays
+            LD      B, 05H          ;Shift down 5 times
+            LD      IX, DOSCREEN      ;Point IX to Screen
+DO2:
+            LD      A,(IX+1)        ;Get value to the right
+            LD      (IX+0), A       ;Place to the left
+            INC     IX              ;Move to next Segment
+            DJNZ    DO2             ;Repeat all five
+            LD      D, (IX-5)       ;Save first position for later
+;ADD OBSTACLE ON SECOND SHIFT
+            LD      A, (DOSCREND)     ;Get previous segment
+            OR      A               ;Is it Blank?
+            JR      Z, DO3          ;Yes, Add Obstacle
+            XOR     A               ;Make it Blank
+            JR      DO5
+DO3:
+            CALL    RANDOM          ;Get Random Value
+            CPL                     ;Mix to make more random
+            AND     03H             ;Get the last two bits
+            CP      03H             ;Is it Three?
+            JR      Z, DO3          ;No, index is okay
+DO4:
+            LD      HL, OBSTACLES   ;Link HL to obstacle table
+            ADD     A, L            ;Get the index
+            LD      L, A            ;Save the index
+            LD      A, (HL)         ;Get Obstacle 
+DO5:
+            LD      (DOSCREND), A     ;Add Obstacle/Blank
+;ADD PLAYER
+            LD      A, (DOPLAYPOS)    ;Get the player position
+            LD      HL, DOPLAYER      ;Link HL to player table
+            ADD     A, L            ;Get the index
+            LD      L, A            ;Save the index
+            LD      A, (HL)         ;Get Player Segment
+;CHECK FOR COLLISION
+            OR      D               ;Compare player verses obstacle
+            CP      D               ;Is it the same as obstacle,
+            JR      Z, DO13         ;Yes, Its a Hit, Game Over
+            LD      (DOSCREEN), A     ;Add Player to Screen.
+;UPDATE DISTANCE TRAVELED
+            LD      HL, DODISTVL      ;Load HL with the TEN's of distance
+            LD      A, (HL)         ;Get its value
+            INC     A               ;Increase it by one
+            DAA                     ;Convert to BCD
+            LD      (HL),A          ;Save it back
+            INC     HL              ;Load HL with the Hundreds's of dist
+            LD      A,00H           ;Set A to zero (maintain carry)
+            ADC     A,(HL)          ;Add Hundreds with Carry
+            DAA                     ;Convert to BCD
+            LD      (HL),A          ;Save it back
+
+            LD      A, (DOSPEED)
+            DEC     A
+            LD      C, A
+            LD      (DOSPEED), A
+
+;MULTIPLEX THE DISPLAY
+DO6:
+            CALL    DOSCAN          ;Display the screen
+;MOVE PLAYER
+                                    ;Replace RST 20/NOP to LD A,I if JMON isn't used
+            PUSH    BC
+            PUSH    DE
+            LD      C,API_SCAN  ;key scan
+            RST     10H         ;mon3 API Call
+            POP     DE
+            POP     BC
+            LD      B, A
+            JR      Z, DO10         ;Continue with game
+            XOR     A               ;Zero A
+            LD      (DOKEYPRE), A     ;Save in key press as a no hit
+DO9:
+            JR      DOGAME            ;Start Game loop
+DO10:
+            LD      A,(DOKEYPRE)      ;Get key press flag
+            OR      A               ;Is it zero
+            JR      NZ, DO9         ;No, key needs to be released
+            DEC     A               ;Set A to FF
+            LD      (DOKEYPRE), A     ;Store in key press flag
+            LD      A, B            ;Restore Key Pressed
+            CP      KEY_UP          ;Is key 'UP'
+            JR      NZ, DO11        ;No, Check Down Key
+            LD      A, (DOPLAYPOS)    ;Get Player Position
+            OR      A               ;Is it at the top already?
+            JR      Z, DO9          ;Ignore Key hit
+            DEC     A               ;Move down one
+            JR      DO12            ;Save Move and continue with game
+DO11:
+            CP      KEY_DN          ;Is key 'DN'
+            JR      NZ, DO9         ;No, Continue with game
+            LD      A, (DOPLAYPOS)    ;Get Player Position
+            CP      02H             ;Is it at the bottom already?
+            JR      Z, DO9          ;Ignore Key hit
+            INC     A               ;Move down one
+DO12:
+            LD      (DOPLAYPOS), A    ;Save new position
+            JR      DO9             ;Continue with game
+
+;GAME OVER
+DO13:
+            LD      HL, (DODISTVL)   ;Get Distanced Traveled
+            CALL    DOCON_HL        ;Convert to BCD and Display
+DO14:
+            LD      C,20H           ;Sound Routine
+            LD      L, C
+            XOR     A
+FS3:
+            OUT     (DSCAN) ,A
+            LD      B,C
+FS4:        DJNZ    FS4
+            XOR     80H
+            DEC     L
+            JR      NZ, FS3
+
+            CALL    DOSCAN          ;Display the screen
+                                    ;Replace RST 20/NOP to LD A,I if JMON isn't used
+            PUSH    BC
+            PUSH    DE
+            LD      C,API_SCAN  ;key scan
+            RST     10H         ;mon3 API Call
+            POP     DE
+            POP     BC
+            CP      12H             ;GO Key
+            JR      NZ, DO14        ;Not GO, repeat Scan
+            JP      DODGY
+
+OBSTACLES:
+            DB      0E4H, 0FH, 81H   ;Rock Low, Rock High and Gap
+DOPLAYER:
+            DB      01H, 04H, 80H    ;Dash High, Medium and Low
+            
+DOSCAN:
+            LD      B, 20H          ;Segment Reference
+            LD      HL, DOSCREEN      ;Set HL to Display Buffer
+DO7:
+            LD      A, (HL)         ;Get Segment Value at HL
+            OUT     (DSEGMENT), A         ;Set on Segment
+            LD      A, B            ;Get Segment reference
+            OUT     (DSCAN), A         ;Activate segment
+            LD      B, 80H          ;Segment delay
+DO8:        DJNZ    DO8
+            INC     HL              ;Move to next location
+            LD      B, A            ;Save Segment reference
+            XOR     A               ;Clear A
+            OUT     (DSCAN), A         ;Deactivate Segment
+            RRC     B               ;Move Segment Reference on to the Right
+            JR      NC, DO7         ;Scan next segment if more to do
+            OUT     (DSEGMENT), A         ;Clear port 2
+            RET
+
+;Convert HL and A to Seven Segment Display
+DOCON_HL:
+            LD      BC,DOSCREEN           ;Location of display buffer
+            LD      A,H                 ;Get high byte of Address
+            CALL    DOCON_A               ;Convert A to Segment Hex
+            LD      A,L                 ;Get low byte of Address
+DOCON_A:
+            PUSH    AF                  ;Save A to keep original value
+            RLCA                        ;Shift upper nibble to lower for masking
+            RLCA
+            RLCA
+            RLCA
+            CALL    DOCON_NIBBLE          ;Convert Lower nibble to segment hex
+            POP     AF                  ;Restore A
+
+DOCON_NIBBLE:
+            AND     0FH                 ;Only look at lower nibble for indexing
+            LD      DE,SEGTBL           ;Reference Segment convert table
+            ADD     A,E                 ;Index table with A
+            LD      E,A                 ;Update DE with index
+            LD      A,(DE)              ;Look up table
+            LD      (BC),A              ;Save it to display buffer
+            INC     BC                  ;Increment buffer location
+            RET
+
+;SPIROID ALIEN REMAKE.
+
+SPIALIEN:
+
+DELAYSP:    EQU     5000H 	    ;Game Delay Speed
+MESGADR:    EQU     5002H           ;Message address
+DISP_BUFF:  EQU     5004H
+
+            LD      BC,0A00H        ;Ten rounds / Zero hit
+SPSTART:
+            PUSH    BC              
+            LD      A,0F0H
+            LD      (DELAYSP),A     ;Initial Delay speed
+;Get Random Alien
+            CALL    RANDOM          ;RNG
+            CPL 
+            AND     03H             ;Mask out last three bits
+;Get Alien
+            LD      D,A             ;Save Alien Key match
+            LD      E,01H           ;Scan Port
+            LD      HL,ALIENS       ;Load HL with Alien Table
+            ADD     A,L             ;Index HL with A
+            LD      L,A
+            LD      A,(HL)          ;Get Alian Glyph
+;Game Loop
+            OUT     (DSEGMENT),A          ;Send Glyph to Segments
+SP2:
+            LD      A,E             ;Get Scan Port
+            OUT     (DSCAN),A          ;Turn on Segment
+            CALL    DELAY           ;Pause for a bit
+            LD      HL,0020H        ;get delay
+            LD      B,40H           ;wavylength
+            LD      C,API_NOTE      ;Note API
+            RST     10H             ;API CALL
+;Check Key Hit
+            PUSH    BC
+            PUSH    DE
+            LD      C,API_SCAN  ;key scan
+            RST     10H         ;mon3 API Call
+            POP     DE
+            POP     BC
+            JR      NZ, SP3         ;No key Continue with game
+            CP      D               ;Compare key with alien key
+            JR      Z, SP4          ;Its a Hit,
+SP3:
+;Move Segment
+            RLC     E               ;Move Segment left one
+            BIT     6,E 
+            JR      Z,SP2           ;No, display again
+;Miss/Hit Setup
+            LD      HL,AMTABLE+6    ;Set to Miss Graphic
+            JR      SP5             ;Animate
+SP4:
+            LD      HL,AHTABLE+6    ;Set To Hit Graphic
+SP5:                                ;Animate Hit/Miss
+            LD      C,01H           ;First Segment
+SP6:
+            LD      A,0FAH          ;Minus 6
+            ADD     A,L             ;Fix HL to point
+            LD      L,A             ;To start of table
+            LD      B,06H           ;Six Segments
+SP7:
+            LD      A,(HL)          ;Get Segment
+            OUT     (DSEGMENT),A          ;Light Segment
+            LD      A,C             ;Get Scan Bit
+            OUT     (DSCAN),A          ;Turn on Segment
+            PUSH    HL              ;Save HL
+            PUSH    BC              ;Save BC
+            CALL    DELAY           ;Wait
+            LD      HL,DELAYSP      ;Get Delay Speed
+            LD      B,0EH           ;Get Subtraction
+SP8:        DEC     (HL)            ;Take 14 off
+            DJNZ    SP8    
+            LD      A,(DELAYSP)
+            LD      L,A
+            LD      H,00H           ;Clear H
+            LD      B,C
+            LD      C,API_NOTE
+            RST     10H        ;     API CALL
+            POP     BC              ;Restore
+            POP     HL              ;Restore
+            INC     HL              ;Get next Segment
+            DJNZ    SP7             ;Repeat until all segments printed
+            RLC     C               ;Move to next segment
+            INC     C               ;Increase C
+            BIT     3,C             ;It it passed all segments
+            JR      Z,SP6           ;Do next segment
+            POP     BC              ;Restore Score/Rounds
+            LD      A,80H           ;Check for hit/miss
+            CP      (HL)            ;If 01H, then must be a hit
+            JR      NZ,SP9          ;Skip score update
+            INC     C               ;Add to score
+SP9:
+            DJNZ    SPSTART           ;Do next Round with new Alien
+GAMEOVER:   
+            LD      DE,WINTUNE
+            LD      HL,WINMESG
+            LD      A,C             ;Load # hits in A
+            CP      07H             ;Has atleast 7 been hit?
+            JR      NC,SP11
+            LD      DE,LOSTUNE
+            LD      HL,LOSMESG
+SP11:
+            LD      (MESGADR),HL
+            LD      C,API_TUNE
+            RST     10H
+            CALL    ASCII_SCRL
+            JP      SPIALIEN    
+DELAY:
+            LD      A,(DELAYSP)
+            LD      H,A
+            LD      L,00H
+SP10:
+	    DEC     HL
+	    LD      A,H
+	    OR      L
+	    JR      NZ,SP10
+	    RET
+
+RANDOM:
+            PUSH    BC
+            LD      A,R
+            LD      B,A
+            LD      A,(RANDNO)
+            XOR     B
+            ADD     A,A
+            XOR     B
+            LD      (RANDNO),A
+            POP     BC
+            RET
+
+ASCII_SCRL:
+            LD      HL,(MESGADR)
+            LD      (ASCII_STR),HL
+ASC0:
+            LD      H,0
+ASC1:
+            LD      DE,(ASCII_STR)
+            RST     20H
+            RET     Z
+            DEC     H
+            JR      NZ,ASC1
+            LD      A,(DE)
+            INC     A
+            JR      Z,ASCII_SCRL
+            LD      HL,ASCII_STR
+            INC     (HL)
+            JR      ASC0
+
+ALIENS:     DB      0FH,26H,61H,0C9H
+AHTABLE:    DB      01H,09H,29H,0A9H,0E9H,0EBH    ;Hit Animation
+AMTABLE:    DB      80H,64H,6BH,64H,80H,00H      ;Miss Animation
+WINTUNE:    DB      04H,00H,04H,00H,04H,00H,01H,01H,01H,1FH
+LOSTUNE:    DB      01H,18H,01H,18H,01H,18H,01H,18H,01H,1FH
+WINMESG:    DB      00H,00H,00H,00H,00H,00H,6FH,0C2H,42H,0C7H
+            DB      6BH,0A7H,00H,0ECH,0C7H,0A7H,0C6H,4BH,0EBH
+            DB      0AEH,0C7H,0ECH,18H,00H,00H,00H,00H,00H,00H,0FFH
+LOSMESG:    DB      00H,00H,00H,00H,00H,00H,0C7H,6BH,0ECH,00H
+            DB      0EBH,47H,00H,0C7H,6FH,4BH,0C6H,6EH,18H,00H
+            DB      00H,00H,00H,00H,00H
+            DB      0FFH,0FFH
+
+;NIM Game -- John Hardie's Favourite Game!!
+;Remove a match 1,2,3 and don’t be the last.  This is a re-write, nothing wrong with the
+;original, just wanted it to fit in to BMON.  Re-write by Brian Chiha
+
+NIMMATCH:   EQU     5000H           ;Matches left
+NIMPLAYER:  EQU     5001H           ;Current Player
+
+NIM:
+            LD      A,23H           ;Start with 23 Matches (BCD)
+            LD      (NIMMATCH),A    ;Save matches
+            LD      A,01010101B     ;Player 1 starts, alternate 1/0 with rotate right
+            LD      (NIMPLAYER),A   ;Save current player
+            LD      B,06H           ;Six Segments
+            LD      HL,DISP_BUFF    ;Clear Screen
+            XOR     A               ;Blank A
+NM1:            
+            LD      (HL),A          ;Blank Segment
+            INC     HL
+            DJNZ    NM1             ;Repeat for all six segments
+NM2:
+            LD      HL,NIMPLAYER    ;Get next player
+            RRC     (HL)            ;Rotate a check carry
+            PUSH    AF              ;Save Flags
+            CALL    NIMSCREEN       ;Fill Screen
+            POP     AF              ;Restore Flags
+            JR      C,NM5           ;Jump to player
+            LD      B,00H           ;Loop Screen
+NM3:
+            LD      DE,DISP_BUFF
+            PUSH    BC
+            RST     20H             ;Do Scan/Key Loop
+            POP     BC
+            DJNZ    NM3             ;Loop screen
+            LD      A,(NIMMATCH)    ;Get Remaing matches
+            CP      20H             ;Is it computers frist go?
+            JR      NC,NM4          ;Yes, get random pick
+            CP      01H             ;Is 1 left?
+            JR      Z,NM31          ;do trick and lose
+            CP      4               ;see if 3 or under
+            JR      NC,NM31         ;do trick
+            DEC     A
+            JR      NM6             ;Update match and check win
+NM31:
+            LD      A,04H           ;4 - Players Pick always wins
+            SUB     C               ;Minus Players pick
+            JR      NM6             ;Update match and check win
+NM4: 
+            CALL    RANDOM          ;Simple Randomness
+            SET     0,A             ;Ensure non zero
+            AND     03H             ;Mask out high bits
+            JR      NM6             ;Update match and check win
+NM5:
+            LD      DE,DISP_BUFF            
+            RST     20H             ;Do Scan/Key Loop
+            JR      NZ,NM5          ;No Key Press
+            CP      04H             ;Is key greater than 3?
+            JR      NC,NM5          ;Just loop scan
+            OR      A               ;Is key 0?
+            JR      Z,NM5           ;Just loop
+NM6:                            
+            LD      C,A             ;Save Match selection
+            LD      A,(NIMMATCH)    ;Get remaining matches
+            CP      C               ;Are there enough matches?
+            JR      Z,NIMGAMEOVR    ;No, Game over
+            JR      C,NIMGAMEOVR    ;No, Game over
+            SUB     C               ;Subtract matches
+            DAA                     ;Adjust for decimal
+            LD      (NIMMATCH),A    ;Store it
+            JR      NM2             ;Next Round
+NIMGAMEOVR:
+            LD      C,API_SCAN      ;key scan
+            RST     10H             ;mon3 API Call
+            JR      Z,NIMGAMEOVR    ;loop until key release
+            LD      A,(NIMPLAYER)   ;Get current Player
+            BIT     7,A             ;See who the current player is
+            LD      HL,NIMWINNER    ;Load HL with Win Message
+            JR      Z,NM7           ;Player wins
+            LD      HL,NIMLOSER     ;Load HL with Lose Message
+NM7:
+            LD      (MESGADR),HL
+            CALL    ASCII_SCRL
+            JP      NIM             ;Go back to start
+NIMSCREEN:
+            LD      HL,DISP_BUFF    ;Get Display buffer
+            LD      A,4FH           ;'P'
+            JR      C,NM8           ;Is player?
+            LD      A,0C3H          ;'C'
+NM8:
+            LD      (HL),A          ;Save C or P
+            PUSH    BC              ;Save BC
+            LD      DE,DISP_BUFF+4  ;Load DE with right most segments
+            LD      A,(NIMMATCH)    ;Load A with Matches Left
+            LD      C,API_A2SG      ;Convert to 7Seg
+            RST     10H             ;mon3 API Call
+            POP     BC              ;Restore BC
+            RET
+
+NIMWINNER:  DB      00H,00H,00H,00H,00H,00H,0EBH,6EH,00H,6BH
+            DB      0EBH,10H,10H,10H,10H,42H,00H,0C2H,0EBH,0A7H
+            DB      0C6H,18H,18H,00H,00H,00H,00H,00H,00H,0FFH
+NIMLOSER:   DB      00H,00H,00H,00H,00H,00H,0AEH,0EBH,0EAH,00H
+            DB      0C2H,0EBH,0A7H,0C7H,00H,0A7H,0C6H,0EAH,4FH
+            DB      42H,0ECH,18H,18H,00H,00H,00H,00H,00H,00H,0FFH
+                 
+;LUNALANDER
+;you must land your luna module on the moon as gently as possible while
+;gravity is pulling you down.  You can use the + key to fire your engine
+;briefly this will slow down your descent but it also uses fuel.  If you
+;run out of fuel you will crash
+;Based off John Hardy's game on MON1.  Rewrite by Brian Chiha
+LLALT:      EQU     5002H           ;Altitude
+LLVEL:      EQU     5001H           ;Velocity
+LLFUEL:     EQU     5000H           ;Fuel Left
+PLUSKEY:    EQU     10H             ;Plus Key
+
+LUNALANDER:
+            LD      A,80H           ;Altitude at 50 meters (BCD)
+            LD      (LLALT),A       ;Save Starting Altitude
+            LD      A,15H           ;Starting Fuel (BCD)
+            LD      (LLFUEL),A      ;Save Fuel
+            XOR     A               ;Blank A
+            LD      (LLVEL),A       ;Starting Velocity of 0
+            LD      B,06H           ;Six Segments
+            LD      HL,DISP_BUFF    ;Clear Screen
+LL1:            
+            LD      (HL),A          ;Blank Segment
+            INC     HL
+            DJNZ    LL1             ;Repeat for all six segments
+LL2:
+            CALL    LLSCREEN        ;Display the current lander stats
+            LD      BC,0200H        ;Drop counter
+LL3:        ;Scan and Key Input
+            LD      DE,DISP_BUFF
+            PUSH    BC
+            RST     20H             ;Do Scan/Key Loop
+            POP     BC
+            JR      NC,LL33         ;Key held and not new
+            CP      PLUSKEY         ;Was Key Press Plus +?
+            JR      Z,LL4           ;Yes Adjust Velocity
+LL33:
+            DEC     BC               ;Decrease delay
+            LD      A,B
+            OR      C
+            JR      NZ,LL3          ;Not Zero so do Scan/Key again
+            JR      LL5             ;Move Lander
+LL4:        ;Fuel Used
+            LD      A,(LLFUEL)      ;Check enough fuel
+            OR      A               ;Is it zero?
+            JR      Z,LL5           ;Yes, Move Lander
+            DEC     A               ;Reduce Fuel
+            DAA                     ;Decimal Adjust
+            LD      (LLFUEL),A      ;Save fuel
+            LD      A,(LLVEL)       ;Load Velocity
+            ADD     A,02H           ;Add 2 to Velocity
+            DAA                     ;Decimal Adjust
+            LD      (LLVEL),A       ;Save Velocity
+LL5:        ;Move Lander downwards
+            LD      A,(LLVEL)       ;Load Velocity
+            SUB     01H             ;Reduce it by one
+            DAA                     ;Decimal Adjust
+            LD      (LLVEL),A       ;Save Veloicty
+            LD      B,A             ;Save B with Velocity
+            LD      A,(LLALT)       ;Get Altitude
+            ADD     A,B             ;Add Veloicity to Altitude
+            DAA                     ;Decimal Adjust
+            LD      (LLALT),A       ;Save Altitude
+            OR      A               ;Have we landed?
+            JP      P,LL2           ;Not Yet, Next Round
+            LD      A,B             ;Check Velocity
+            ADD     A,02H           ;Add 2
+            DAA                     ;Adjust for decimal
+            OR      A               ;Check if 0 or over
+            JP      P,LL6           ;Yes, Winner!
+            LD      HL,LUNALOSER    ;Load HL with LOSE Message
+            LD      DE,LUNALOSE     ;Load DE with LOSE Tune
+            JR      LL7
+LL6:
+            LD      HL,LUNAWINNER   ;Load HL with WIN Message
+            LD      DE,LUNAWIN      ;Load DE with WIN Tune
+LL7:
+            LD      (MESGADR),HL
+            LD      C,API_TUNE
+            RST     10H
+            CALL    ASCII_SCRL
+            JP      LUNALANDER
+LLSCREEN:
+            LD      DE,DISP_BUFF    ;Get Display buffer
+            LD      A,(LLFUEL)      ;Get Fuel
+            LD      C,API_A2SG      ;Convert to 7Seg
+            RST     10H             ;mon3 API Call
+            LD      DE,DISP_BUFF+2
+            LD      A,(LLALT)       ;Get Altitude
+            LD      B,A             ;Save
+            LD      C,80H           ;Bottom Segment
+            CP      15H             ;It is under 10
+            JR      C,LLS1          ;Yes
+            LD      C,04H           ;Middle Segments
+            CP      40H             ;It is half way
+            JR      C,LLS1          ;Yes
+            LD      C,01H           ;Top Segments
+LLS1:
+            LD      A,C             ;Get Segments
+            LD      (DE),A          ;Write it
+            INC     DE              ;Move to next segment
+            LD      (DE),A          ;Write it
+            INC     DE              ;Move to last two segments
+            LD      A,B             ;Restore Altituded
+            LD      C,API_A2SG      ;Convert to 7Seg
+            RST     10H             ;mon3 API Call
+            RET
+
+LUNAWIN:    DB      14H,12H,14H,17H,17H,12H,14H,10H,1FH
+LUNALOSE:   DB      01H,11H,01H,11H,01H,11H,01H,11H,1FH
+LUNAWINNER: DB      00H,00H,00H,00H,00H,00H,0E3H,4BH,0C7H
+            DB      6FH,0C6H,00H,0C2H,6FH,6BH,0ECH,42H,6BH
+            DB      0E3H,00H,0E8H,0EBH,6EH,6BH,18H,18H,00H
+            DB      00H,00H,00H,00H,00H,0FFH
+LUNALOSER:  DB      00H,00H,00H,00H,00H,00H,6FH,6FH,6FH,4BH
+            DB      0E3H,18H,18H,00H,0AEH,0EBH,0EAH,00H,0ECH
+            DB      42H,0C7H,18H,18H,00H,00H,00H,00H,00H,00H,0FFH
+
+MMGUESS:    EQU     5000H           ;Guess Made by user (4 bytes)
+MMANSWER:   EQU     5004H           ;Answer (4 bytes)
+MM_BUFF:    EQU     5008H           ;Display Buffer
+MMSCORE:    EQU     500EH           ;Correct/Score
+MASTERMIND:
+            LD      HL,MM_BUFF    ;Load HL with Display
+            XOR     A
+            LD      B,04H           ;four Segments
+MM00:            
+            LD      (HL),A          ;Blank Segment
+            INC     HL
+            DJNZ    MM00             ;Repeat for all six segments
+            LD      B,20H 
+MM0: 
+            LD      DE,MM_BUFF    ;Load HL with Display
+            PUSH    BC
+            RST     20H             ;Do Scan/Key Loop
+            POP     BC
+            JR      C,MM2           ;Key Press Exit
+            DJNZ    MM0
+            LD      B,02H           ;Loop for two segments
+            LD      HL,MM_BUFF+4
+MM1:
+            CALL    RANDOM          ;Get Random Number
+            DAA                     ;Convert to 0-9
+            LD      (HL),A          ;Fill Screen
+            INC     HL
+            DJNZ    MM1             ;Do for second byte
+            JR      MASTERMIND      ;Keep going until key press
+MM2:
+            LD      HL,MM_BUFF+4            
+            LD      DE,MMANSWER     ;Load HL with Answer Location
+            LD      C,02H           ;Two Bytes
+MM3:
+            LD      B,02H           ;Do Twice
+MM4:
+            XOR     A               ;Clear A
+            RLD                     ;Get High Nibble in A
+            LD      (DE),A          ;Load BC with A
+            INC     DE              ;Move to next location
+            DJNZ    MM4             ;Do for second nibble
+            INC     HL      
+            DEC     C               ;Second Byte
+            JR      NZ,MM3          ;Do Again
+;Game Starts
+MM5:
+            XOR     A
+            LD      (MMSCORE),A
+            LD      HL,MM_BUFF    ;Get Display buffer
+            LD      B,04H           ;Clear first four segments
+            XOR     A               ;Clear A
+MM6:
+            LD      (HL),A          ;Fill with Blank
+            INC     HL              ;Move to next segment
+            DJNZ    MM6             ;Again
+            LD      A,04H           ;Middle Segment
+            LD      (HL),A          ;Display Segment
+            INC     HL              ;Move to last segment
+            LD      (HL),A          ;Display Segment
+            LD      HL,MMGUESS      ;Load Guess
+            LD      IX,MM_BUFF
+;Players Move
+MM7:
+            LD      DE,MM_BUFF    ;Link BC to Display for A2CODE to work
+            RST     20H             ;Do Scan/Key Loop
+            JR      NC,MM7          ;No Key Press Exit, Keep Scaning
+            CP      0AH             ;Is it greater than A?
+            JR      NC,MM7          ;Invalid Key, Keep Scaning
+            LD      (HL),A          ;Save player number
+            LD      BC,SEGTBL       ;Load Segment Table
+            ADD     A,C             ;Index Table
+            LD      C,A             ;
+            LD      A,(BC)          ;Get Segment
+            LD      (IX),A          ;Save number to screen
+            INC     HL              ;Move to next guess number
+            INC     IX              
+            BIT     2,L             ;Is HL 5004?
+            JR      Z,MM7           ;Get Next Key
+;Compare Guess to Answer
+MM8:
+            CALL    THINKING        ;Display Thinking Animation
+            LD      HL,MMANSWER     ;Link HL To Answer
+            LD      DE,MMGUESS      ;Link DE to Guess
+            LD      B,04H           ;Tries
+MM9:
+            LD      A,(DE)          ;Get Guess
+            CP      (HL)            ;Does it Match?
+            JR      NZ,MM10          ;No
+            LD      A,(MMSCORE)     ;Get Score
+            ADD     A,10H           ;Yes, Add one to upper nibble
+            LD      (MMSCORE),A     ;Save Score
+MM10:
+            PUSH    BC              ;Save BC
+            LD      B,03            ;Check other three guesses
+MM11:
+            INC     DE              ;Move to next guess
+            LD      A,E             ;Mask E to for overflow
+            AND     03H             ;Loop if > 3
+            LD      E,A             ;Reset E
+            LD      A,(DE)          ;Get Guess
+            CP      (HL)            ;Does it Match?
+            JR      NZ,MM12         ;No
+            LD      A,(MMSCORE)     ;Get Score
+            INC     A               ;Yes, Add one to upper nibble
+            LD      (MMSCORE),A     ;Save Score
+MM12:
+            DJNZ    MM11            ;Do 3 times
+            POP     BC              ;Restore BC
+            INC     HL              ;Next Answer
+            LD      A,L             ;Make E = L-4
+            SUB     04H             ;Subtract 4
+            LD      E,A             ;Reset E
+            DJNZ    MM9             ;Do for all 4 numbers
+;Display Score
+            PUSH    BC              ;Save BC
+            LD      DE,MM_BUFF+4  ;Load DE with right most segments
+            LD      A,(MMSCORE)     ;Get Score
+            LD      C,API_A2SG      ;Convert to 7Seg
+            RST     10H             ;mon3 API Call
+            POP     BC              ;Restore BC
+            LD      A,(MMSCORE)     ;Get Score
+            BIT     6,A             ;Winner?
+            JR      Z,MM13
+            LD      DE,WINTUNE
+            LD      C,API_TUNE
+            RST     10H
+MM13:
+            LD      DE,MM_BUFF    ;Load DE with segments            
+            RST     20H             ;Do Scan/Key Loop
+            JR      NZ,MM13         ;Repeat until key pressed
+            LD      A,(MMSCORE)     ;Get Score
+            BIT     6,A             ;Winner?
+            JP      NZ,MASTERMIND   ;Start New Game
+            JP      MM5             ;Start Next Round Again
+;Thinking Animation
+THINKING:
+            LD      B,02H          ;Full loop, 4 Times
+            LD      HL,MM_BUFF+4  ;Get Display buffer last two segments
+THK1:
+            LD      DE,THINKTBL     ;Link to Thinking Table
+            PUSH    BC              ;Save BC
+            LD      B,08H           ;Eight loops
+THK2:
+            LD      A,(DE)          ;Get Move
+            LD      (HL),A          ;Display Move
+            INC     HL              ;Next Display
+            INC     DE              ;Next Segment
+            LD      A,(DE)          ;Get Move
+            LD      (HL),A          ;Display Move
+            INC     DE              ;Next Segment
+            PUSH    BC              ;Save B
+            LD      B,30H           ;Delay
+THK3:
+            PUSH    DE
+            LD      DE,MM_BUFF    ;Get Display buffer last two segments
+            PUSH    HL
+            PUSH    BC
+            RST     20H             ;Do Scan/Key Loop
+            POP     BC
+            POP     HL
+            POP     DE
+            DJNZ    THK3            ;Scan Again
+            DEC     HL              ;Restore HL
+            POP     BC              ;Restore BC
+            DJNZ    THK2            ;Do next Segment
+            POP     BC              ;Get C
+            DJNZ    THK1            ;Repeat Sequence
+            RET
+
+THINKTBL:   DB      04H,04H,02H,08H,01H,01H,08H,02H
+            DB      04H,04H,40H,20H,80H,80H,20H,40H
+
+;Menu Command String
+gamesMenuCFG:
+        .db 7
+        .db "Games "    ;7segment Text
+           ;"                   " <- Max LCD entry width
+        .db " TEC Segment Games ",0
+        .db "Segment Hit",0
+        .dw SEGHIT
+        .db "Simple Simon",0
+        .dw SIMON
+        .db "Dodgy",0
+        .dw DODGY
+        .db "Spiroid Alien",0
+        .dw SPIALIEN
+        .db "NIM Matches Game",0
+        .dw NIM
+        .db "Lunar Lander",0
+        .dw LUNALANDER
+        .db "Mastermind",0
+        .dw MASTERMIND
+
+ASCII_STR:
+        ds 2,0
+RANDNO:
+        ds 1,0
+

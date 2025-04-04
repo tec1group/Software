@@ -1,0 +1,980 @@
+; TEC_Invaders, TEC-1G Space Invaders game by Cameron Sheppard
+; ------------------------------------------------------------
+
+	org	04000h
+
+	ld hl,ramData
+	xor a	
+	ld (hl),a	
+	inc hl	
+	ld (hl),001h
+	inc hl	
+	ld (hl),003h
+	inc hl	
+	ld (hl),003h
+	inc hl	
+	ld (hl),015h
+	inc hl	
+	ld (hl),020h
+	ld l,0c7h
+	ld (hl),a	
+	ld l,0cah
+	ld (hl),a	
+	ld l,0cch
+	ld (hl),a	
+	ld l,0e6h
+	ld (hl),096h
+	inc hl	
+	ld b,003h
+l0924h:
+	ld (hl),093h
+	inc hl	
+	djnz l0924h
+	call sub_0d93h
+	ld e,090h
+l092eh:
+	ld l,0d0h
+	ld (hl),060h
+	inc hl	
+	ld a,e	
+	ld (hl),a	
+	call sub_0d4fh
+	ld a,e	
+	sub 010h
+	ld e,a	
+	cp 050h
+	jr nz,l092eh
+	ld a,090h
+l0942h:
+	ld b,0ffh
+l0944h:
+	djnz l0944h
+	dec a	
+	jr nz,l0942h
+	ld l,0d1h
+	ld (hl),080h
+	dec hl	
+	ld (hl),070h
+	call sub_0d4fh
+	ld e,002h
+l0955h:
+	ld l,0d0h
+	ld (hl),0d0h
+	inc hl	
+	ld (hl),060h
+	call sub_0d4fh
+	dec e	
+	jr nz,l0955h
+	ld l,0cah
+	inc (hl)	
+	inc hl	
+	ld (hl),050h
+	call sub_09c7h
+	dec hl	
+	ld (hl),000h
+l096eh:
+	ld b,010h
+	ld l,0a7h
+l0972h:
+	ld a,(hl)	
+	out (005h),a
+	inc hl	
+	ld a,(hl)	
+	out (006h),a
+	call sub_0d43h
+	inc hl	
+	djnz l0972h
+	ld a,(hl)	
+	out (005h),a
+	ld a,080h
+	out (006h),a
+	call sub_0d43h
+	inc hl	
+	xor a	
+	cp (hl)	
+	jr z,l0998h
+	inc hl	
+	ld a,(hl)	
+	out (005h),a
+	ld a,d	
+	out (006h),a
+	call sub_0d43h
+l0998h:
+	ld a,c	
+	out (005h),a
+	ld a,001h
+	out (006h),a
+	call sub_0d43h
+	ld a,004h
+	out (001h),a
+	ld a,0ebh
+	out (002h),a
+	call sub_0d43h
+	ld a,001h
+	ld l,0e6h
+	ld b,004h
+	ld e,b	
+	jr l09b7h
+l09b6h:
+	ld a,e	
+l09b7h:
+	out (001h),a
+	push hl	
+	ld l,(hl)	
+	ld a,(hl)	
+	out (002h),a
+	pop hl	
+	call sub_0d43h
+	inc hl	
+	rlc e
+	djnz l09b6h
+sub_09c7h:
+	ld l,0cah
+	xor a	
+	cp (hl)	
+	jr z,l09d3h
+	inc hl	
+	dec (hl)	
+	cp (hl)	
+	jr nz,l096eh
+	ret	
+l09d3h:
+	ld l,0cch
+	cp (hl)	
+	jr nz,l096eh
+	inc hl	
+	cp (hl)	
+	jr nz,l09f1h
+	ld l,0cah
+	inc (hl)	
+	inc hl	
+	ld (hl),030h
+	call sub_09c7h
+	dec hl	
+	ld (hl),000h
+	ld l,0a2h
+	inc (hl)	
+	call sub_0d93h
+	jp l096eh
+l09f1h:
+	ld l,0c8h
+	cp (hl)	
+	jr z,l0a37h
+	ld l,0a7h
+	ld e,0e5h
+l09fah:
+	ld b,003h
+l09fch:
+	ld a,(ramData+40)
+	cp (hl)	
+	jr nz,l0a0fh
+	inc hl	
+	ld a,d	
+	cp (hl)	
+	jr nz,l0a10h
+	xor a	
+	ld (hl),a	
+	dec hl	
+	ld (hl),a	
+	ld l,e	
+	dec (hl)	
+	jr l0a1bh
+l0a0fh:
+	inc hl	
+l0a10h:
+	inc hl	
+	djnz l09fch
+	dec e	
+	ld a,0e1h
+	cp e	
+	jr nz,l09fah
+	jr l0a37h
+l0a1bh:
+	ld l,0c8h
+	ld (hl),000h
+	ld l,0cdh
+	dec (hl)	
+	inc hl	
+	ld a,(hl)	
+	ld e,004h
+	sub e	
+	ld (hl),a	
+	ld e,001h
+	call sub_0d80h
+	ld l,0d0h
+	ld (hl),0ffh
+	inc hl	
+	ld (hl),010h
+	call sub_0d4fh
+l0a37h:
+	ld l,0c8h
+	cp (hl)	
+	jr z,l0a72h
+	dec hl	
+	ld a,(ramData+40)
+	cp (hl)	
+	jr nz,$+48
+	ld a,d	
+	cp 080h
+	jr nz,$+43
+	xor a	
+	ld (hl),a	
+	ld l,0a1h
+	ld (hl),a	
+	ld l,0a5h
+	ld (hl),050h
+	ld b,005h
+l0a53h:
+	push bc	
+	ld e,001h
+	call sub_0d80h
+	ld l,0d0h
+	ld (hl),010h
+	inc hl	
+	ld (hl),0ffh
+	call sub_0d4fh
+	ld l,0cah
+	inc (hl)	
+	inc hl	
+	ld (hl),004h
+	call sub_09c7h
+	pop bc	
+	djnz l0a53h
+	dec hl	
+	ld (hl),000h
+l0a72h:
+	ld b,004h
+	ld l,0c6h
+l0a76h:
+	ld a,001h
+	cp (hl)	
+	jr nz,l0a82h
+	dec hl	
+	ld a,c	
+	cp (hl)	
+	jr z,l0a88h
+	jr l0a83h
+l0a82h:
+	dec hl	
+l0a83h:
+	dec hl	
+	djnz l0a76h
+	jr l0adch
+l0a88h:
+	ld l,0c8h
+	ld (hl),000h
+	ld c,(hl)	
+	ld l,0cah
+	inc (hl)	
+	inc hl	
+	ld (hl),030h
+	ld l,0d0h
+	ld (hl),060h
+	inc hl	
+	ld (hl),0e0h
+	call sub_0d4fh
+	call sub_09c7h
+	ld l,0e6h
+	dec (hl)	
+	ld l,0a4h
+	dec (hl)	
+	xor a	
+	cp (hl)	
+	jr nz,l0ac7h
+	ld l,0cah
+	ld (hl),a	
+	ld e,040h
+l0aafh:
+	ld l,0d0h
+	ld (hl),060h
+	inc hl	
+	ld a,e	
+	ld (hl),a	
+	call sub_0d4fh
+	ld a,e	
+	add a,010h
+	ld e,a	
+	cp 090h
+	jr nz,l0aafh
+	ld l,0cch
+	inc (hl)	
+	jp l096eh
+l0ac7h:
+	ld b,004h
+	ld l,0bfh
+l0acbh:
+	ld (hl),a	
+	inc hl	
+	inc hl	
+	djnz l0acbh
+	ld c,001h
+	ld l,0cbh
+	ld (hl),040h
+	call sub_09c7h
+	dec hl	
+	ld (hl),000h
+l0adch:
+	ld l,0cfh
+	dec (hl)	
+	xor a	
+	cp (hl)	
+	jr nz,l0b5ch
+	ld l,0a5h
+	dec (hl)	
+	ld l,0d0h
+	ld (hl),005h
+	inc hl	
+	ld (hl),0ffh
+	call sub_0d4fh
+	ld l,0a0h
+	cp (hl)	
+	jr nz,l0b2fh
+	ld b,00ch
+	ld l,0a7h
+	ld a,080h
+l0afbh:
+	cp (hl)	
+	jr z,l0b06h
+	rlc (hl)
+	inc hl	
+	inc hl	
+	djnz l0afbh
+	jr l0b57h
+l0b06h:
+	ld l,0a0h
+	inc (hl)	
+	jr l0b0eh
+l0b0bh:
+	ld l,0a0h
+	dec (hl)	
+l0b0eh:
+	ld b,00ch
+	ld l,0a8h
+	ld a,002h
+l0b14h:
+	cp (hl)	
+	jr z,l0b1dh
+	inc hl	
+	inc hl	
+	djnz l0b14h
+	jr l0b23h
+l0b1dh:
+	call sub_0d64h
+	ld l,0cch
+	inc (hl)	
+l0b23h:
+	ld b,00ch
+	ld l,0a8h
+l0b27h:
+	rrc (hl)
+	inc hl	
+	inc hl	
+	djnz l0b27h
+	jr l0b57h
+l0b2fh:
+	ld e,a	
+	ld l,0b9h
+l0b32h:
+	ld b,003h
+	ld a,001h
+l0b36h:
+	cp (hl)	
+	jr z,l0b0bh
+	rrc (hl)
+	inc hl	
+	inc hl	
+	djnz l0b36h
+	inc e	
+	cp e	
+	jr nz,l0b47h
+	ld l,0b3h
+	jr l0b32h
+l0b47h:
+	inc a	
+	cp e	
+	jr nz,l0b4fh
+	ld l,0adh
+	jr l0b32h
+l0b4fh:
+	inc a	
+	cp e	
+	jr nz,l0b57h
+	ld l,0a7h
+	jr l0b32h
+l0b57h:
+	ld l,0ceh
+	ld a,(hl)	
+	inc hl	
+	ld (hl),a	
+l0b5ch:
+	ld l,0a1h
+	xor a	
+	cp (hl)	
+	jr z,l0b89h
+	ld a,080h
+	out (001h),a
+	xor a	
+	out (001h),a
+	ld l,0a6h
+	dec (hl)	
+	cp (hl)	
+	jr nz,l0b98h
+	ld l,0c7h
+	ld a,080h
+	cp (hl)	
+	jr nz,l0b81h
+	ld (hl),000h
+	ld l,0a1h
+	dec (hl)	
+	ld l,0a5h
+	ld (hl),050h
+	jr l0b98h
+l0b81h:
+	rlc (hl)
+	ld l,0a6h
+	ld (hl),020h
+	jr l0b98h
+l0b89h:
+	ld l,0a5h
+	cp (hl)	
+	jr nz,l0b98h
+	inc hl	
+	ld (hl),020h
+	ld l,0a1h
+	inc (hl)	
+	ld l,0c7h
+	ld (hl),001h
+l0b98h:
+	in a,(003h)
+	bit 6,a
+	jr nz,l0babh
+	in a,(000h)
+	and 01fh
+	ld e,a	
+	ld l,0eah
+	xor a	
+	cp (hl)	
+	jr nz,l0be4h
+	jr l0bb1h
+l0babh:
+	ld l,0eah
+	ld (hl),000h
+	jr l0be4h
+l0bb1h:
+	inc (hl)	
+	ld a,004h
+	cp e	
+	jr nz,l0bbeh
+	ld a,001h
+	cp c	
+	jr z,l0bcah
+	rrc c
+l0bbeh:
+	ld a,006h
+	cp e	
+	jr nz,l0bcah
+	ld a,080h
+	cp c	
+	jr z,l0bcah
+	rlc c
+l0bcah:
+	ld l,0c8h
+	xor a	
+	cp (hl)	
+	jr nz,l0be4h
+	ld a,010h
+	cp e	
+	jr nz,l0be4h
+	inc (hl)	
+	inc hl	
+	ld (hl),c	
+	ld d,002h
+	ld l,0d0h
+	ld (hl),020h
+	inc hl	
+	ld (hl),030h
+	call sub_0d4fh
+l0be4h:
+	ld l,0c8h
+	xor a	
+	cp (hl)	
+	jr z,l0c00h
+	ld a,d	
+	cp 080h
+	jr nz,l0bf5h
+	ld (hl),000h
+	ld l,0a3h
+	jr l0bfeh
+l0bf5h:
+	ld l,0a3h
+	dec (hl)	
+	xor a	
+	cp (hl)	
+	jr nz,l0c00h
+	rlc d
+l0bfeh:
+	ld (hl),003h
+l0c00h:
+	ld l,0d2h
+	xor a	
+	cp (hl)	
+	jr z,l0c18h
+	inc hl	
+	dec (hl)	
+	cp (hl)	
+	jr nz,l0c50h
+	ld l,0c0h
+	inc a	
+	cp (hl)	
+	jr nz,l0c48h
+	xor a	
+	ld (hl),a	
+	ld (ramData+49),a
+	jr l0c50h
+l0c18h:
+	inc hl	
+	inc hl	
+	dec (hl)	
+	cp (hl)	
+	jr nz,l0c50h
+	inc hl	
+	ld a,(hl)	
+	dec hl	
+	ld (hl),a	
+	ld l,0e2h
+	xor a	
+	cp (hl)	
+	jr z,l0c50h
+	ld l,0d2h
+	inc (hl)	
+	ld b,002h
+	ld l,0beh
+l0c2fh:
+	cp (hl)	
+	jr z,l0c38h
+	ld a,(hl)	
+	ld (ramData+31),a
+	jr l0c42h
+l0c38h:
+	dec hl	
+	dec hl	
+	djnz l0c2fh
+	ld l,0bah
+	ld a,(hl)	
+	ld l,0c0h
+	ld (hl),a	
+l0c42h:
+	ld l,0b9h
+	ld a,(hl)	
+	ld l,0bfh
+	ld (hl),a	
+l0c48h:
+	ld l,0c0h
+	rrc (hl)
+	ld l,0d3h
+	ld (hl),01bh
+l0c50h:
+	ld l,0d6h
+	xor a	
+	cp (hl)	
+	jr z,l0c68h
+	inc hl	
+	dec (hl)	
+	cp (hl)	
+	jr nz,l0ca0h
+	ld l,0c2h
+	inc a	
+	cp (hl)	
+	jr nz,l0c98h
+	xor a	
+	ld (hl),a	
+	ld (ramData+53),a
+	jr l0ca0h
+l0c68h:
+	inc hl	
+	inc hl	
+	dec (hl)	
+	cp (hl)	
+	jr nz,l0ca0h
+	inc hl	
+	ld a,(hl)	
+	dec hl	
+	ld (hl),a	
+	ld l,0e3h
+	xor a	
+	cp (hl)	
+	jr z,l0ca0h
+	ld l,0d6h
+	inc (hl)	
+	ld b,002h
+	ld l,0b8h
+l0c7fh:
+	cp (hl)	
+	jr z,l0c88h
+	ld a,(hl)	
+	ld (ramData+33),a
+	jr l0c92h
+l0c88h:
+	dec hl	
+	dec hl	
+	djnz l0c7fh
+	ld l,0b4h
+	ld a,(hl)	
+	ld l,0c2h
+	ld (hl),a	
+l0c92h:
+	ld l,0b3h
+	ld a,(hl)	
+	ld l,0c1h
+	ld (hl),a	
+l0c98h:
+	ld l,0c2h
+	rrc (hl)
+	ld l,0d7h
+	ld (hl),01bh
+l0ca0h:
+	ld l,0dah
+	xor a	
+	cp (hl)	
+	jr z,l0cb8h
+	inc hl	
+	dec (hl)	
+	cp (hl)	
+	jr nz,l0cf0h
+	ld l,0c4h
+	inc a	
+	cp (hl)	
+	jr nz,l0ce8h
+	xor a	
+	ld (hl),a	
+	ld (ramData+57),a
+	jr l0cf0h
+l0cb8h:
+	inc hl	
+	inc hl	
+	dec (hl)	
+	cp (hl)	
+	jr nz,l0cf0h
+	inc hl	
+	ld a,(hl)	
+	dec hl	
+	ld (hl),a	
+	ld l,0e4h
+	xor a	
+	cp (hl)	
+	jr z,l0cf0h
+	ld l,0dah
+	inc (hl)	
+	ld b,002h
+	ld l,0b2h
+l0ccfh:
+	cp (hl)	
+	jr z,l0cd8h
+	ld a,(hl)	
+	ld (ramData+35),a
+	jr l0ce2h
+l0cd8h:
+	dec hl	
+	dec hl	
+	djnz l0ccfh
+	ld l,0aeh
+	ld a,(hl)	
+	ld l,0c4h
+	ld (hl),a	
+l0ce2h:
+	ld l,0adh
+	ld a,(hl)	
+	ld l,0c3h
+	ld (hl),a	
+l0ce8h:
+	ld l,0c4h
+	rrc (hl)
+	ld l,0dbh
+	ld (hl),01bh
+l0cf0h:
+	ld l,0deh
+	xor a	
+	cp (hl)	
+	jr z,l0d08h
+	inc hl	
+	dec (hl)	
+	cp (hl)	
+	jr nz,l0d40h
+	ld l,0c6h
+	inc a	
+	cp (hl)	
+	jr nz,l0d38h
+	xor a	
+	ld (hl),a	
+	ld (00edeh),a
+	jr l0d40h
+l0d08h:
+	inc hl	
+	inc hl	
+	dec (hl)	
+	cp (hl)	
+	jr nz,l0d40h
+	inc hl	
+	ld a,(hl)	
+	dec hl	
+	ld (hl),a	
+	ld l,0e5h
+	xor a	
+	cp (hl)	
+	jr z,l0d40h
+	ld l,0deh
+	inc (hl)	
+	ld b,002h
+	ld l,0ach
+l0d1fh:
+	cp (hl)	
+	jr z,l0d28h
+	ld a,(hl)	
+	ld (ramData+37),a
+	jr l0d32h
+l0d28h:
+	dec hl	
+	dec hl	
+	djnz l0d1fh
+	ld l,0a8h
+	ld a,(hl)	
+	ld l,0c6h
+	ld (hl),a	
+l0d32h:
+	ld l,0a7h
+	ld a,(hl)	
+	ld l,0c5h
+	ld (hl),a	
+l0d38h:
+	ld l,0c6h
+	rrc (hl)
+	ld l,0dfh
+	ld (hl),01bh
+l0d40h:
+	jp l096eh
+sub_0d43h:
+	push bc	
+	ld b,0E0h   ;speed of game
+l0d46h:
+	djnz l0d46h
+	xor a	
+	out (006h),a
+	out (002h),a
+	pop bc	
+	ret	
+sub_0d4fh:
+	ld l,0d1h
+	ld a,080h
+	out (001h),a
+	ld b,(hl)	
+l0d56h:
+	djnz l0d56h
+	xor a	
+	out (001h),a
+	ld b,(hl)	
+l0d5ch:
+	djnz l0d5ch
+	dec hl	
+	dec (hl)	
+	cp (hl)	
+	jr nz,sub_0d4fh
+	ret	
+sub_0d64h:
+	ld e,000h
+l0d66h:
+	ld a,080h
+	out (001h),a
+	xor a	
+	out (001h),a
+	ld b,000h
+l0d6fh:
+	djnz l0d6fh
+	ld hl,00d6eh
+	inc (hl)	
+	jr nz,l0d66h
+	inc e	
+	ld a,e	
+	cp 007h
+	jr nz,l0d66h
+	ld h,045h
+	ret	
+sub_0d80h:
+	ld l,0e7h
+	ld a,09dh
+	ld b,003h
+l0d86h:
+	inc (hl)	
+	cp (hl)	
+	jr nz,l0d8fh
+	ld (hl),093h
+	inc hl	
+	djnz l0d86h
+l0d8fh:
+	dec e	
+	jr nz,sub_0d80h
+	ret	
+sub_0d93h:
+	ld e,004h
+	ld b,003h
+	ld l,0a7h
+	ld a,008h
+	call sub_0db1h
+l0d9eh:
+	dec e	
+	jr z,l0da9h
+	rra	
+	ld b,003h
+	call sub_0db1h
+	jr l0d9eh
+l0da9h:
+	ld b,004h
+	xor a	
+	call sub_0db1h
+	jr l0db7h
+sub_0db1h:
+	ld (hl),a	
+	inc hl	
+	inc hl	
+	djnz sub_0db1h
+	ret	
+l0db7h:
+	ld l,0a0h
+	ld (hl),a	
+	ld l,0c8h
+	ld (hl),a	
+	inc hl	
+	ld (hl),a	
+	ld l,0cdh
+	ld (hl),00ch
+	ld c,001h
+	ld d,c	
+	ld e,a	
+	ld l,0d2h
+	call sub_0dd5h
+	ld e,01bh
+	ld l,0d3h
+	call sub_0dd5h
+	jr l0ddfh
+sub_0dd5h:
+	ld b,004h
+l0dd7h:
+	ld a,004h
+	ld (hl),e	
+	add a,l	
+	ld l,a	
+	djnz l0dd7h
+	ret	
+l0ddfh:
+	ld l,0e2h
+	ld b,004h
+l0de3h:
+	ld (hl),003h
+	inc hl	
+	djnz l0de3h
+	ld a,004h
+	call sub_0e88h
+	xor a	
+	cp b	
+	jr z,l0e12h
+	ld a,034h
+	call sub_0e5dh
+	ld e,040h
+	call sub_0e63h
+	ld l,0d4h
+	ld a,025h
+	call sub_0e81h
+	ld a,046h
+	call sub_0e81h
+	ld a,020h
+	call sub_0e81h
+	ld a,014h
+	call sub_0e81h
+	ret	
+l0e12h:
+	ld a,008h
+	call sub_0e88h
+	xor a	
+	cp b	
+	jr z,l0e3ch
+	ld a,033h
+	call sub_0e5dh
+	ld e,020h
+	call sub_0e63h
+	ld l,0d4h
+	ld a,033h
+	call sub_0e81h
+	ld a,014h
+	call sub_0e81h
+	ld a,024h
+	call sub_0e81h
+	ld a,00eh
+	call sub_0e81h
+	ret	
+l0e3ch:
+	ld a,032h
+	call sub_0e5dh
+	ld e,010h
+	call sub_0e63h
+	ld l,0d4h
+	ld a,033h
+	call sub_0e81h
+	ld a,024h
+	call sub_0e81h
+	ld a,035h
+	call sub_0e81h
+	ld a,012h
+	call sub_0e81h
+	ret	
+sub_0e5dh:
+	ld l,0ceh
+	ld (hl),a	
+	inc hl	
+	ld (hl),a	
+	ret	
+sub_0e63h:
+	ld l,0a8h
+	call sub_0e77h
+	rrc e
+	ld l,0aah
+	call sub_0e77h
+	rrc e
+	ld l,0ach
+	call sub_0e77h
+	ret	
+sub_0e77h:
+	ld b,004h
+l0e79h:
+	ld a,006h
+	ld (hl),e	
+	add a,l	
+	ld l,a	
+	djnz l0e79h
+	ret	
+sub_0e81h:
+	ld (hl),a	
+	inc hl	
+	ld (hl),a	
+	inc hl	
+	inc hl	
+	inc hl	
+	ret	
+sub_0e88h:
+	ld b,004h
+	ld l,0a2h
+l0e8ch:
+	cp (hl)	
+	jr z,l0e92h
+	dec a	
+	djnz l0e8ch
+l0e92h:
+	ret	
+    .db 0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H    ;0123456
+    .db 29H,0EFH,0AFH,0FDH,0FDH,0FFH,00H    ;789
+
+ramData:
+
+
+        .end
+
+        .binfrom 4000H
+        .binto 45A0H

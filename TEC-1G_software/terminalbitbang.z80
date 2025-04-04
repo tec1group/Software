@@ -1,0 +1,76 @@
+;TEC-1G serial terminal ***BETA CODE*** by A Ernest
+;Based on routines by Brian Chiha. Much of the code in this document is copied
+;directly from the MON3 manual. 
+;
+;Requires a TEC-1G with MON-3, 
+;as well as the 1G matrix keyboard and GLCD.
+;
+;
+
+ORG 4000H
+
+
+
+;Start Background task. This will loop continually until the SIO sends an interrupt.
+;This reads the keyboard constantly. When a key is pressed it is written to the transmit buffer. 
+WAIT_LOOP:
+            
+            CALL    SCAN_LOOP
+            CALL    READ
+            JR      WAIT_LOOP
+
+SCAN_LOOP:
+            IN A,   03H
+            BIT     6, A
+            JR Z,   READ
+            JR      KBD_HANDLE
+            RET
+            
+;Terminal emulation code
+
+;Receive Character
+READ:
+            PUSH    AF                  ;Save AF   
+            LD      C, 17H              ;rxByte
+            RST     10H                 ;API call
+            OR      A
+            JP Z,   SCAN_LOOP
+         
+WRITE_GLCD:
+            LD      C, A
+            LD      A, 18H              ;Setup for GLCD api call
+            RST     18H                 ;call GLCD API
+;Output has occured
+            OR      A                   ;Reset Carry Flag
+
+READ_EXIT:  
+            POP     AF                  ;Restore AF
+            JP      SCAN_LOOP
+      
+
+WRITE:
+           
+            CALL    DO_TRANSMIT         ;Do the Transmit, Carry flag is set if buffer is empty
+            JR      NC,WRITE_EXIT       ;Data was tramitted, Exit Safely
+WRITE_EXIT:
+            POP     AF
+            RET
+
+
+DO_TRANSMIT:
+            LD      C, 16H              ;txByte
+            RST     10H                 ;API call
+;Output has occured
+            OR      A                   ;Reset Carry Flag
+            RET                         ;Exit
+            
+;Keyboard handler
+KBD_HANDLE:
+            PUSH    AF                  ;Save AF
+KBD_OKAY:    
+            ld      c,18                ;matrixScan
+            rst     10h                 ;API call
+            ld      c,54                ;parseMatrixScan
+            rst     10h                 ;API call
+            CALL    WRITE
+            RET

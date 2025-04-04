@@ -1,0 +1,1050 @@
+0000                             ; TEC Invaders Mark 2.
+0000                             ; 
+0000                             ; By
+0000                             ; Brian Chiha -- May 2020
+0000                             ; brian.chiha@gmail.com
+0000                             ; 
+0000                             ; This is my version of the TEC invaders that was originally writen by Cameron Sheppard
+0000                             ; -------------------------------------------------------------------------------------
+0000                             ; 
+0000                             ; Setup
+0000                             ; -----
+0000                             ; 
+0000                             ; To be run on the TEC-1D with either JMON or MON2.  For the keyboard to work
+0000                             ; it requires EITHER a 4k7 resistor between the NMI (pin 17 on Z-80) and D6 (pin
+0000                             ; 10 on the Z-80) OR the DAT (LCD) expanstion board fitted to port 3.  The
+0000                             ; current TEC-1D boards have the JMON MOD resitor connection already there.
+0000                             ; The 8x8 LED board is fitted to ports 5 and 6 with the port select strobe of the
+0000                             ; left hand latch going to port 6.
+0000                             ; 
+0000                             ; To Play
+0000                             ; -------
+0000                             ; 
+0000                             ; Use "1" to move Left, "9" to move right and "+" to shoot.  10 Points for
+0000                             ; hitting an invader and 50 Points for the UFO on the top row.  Player has
+0000                             ; 3 lives and the game is over when all lives are lost.  You lose a life if
+0000                             ; the invaders land or you get hit by one of their bombs.  Invaders come
+0000                             ; in waves and get faster with less invaders alive.
+0000                             ; 
+0000                             ; 
+0000                             ;Data locations
+0000                SCREEN:   EQU   5000H   ;Game Screen (Merge of INVADV,PLAYER,BULLET,UFOPOS and INVBOM) (8-bytes)
+0000                INVADV:   EQU   5008H   ;Invaders in vertical position for display             (8-bytes)
+0000                INVADH:   EQU   5010H   ;Invaders in horizontal position for easy bit move     (8-bytes)
+0000                INVBOM:   EQU   5018H   ;Invader Bomb position vertically.                     (8-bytes)
+0000                PLAYER:   EQU   5020H   ;Position in byte IE: 00010000 (three from the right)  (1-byte)
+0000                BULLET:   EQU   5021H   ;Position of bullet X (Horizontal) and Y (Verticallly) (2-bytes)
+0000                UFOPOS:   EQU   5023H   ;Position in byte IE: 00010000 (four from the right)   (1-byte)
+0000                KEYPRE:   EQU   5024H   ;Key Pressed Flag, 00-False, FF-True                   (1-byte)
+0000                INVDIR:   EQU   5025H   ;Direction of Invaders, 00=Right, 01=Left              (1-byte)
+0000                PLAYSC:   EQU   5026H   ;Player current score                                  (2-bytes)
+0000                PLAYLV:   EQU   5028H   ;Player current Lives                                  (1-byte)
+0000                INVCNT:   EQU   5029H   ;Counter to action invader movement when it hits zero  (1-byte)
+0000                LEDSCR:   EQU   502AH   ;Score and lives segment data for LED display          (6-bytes)
+0000                RANDNO:   EQU   5030H   ;Random 8-Bit Number. Set when RANDOM is called        (1-byte)
+0000                INVSPD:   EQU   5031H   ;Current speed of invaders                             (1-byte)
+0000                INVREM:   EQU   5032H   ;Number of remaining invaders                          (1-byte)
+0000                             ;Contstants
+0000                INITPL:   EQU   00010000B   ;Initial Player X position, bit set = ...0....
+0000                INITLV:   EQU   03H   ;Initial Lives #3
+0000                UFOSPD:   EQU   00000011B   ;UFO movement speed, every 3 loops
+0000                UFOCRE:   EQU   06H   ;UFO creation rate
+0000                BOMCRE:   EQU   10H   ;Bomb creation rate
+4000                          .ORG   4000H   
+4000                START:       
+4000                             ;Welcome Screen
+4000   CD 50 43               CALL   CLRSCR   
+4003   CD E3 42               CALL   INTROM   
+4006                             ;New game setup
+4006   CD F4 41               CALL   SETUP   
+4009                             ;Game Loop
+4009                GAME:        
+4009   CD C2 42               CALL   RANDOM   ;Get random number, Store in RANDNO
+400C   CD CB 40               CALL   MOVPLA   ;Move Player
+400F   CD 12 41               CALL   MOVBUL   ;Move Bullet
+4012   CD D2 41               CALL   CHKINV   ;Reset invaders if all invaders are dead
+4015                             ; Delayed timed movement for invaders, bombs, ufo and ufo creation
+4015                             ; Move Invaders
+4015                             ; Create Bombs
+4015   3A 30 50               LD   A,(RANDNO)   
+4018   FE 10                  CP   BOMCRE   
+401A   30 03                  JR   NC,SKIPBM   
+401C   CD A9 41               CALL   CREBOM   
+401F                SKIPBM:      
+401F                             ; Move Invaders
+401F   3A 29 50               LD   A,(INVCNT)   ;Get invader counter
+4022   47                     LD   B,A   
+4023   3D                     DEC   A   
+4024   20 06                  JR   NZ,SKIPMV   ;Not Zero so don't move
+4026   CD 47 41               CALL   MOVINV   ;Move Invaders
+4029   3A 31 50               LD   A,(INVSPD)   ;Reset invader counter
+402C                SKIPMV:      
+402C   32 29 50               LD   (INVCNT),A   ;Save counter
+402F                             ; Move UFO
+402F   78                     LD   A,B   
+4030   E6 03                  AND   UFOSPD   ;Move UFO at faster rate
+4032   FE 03                  CP   UFOSPD   
+4034   20 06                  JR   NZ,SKIPUM   
+4036   CD 3C 41               CALL   MOVUFO   ;Move UFO
+4039   CD 27 41               CALL   MOVBOM   ;Move Bomb
+403C                SKIPUM:      
+403C                             ; Create UFO
+403C   3A 30 50               LD   A,(RANDNO)   
+403F   FE 06                  CP   UFOCRE   
+4041   30 0B                  JR   NC,SKIPUC   
+4043   3A 23 50               LD   A,(UFOPOS)   ;Active if any bit set
+4046   B7                     OR   A   
+4047   20 05                  JR   NZ,SKIPUC   
+4049   3E 01                  LD   A,01H   
+404B   32 23 50               LD   (UFOPOS),A   ;Create UFO
+404E                SKIPUC:      
+404E                             ; Display Updates
+404E   CD 62 40               CALL   UPDSCR   ;Update Screen
+4051   CD B6 40               CALL   UPDSCO   ;Update Score
+4054   CD 94 42               CALL   SCAN   ;Scan the 8x8 and Seven Segments
+4057                             ;Check if lives = 0, then display game over and restart
+4057   3A 28 50               LD   A,(PLAYLV)   
+405A   B7                     OR   A   
+405B   20 AC                  JR   NZ,GAME   ;Still alive then just goto the game loop
+405D   CD 04 43               CALL   GAMEOV   ;Call game over routine
+4060   18 9E                  JR   START   
+4062                             ;Update Screen by merging all displays
+4062                UPDSCR:      
+4062                             ;Place Invaders
+4062   01 08 00               LD   BC,0008H   
+4065   11 00 50               LD   DE,SCREEN   
+4068   21 08 50               LD   HL,INVADV   
+406B   ED B0                  LDIR      
+406D                             ;Place Bombs
+406D   06 08                  LD   B,08H   
+406F   11 00 50               LD   DE,SCREEN   
+4072   21 18 50               LD   HL,INVBOM   
+4075                U1:          
+4075   1A                     LD   A,(DE)   
+4076   B6                     OR   (HL)   ;Add Bomb if any to vertical
+4077   12                     LD   (DE),A   ;Update DE with Bomb
+4078   13                     INC   DE   
+4079   23                     INC   HL   
+407A   10 F9                  DJNZ   U1   
+407C                             ;Place Bullet.  Move HL to X pos, then OR with vertical
+407C   3A 21 50               LD   A,(BULLET)   
+407F   B7                     OR   A   
+4080   28 10                  JR   Z,U4   ;No bullet so ignore update
+4082   11 00 50               LD   DE,SCREEN   
+4085                U2:          
+4085   07                     RLCA      ;Bit must be present
+4086   38 03                  JR   C,U3   ;Move DE to X position
+4088   13                     INC   DE   
+4089   18 FA                  JR   U2   
+408B                U3:          
+408B   3A 22 50               LD   A,(BULLET+1)   
+408E   47                     LD   B,A   
+408F   1A                     LD   A,(DE)   
+4090   B0                     OR   B   
+4091   12                     LD   (DE),A   ;Update DE with Y position
+4092                U4:          
+4092                             ;Place Player
+4092   3A 20 50               LD   A,(PLAYER)   
+4095   11 00 50               LD   DE,SCREEN   
+4098                U5:          
+4098   07                     RLCA      
+4099   38 03                  JR   C,U6   
+409B   13                     INC   DE   
+409C   18 FA                  JR   U5   
+409E                U6:          
+409E   1A                     LD   A,(DE)   
+409F   CB C7                  SET   0,A   
+40A1   12                     LD   (DE),A   
+40A2                             ;Place UFO
+40A2   3A 23 50               LD   A,(UFOPOS)   
+40A5   B7                     OR   A   
+40A6   28 0D                  JR   Z,U9   ;Doesn't exist to skip drawing it
+40A8   11 00 50               LD   DE,SCREEN   
+40AB                U7:          
+40AB   07                     RLCA      
+40AC   38 03                  JR   C,U8   
+40AE   13                     INC   DE   
+40AF   18 FA                  JR   U7   
+40B1                U8:          
+40B1   1A                     LD   A,(DE)   
+40B2   CB FF                  SET   7,A   
+40B4   12                     LD   (DE),A   
+40B5                U9:          
+40B5   C9                     RET      
+40B6                             ;Update the LED's to display the LEDSCR buffer based off PLAYSC & PLAYLV
+40B6                             ;Unfortunately I had to hard code this as AF,BC,HL and DE all get used... :(
+40B6                UPDSCO:      
+40B6   01 2A 50               LD   BC,LEDSCR   ;Location of screen buffer
+40B9   21 26 50               LD   HL,PLAYSC   ;Player Score (2) and Lives (1)
+40BC   7E                     LD   A,(HL)   
+40BD   CD CF 42               CALL   SEGCON   ;Convert A to Segment Hex, Store in BC
+40C0   23                     INC   HL   
+40C1   7E                     LD   A,(HL)   
+40C2   CD CF 42               CALL   SEGCON   ;Convert A to Segment Hex, Store in BC
+40C5   23                     INC   HL   
+40C6   7E                     LD   A,(HL)   
+40C7   CD CF 42               CALL   SEGCON   ;Convert A to Segment Hex, Store in BC
+40CA   C9                     RET      
+40CB                             ; Check for key pressed: Either
+40CB                             ; "+" For Shoot
+40CB                             ; "1" For Left and "9" for Right,
+40CB                             ; Then Either create a bullet or move the player
+40CB                             ; Need DAT board or 4K7 Resistor mod from NMI to D6 link
+40CB                             ; 
+40CB                MOVPLA:      
+40CB                             ; Test for key pressed with D6 set
+40CB   DB 03                  IN   A,(03)   
+40CD   CB 77                  BIT   6,A   ; Bit 6, If not set A=NZ
+40CF   28 05                  JR   Z,MP2   
+40D1                             ; Store 0 for last key if no key pressed
+40D1   AF                     XOR   A   
+40D2   32 24 50               LD   (KEYPRE),A   
+40D5   C9                     RET      
+40D6                MP2:         
+40D6                             ; Key has been pressed
+40D6   3A 24 50               LD   A,(KEYPRE)   
+40D9   B7                     OR   A   
+40DA   C0                     RET   NZ   ; Just return if same
+40DB   3E FF                  LD   A,0FFH   
+40DD   32 24 50               LD   (KEYPRE),A   
+40E0                             ; Get Key
+40E0   DB 00                  IN   A,(00)   
+40E2   E6 1F                  AND   01FH   ; Mask unwanted bits
+40E4                             ; Check for Valid Keys
+40E4                LEFT:        
+40E4   FE 04                  CP   04H   ; Left
+40E6   20 09                  JR   NZ,RIGHT   
+40E8   3A 20 50               LD   A,(PLAYER)   
+40EB   07                     RLCA      ; If Carry then don't move as its already left
+40EC   D8                     RET   C   
+40ED   32 20 50               LD   (PLAYER),A   
+40F0   C9                     RET      ; Return
+40F1                RIGHT:       
+40F1   FE 06                  CP   06H   ; Right
+40F3   20 09                  JR   NZ,SHOOT   
+40F5   3A 20 50               LD   A,(PLAYER)   
+40F8   0F                     RRCA      ; If Carry then don't move as its already right
+40F9   D8                     RET   C   
+40FA   32 20 50               LD   (PLAYER),A   
+40FD   C9                     RET      ; Return
+40FE                SHOOT:       
+40FE   FE 10                  CP   10H   ; "+"
+4100   C0                     RET   NZ   
+4101                             ;Ensure no bullet is active, BULLET or BULLET+1 should be 00
+4101   3A 21 50               LD   A,(BULLET)   
+4104   B7                     OR   A   
+4105   C0                     RET   NZ   
+4106                             ;Create bullet at players position
+4106   3A 20 50               LD   A,(PLAYER)   
+4109   32 21 50               LD   (BULLET),A   ; X position
+410C   3E 01                  LD   A,01H   ;First bit from bottom
+410E   32 22 50               LD   (BULLET+1),A   
+4111   C9                     RET      
+4112                             ; If Bullet exists, move it upwards until it hits an invader or
+4112                             ; goes off the top of the screen
+4112                MOVBUL:      
+4112                             ;Check if bullet active
+4112   3A 22 50               LD   A,(BULLET+1)   ;Y Pos bullet
+4115   B7                     OR   A   
+4116   C8                     RET   Z   
+4117                             ;Shift it one bit to the left
+4117   CB 27                  SLA   A   
+4119   32 22 50               LD   (BULLET+1),A   
+411C   B7                     OR   A   
+411D   20 04                  JR   NZ,MB1   
+411F   32 21 50               LD   (BULLET),A   ;Clear X pos if no bullet
+4122   C9                     RET      
+4123                MB1:         
+4123   CD 45 42               CALL   BULCOL   ;Active bullet, check collision.
+4126   C9                     RET      
+4127                             ; If Bomb exists, move it downwards until it hits the player or
+4127                             ; goes off the bottom of the screen
+4127                MOVBOM:      
+4127                             ;For each column, move one bit to the left
+4127   21 18 50               LD   HL,INVBOM   
+412A   06 80                  LD   B,80H   ;Bomb/Player column
+412C                MBM1:        
+412C   7E                     LD   A,(HL)   
+412D   B7                     OR   A   
+412E   28 06                  JR   Z,MBM2   ;No Bomb on this column, move to next
+4130   CB 2F                  SRA   A   ;Move on bit to the right.
+4132   77                     LD   (HL),A   
+4133                             ;Active Bomb, check if hits player
+4133                             ;BOMCOL needs B=Bomb X position
+4133   CD 89 42               CALL   BOMCOL   ;             A=Bomb Y position
+4136                MBM2:        
+4136   23                     INC   HL   
+4137   CB 08                  RRC   B   
+4139   30 F1                  JR   NC,MBM1   
+413B   C9                     RET      
+413C                             ; If UFO exists, move it one bit to the left.  Remove it if
+413C                             ; goes off the left of the screen
+413C                MOVUFO:      
+413C                             ;Check if ufo active
+413C   3A 23 50               LD   A,(UFOPOS)   ; Active if any bit set
+413F   B7                     OR   A   
+4140   C8                     RET   Z   
+4141   CB 27                  SLA   A   ;Shift it one bit to the left
+4143   32 23 50               LD   (UFOPOS),A   ;If zero then automatically clears itself
+4146                MU1:         
+4146   C9                     RET      
+4147                             ; Move invaders from Right to Left and back.  When top invader line hits the end
+4147                             ; Move invaders down a line.  The Horizontal page is moved then mapped to the
+4147                             ; vertical for displaying.
+4147                MOVINV:      
+4147                             ; Find top line
+4147   21 0F 50               LD   HL,INVADH-1   
+414A                MI1:         
+414A   23                     INC   HL   
+414B   7E                     LD   A,(HL)   
+414C   B7                     OR   A   
+414D   28 FB                  JR   Z,MI1   
+414F                             ; Find current direction and move if possible
+414F   3A 25 50               LD   A,(INVDIR)   
+4152   B7                     OR   A   
+4153   20 0C                  JR   NZ,MLEFT   
+4155                MRIGHT:      
+4155   7E                     LD   A,(HL)   
+4156                MI2:         
+4156   0F                     RRCA      
+4157   38 14                  JR   C,MDROP   ;At edge, drop down a line
+4159   77                     LD   (HL),A   
+415A   23                     INC   HL   
+415B   7E                     LD   A,(HL)   
+415C   B7                     OR   A   ;If empty line end of shift
+415D   28 32                  JR   Z,ROTCW   
+415F   18 F5                  JR   MI2   
+4161                MLEFT:       
+4161   7E                     LD   A,(HL)   
+4162                MI3:         
+4162   07                     RLCA      
+4163   38 08                  JR   C,MDROP   ;At edge, drop down a line
+4165   77                     LD   (HL),A   
+4166   23                     INC   HL   
+4167   7E                     LD   A,(HL)   
+4168   B7                     OR   A   ;If empty line end of shift
+4169   28 26                  JR   Z,ROTCW   
+416B   18 F5                  JR   MI3   
+416D                             ;Drop Invaders down a line. If hit bottom then end of game
+416D                MDROP:       
+416D                             ;Rotate down on line
+416D   DD 21 16 50            LD   IX,INVADH+6   
+4171   06 07                  LD   B,07H   
+4173                MI4:         
+4173   DD 7E 00               LD   A,(IX+0)   
+4176   DD 77 01               LD   (IX+1),A   
+4179   DD 2B                  DEC   IX   
+417B   10 F6                  DJNZ   MI4   
+417D                             ;Change direction flag
+417D   3A 25 50               LD   A,(INVDIR)   
+4180   EE 01                  XOR   01H   
+4182   32 25 50               LD   (INVDIR),A   
+4185                             ;Bottom of screen Lose life and reset invaders
+4185   3A 17 50               LD   A,(INVADH+7)   ;Bottom row
+4188   B7                     OR   A   
+4189   28 06                  JR   Z,ROTCW   
+418B                             ;Lose Life
+418B   CD E9 41               CALL   LOSELV   
+418E   CD 0F 42               CALL   RSTINV   
+4191                             ; Rotate Screen bytes 90 degress Clockwise.
+4191                             ; This allows Left to Right bit manipulation
+4191                ROTCW:       
+4191   11 08 50               LD   DE,INVADV   
+4194   06 08                  LD   B,08H   
+4196                ROT1:        
+4196   C5                     PUSH   BC   
+4197   06 08                  LD   B,08H   
+4199   21 10 50               LD   HL,INVADH   
+419C   AF                     XOR   A   
+419D                ROT2:        
+419D   CB 06                  RLC   (HL)   
+419F   17                     RLA      
+41A0   23                     INC   HL   
+41A1   10 FA                  DJNZ   ROT2   
+41A3   12                     LD   (DE),A   
+41A4   13                     INC   DE   
+41A5   C1                     POP   BC   
+41A6   10 EE                  DJNZ   ROT1   
+41A8   C9                     RET      
+41A9                             ;Create a Bomb on an invader.  Ensure no bomb present on column first
+41A9                             ;Find the lowest row, then Based off LSB of random number cycle through invaders
+41A9                             ;until random number is zero to select invader to drop the bomb from.
+41A9                CREBOM:      
+41A9   21 18 50               LD   HL,INVADH+8   
+41AC   0E 80                  LD   C,80H   
+41AE   AF                     XOR   A   
+41AF                CB1:         
+41AF   CB 01                  RLC   C   ;Row Position
+41B1   2B                     DEC   HL   
+41B2   B6                     OR   (HL)   
+41B3   28 FA                  JR   Z,CB1   ;Move HL to first row that isn't blank
+41B5   3A 30 50               LD   A,(RANDNO)   
+41B8   E6 0F                  AND   0FH   
+41BA   47                     LD   B,A   ;Store counter
+41BB   7E                     LD   A,(HL)   
+41BC   57                     LD   D,A   
+41BD                CB2:         
+41BD   3E FF                  LD   A,0FFH   
+41BF                CB3:         
+41BF   3C                     INC   A   ;Get matching invader bomb column to invader
+41C0   FE 08                  CP   08H   
+41C2   28 F9                  JR   Z,CB2   ;Loop column index around
+41C4   CB 02                  RLC   D   
+41C6   30 F7                  JR   NC,CB3   ;Find next invader
+41C8   10 F5                  DJNZ   CB3   ;Keep going n random times
+41CA                             ; At this point, C is bomb Y, and D is bomb X (index)
+41CA   21 18 50               LD   HL,INVBOM   
+41CD   85                     ADD   A,L   
+41CE   6F                     LD   L,A   ;Bomb column
+41CF   79                     LD   A,C   ;Bomb row
+41D0   77                     LD   (HL),A   ;Save bomb
+41D1   C9                     RET      
+41D2                             ;Do a check to see if any invaders are left.  If not then reset them for the next wave
+41D2                CHKINV:      
+41D2   3A 32 50               LD   A,(INVREM)   
+41D5   B7                     OR   A   
+41D6   C0                     RET   NZ   
+41D7   CD 0F 42               CALL   RSTINV   
+41DA   C9                     RET      
+41DB                             ;Add A to current score.  A = score to add
+41DB                ADDSCO:      
+41DB   21 27 50               LD   HL,PLAYSC+1   ;Tens
+41DE   86                     ADD   A,(HL)   
+41DF   27                     DAA      
+41E0   77                     LD   (HL),A   
+41E1   D0                     RET   NC   ;Exit if no overflow
+41E2   2B                     DEC   HL   ;Hundreds
+41E3   3E 00                  LD   A,00H   
+41E5   8E                     ADC   A,(HL)   
+41E6   27                     DAA      
+41E7   77                     LD   (HL),A   
+41E8   C9                     RET      
+41E9                             ;Lose a life
+41E9                LOSELV:      
+41E9   3A 28 50               LD   A,(PLAYLV)   
+41EC   3D                     DEC   A   
+41ED   32 28 50               LD   (PLAYLV),A   
+41F0   CD 28 43               CALL   FLIPSC   ;Do something to indicate life loss
+41F3   C9                     RET      
+41F4                             ;Initialize the screen data
+41F4                SETUP:       
+41F4                             ; Set up invader position and bombs
+41F4   CD 0F 42               CALL   RSTINV   
+41F7                             ; Fill Player position.  Start at ...0....
+41F7   3E 10                  LD   A,INITPL   
+41F9   32 20 50               LD   (PLAYER),A   
+41FC                             ; Fill Player initial lives
+41FC   3E 03                  LD   A,INITLV   
+41FE   32 28 50               LD   (PLAYLV),A   
+4201                             ; Fill Bullet Pos., UFO Pos., Action Counter, Key Pressed
+4201                             ; Invader Dir, Player's score to 0
+4201   21 21 50               LD   HL,BULLET   
+4204   11 22 50               LD   DE,BULLET+1   
+4207   AF                     XOR   A   
+4208   77                     LD   (HL),A   
+4209   01 06 00               LD   BC,06H   
+420C   ED B0                  LDIR      
+420E   C9                     RET      
+420F                             ;Reset invader to starting position and movement direction
+420F                RSTINV:      
+420F                             ; Copy Vertical Invaders
+420F   01 08 00               LD   BC,0008H   
+4212   11 08 50               LD   DE,INVADV   
+4215   21 7F 43               LD   HL,INITIV   
+4218   ED B0                  LDIR      
+421A                             ; Copy Horizontal Invaders
+421A   01 08 00               LD   BC,0008H   
+421D   11 10 50               LD   DE,INVADH   
+4220   21 87 43               LD   HL,INITIH   
+4223   ED B0                  LDIR      
+4225                             ; Fill Invaders Bombs with 0 x 8 times
+4225   21 18 50               LD   HL,INVBOM   
+4228   11 19 50               LD   DE,INVBOM+1   
+422B   AF                     XOR   A   
+422C   77                     LD   (HL),A   
+422D   01 07 00               LD   BC,07H   
+4230   ED B0                  LDIR      
+4232                             ; Invader direction
+4232   32 25 50               LD   (INVDIR),A   
+4235                             ; Fill Invaders initial speed
+4235   3A 99 43               LD   A,(ININSP)   
+4238   32 29 50               LD   (INVCNT),A   
+423B   32 31 50               LD   (INVSPD),A   
+423E                             ; Reset Invader count
+423E   3A 9A 43               LD   A,(INITIC)   
+4241   32 32 50               LD   (INVREM),A   
+4244   C9                     RET      
+4245                             ;Bullet Collision.  If hits an invader or ufo then remove it and update score
+4245                             ;Increase invader speed if an invader gets hit.
+4245                BULCOL:      
+4245   3A 22 50               LD   A,(BULLET+1)   
+4248   CB 7F                  BIT   7,A   ; Check UFO hit
+424A   20 26                  JR   NZ,BUFO   
+424C                             ; Get Invader Column the bullet is on
+424C   21 0F 50               LD   HL,INVADH-1   
+424F                B1:          
+424F   23                     INC   HL   
+4250   07                     RLCA      
+4251   30 FC                  JR   NC,B1   
+4253   3A 21 50               LD   A,(BULLET)   
+4256   A6                     AND   (HL)   ;Compare bullet and invaders
+4257   C8                     RET   Z   ;No hit
+4258   AE                     XOR   (HL)   ;Remove invader
+4259   77                     LD   (HL),A   ;Save
+425A   CD 91 41               CALL   ROTCW   ;Update Vertical for instant display
+425D   21 31 50               LD   HL,INVSPD   
+4260   35                     DEC   (HL)   ;Move Invaders a bit faster
+4261   21 32 50               LD   HL,INVREM   
+4264   35                     DEC   (HL)   ;Reduce Invader Count
+4265   AF                     XOR   A   
+4266   32 21 50               LD   (BULLET),A   ;Remove Bullet
+4269   32 22 50               LD   (BULLET+1),A   
+426C   3E 10                  LD   A,10H   ;10 Points
+426E   CD DB 41               CALL   ADDSCO   ;Add A to Score
+4271   C9                     RET      
+4272                BUFO:        
+4272                             ;If UFO and BULLET X are the same its a hit
+4272   21 21 50               LD   HL,BULLET   
+4275   3A 23 50               LD   A,(UFOPOS)   
+4278   96                     SUB   (HL)   
+4279   C0                     RET   NZ   
+427A   32 23 50               LD   (UFOPOS),A   ;A=0 if here
+427D   32 21 50               LD   (BULLET),A   ;Remove Bullet
+4280   32 22 50               LD   (BULLET+1),A   
+4283   3E 50                  LD   A,50H   ;50 Points
+4285   CD DB 41               CALL   ADDSCO   ;Add A to Score
+4288   C9                     RET      
+4289                             ;Bomb Collision. Inputs: Register A = Bomb Y, and B = Bomb X
+4289                             ;If Bomb Y is set on bit 7, check that Bomb X = Player X. If so
+4289                             ;Loose life
+4289                BOMCOL:      
+4289   3D                     DEC   A   
+428A   C0                     RET   NZ   ;If A != 1 then bomb isn't on bottom
+428B   3A 20 50               LD   A,(PLAYER)   
+428E   B8                     CP   B   
+428F   C0                     RET   NZ   ;If A != B then bomb isn't on player
+4290   CD E9 41               CALL   LOSELV   ;Loose a life
+4293   C9                     RET      
+4294                             ;Utility Routines..
+4294                             ; Multiplex the 8x8 Display and the Seven Segment LEDS
+4294                SCAN:        
+4294   06 10                  LD   B,10H   
+4296                S1:          
+4296   C5                     PUSH   BC   
+4297   06 01                  LD   B,01H   ;Counter for 8x8
+4299   21 00 50               LD   HL,SCREEN   
+429C   11 2F 50               LD   DE,LEDSCR+5   
+429F                S2:          
+429F   7E                     LD   A,(HL)   
+42A0   D3 06                  OUT   (06),A   
+42A2   1A                     LD   A,(DE)   
+42A3   D3 02                  OUT   (02),A   
+42A5   78                     LD   A,B   
+42A6   D3 05                  OUT   (05),A   
+42A8   FE 80                  CP   80H   ;If port 80 (Speaker), Skip
+42AA   28 02                  JR   Z,S3   
+42AC   D3 01                  OUT   (01),A   
+42AE                S3:          
+42AE   06 A0                  LD   B,0A0H   
+42B0   10 FE        S4:       DJNZ   S4   
+42B2   47                     LD   B,A   
+42B3   AF                     XOR   A   
+42B4   D3 05                  OUT   (05),A   
+42B6   D3 01                  OUT   (01),A   
+42B8   1B                     DEC   DE   
+42B9   23                     INC   HL   
+42BA   CB 00                  RLC   B   
+42BC   30 E1                  JR   NC,S2   
+42BE   C1                     POP   BC   
+42BF   10 D5                  DJNZ   S1   
+42C1   C9                     RET      
+42C2                             ;Random number generator.  A - Returns a number between 00 and FF
+42C2                RANDOM:      
+42C2   ED 5F                  LD   A,R   
+42C4   47                     LD   B,A   
+42C5   3A 30 50               LD   A,(RANDNO)   
+42C8   A8                     XOR   B   
+42C9   87                     ADD   A,A   
+42CA   A8                     XOR   B   
+42CB   32 30 50               LD   (RANDNO),A   
+42CE   C9                     RET      
+42CF                             ;Convert A to two display bytes for Seven Segment, Store Result in location of BC
+42CF                SEGCON:      
+42CF   F5                     PUSH   AF   
+42D0   07                     RLCA      
+42D1   07                     RLCA      
+42D2   07                     RLCA      
+42D3   07                     RLCA      
+42D4   CD D8 42               CALL   SC1   
+42D7   F1                     POP   AF   
+42D8                SC1:         
+42D8   E6 0F                  AND   0FH   
+42DA   11 8F 43               LD   DE,SEGTBL   
+42DD   83                     ADD   A,E   
+42DE   5F                     LD   E,A   
+42DF   1A                     LD   A,(DE)   
+42E0   02                     LD   (BC),A   
+42E1   03                     INC   BC   
+42E2   C9                     RET      
+42E3                             ;8x8 Scroll routine to scroll data from right to left.  Data is referenced in HL
+42E3                             ;First Byte is number of columns to scroll followed by vertical byte display upwards
+42E3                             ;This routine includes the 8x8 multiplex
+42E3                INTROM:      
+42E3   21 9B 43               LD   HL,INTMSG   
+42E6   7E                     LD   A,(HL)   ;Column count
+42E7   4F                     LD   C,A   
+42E8                SL1:         
+42E8   06 07                  LD   B,07H   
+42EA   DD 21 00 50            LD   IX,SCREEN   
+42EE                SL2:         
+42EE   DD 7E 01               LD   A,(IX+1)   ;Shift seven columns
+42F1   DD 77 00               LD   (IX+0),A   
+42F4   DD 23                  INC   IX   
+42F6   10 F6                  DJNZ   SL2   
+42F8   23                     INC   HL   
+42F9   7E                     LD   A,(HL)   
+42FA   32 07 50               LD   (SCREEN+7),A   
+42FD   CD 5E 43               CALL   SCAN88   
+4300   0D                     DEC   C   
+4301   20 E5                  JR   NZ,SL1   
+4303   C9                     RET      
+4304                             ;8x8 Flasher routine.  This displays data for the 8x8 similar to the scroll but shows
+4304                             ;one page (8x8) at a time instead of sequentially scrolling.  Data is referenced in HL
+4304                             ;First byte is the number of pages to show followed by vertical byte display upwards
+4304                             ;Useful for animations using the 8x8.  This is used as a game over screen.  It loops
+4304                             ;until any key is pressed
+4304                GAMEOV:      
+4304   21 EC 43               LD   HL,OVRMSG   
+4307   7E                     LD   A,(HL)   ;Page count
+4308   23                     INC   HL   
+4309   4F                     LD   C,A   
+430A                F1:          
+430A   C5                     PUSH   BC   
+430B   11 00 50               LD   DE,SCREEN   
+430E   01 08 00               LD   BC,0008H   
+4311   ED B0                  LDIR      ;Copy Through to screen area
+4313   06 0B                  LD   B,0BH   
+4315                F2:          
+4315   C5                     PUSH   BC   
+4316   CD 5E 43               CALL   SCAN88   
+4319   C1                     POP   BC   
+431A   10 F9                  DJNZ   F2   
+431C   C1                     POP   BC   
+431D   DB 03                  IN   A,(03)   
+431F   CB 77                  BIT   6,A   ; Bit 6, If not set A=NZ
+4321   C8                     RET   Z   
+4322   0D                     DEC   C   
+4323   20 E5                  JR   NZ,F1   ;Do next screen
+4325   18 DD                  JR   GAMEOV   
+4327   C9                     RET      
+4328                             ;Animate 8x8 when player looses a life by inverting the screen 3 times and playing
+4328                             ;a sound
+4328                FLIPSC:      
+4328   E5                     PUSH   HL   
+4329   C5                     PUSH   BC   
+432A   06 06                  LD   B,06H   ;Six loops or 3 flips
+432C                FS1:         
+432C   21 00 50               LD   HL,SCREEN   
+432F   C5                     PUSH   BC   
+4330   06 08                  LD   B,08H   
+4332                FS2:         
+4332   7E                     LD   A,(HL)   
+4333   2F                     CPL      ;Invert byte
+4334   77                     LD   (HL),A   
+4335   23                     INC   HL   
+4336   10 FA                  DJNZ   FS2   
+4338   CD 5E 43               CALL   SCAN88   
+433B   0E 40                  LD   C,40H   ;Sound Routine
+433D   2E 31                  LD   L,31H   
+433F   AF                     XOR   A   
+4340                FS3:         
+4340   D3 01                  OUT   (01),A   
+4342   41                     LD   B,C   
+4343   10 FE        FS4:      DJNZ   FS4   
+4345   EE 80                  XOR   80H   
+4347   2D                     DEC   L   
+4348   20 F6                  JR   NZ,FS3   
+434A   C1                     POP   BC   
+434B   10 DF                  DJNZ   FS1   
+434D   C1                     POP   BC   
+434E   E1                     POP   HL   
+434F   C9                     RET      
+4350                CLRSCR:      
+4350   21 00 50               LD   HL,SCREEN   
+4353   11 01 50               LD   DE,SCREEN+1   
+4356   AF                     XOR   A   
+4357   77                     LD   (HL),A   
+4358   01 07 00               LD   BC,07H   
+435B   ED B0                  LDIR      
+435D   C9                     RET      
+435E                             ; Multiplex the 8x8 Display
+435E                SCAN88:      
+435E   E5                     PUSH   HL   
+435F   06 15                  LD   B,15H   
+4361                S81:         
+4361   C5                     PUSH   BC   
+4362   06 01                  LD   B,01H   ;Counter for 8x8
+4364   21 00 50               LD   HL,SCREEN   
+4367                S82:         
+4367   7E                     LD   A,(HL)   
+4368   D3 06                  OUT   (06),A   
+436A   78                     LD   A,B   
+436B   D3 05                  OUT   (05),A   
+436D   06 80                  LD   B,80H   
+436F   10 FE        S83:      DJNZ   S83   
+4371   23                     INC   HL   
+4372   47                     LD   B,A   
+4373   AF                     XOR   A   
+4374   D3 05                  OUT   (05),A   
+4376   CB 00                  RLC   B   
+4378   30 ED                  JR   NC,S82   
+437A   C1                     POP   BC   
+437B   10 E4                  DJNZ   S81   
+437D   E1                     POP   HL   
+437E   C9                     RET      
+437F                             ; Game Data
+437F                             ; Invaders are initially shown as
+437F                             ; . . . . . . . .
+437F                             ; O O O O . . . .
+437F                             ; O O O O . . . .
+437F                             ; O O O O . . . .
+437F                             ; . . . . . . . .
+437F                             ; . . . . . . . .
+437F                             ; . . . . . . . .
+437F                             ; . . . . . . . .
+437F                             ; 
+437F   70 70 70 70 00 00 00 00 INITIV:   DB   70H,70H,70H,70H,00H,00H,00H,00H   
+4387                             ; Invaders rotated to the left for easy bit move
+4387                             ; . . . . . . . .
+4387                             ; . . . . . . . .
+4387                             ; . . . . . . . .
+4387                             ; . . . . . . . .
+4387                             ; . O O O . . . .
+4387                             ; . O O O . . . .
+4387                             ; . O O O . . . .
+4387                             ; . O O O . . . .
+4387                             ; 
+4387   00 F0 F0 F0 00 00 00 00 INITIH:   DB   00H,0F0H,0F0H,0F0H,00H,00H,00H,00H   
+438F                             ; 0-9 to Seven Segment Table
+438F   EB 28 CD AD 2E A7 E7 29 EF 2F SEGTBL:   DB   0EBH,28H,0CDH,0ADH,2EH,0A7H,0E7H,29H,0EFH,2FH   
+4399                             ; Initial Invader Speed.  Reduces at each invader hit
+4399   12           ININSP:   DB   12H   
+439A                             ; Initial Invader Count.  Currently 12
+439A   0C           INITIC:   DB   0CH   
+439B                             ; Intro Message
+439B   50 00        INTMSG:   DB   50H,00H   ;Size + Gap
+439D   40 40 7F 7F 40 40 00   DB   40H,40H,7FH,7FH,40H,40H,00H   ;T
+43A4   7F 7F 49 49 00         DB   7FH,7FH,49H,49H,00H   ;E
+43A9   1C 3E 63 41 41 00      DB   1CH,3EH,63H,41H,41H,00H   ;C
+43AF   00 00                  DB   00H,00H   ;_
+43B1   41 7F 7F 41 00         DB   41H,7FH,7FH,41H,00H   ;I
+43B6   7F 7F 18 0C 7F 7F 00   DB   7FH,7FH,18H,0CH,7FH,7FH,00H   ;N
+43BD   60 38 0E 03 0E 38 60 00 DB   60H,38H,0EH,03H,0EH,38H,60H,00H   ;V
+43C5   03 0E 3C 64 3C 0E 03 00 DB   03H,0EH,3CH,64H,3CH,0EH,03H,00H   ;A
+43CD   7F 7F 41 22 1C 00      DB   7FH,7FH,41H,22H,1CH,00H   ;D
+43D3   7F 7F 49 49 00         DB   7FH,7FH,49H,49H,00H   ;E
+43D8   7F 7F 4C 4A 31 00      DB   7FH,7FH,4CH,4AH,31H,00H   ;R
+43DE   12 3B 6B 6E 24 00      DB   12H,3BH,6BH,6EH,24H,00H   ;S
+43E4   00 00 00 00 00 00 00 00 DB   00H,00H,00H,00H,00H,00H,00H,00H   ;_
+43EC                             ; Game Over Message
+43EC   02           OVRMSG:   DB   02H   ;Page count
+43ED   67 94 B4 27 00 77 A5 75 DB   67H,94H,0B4H,27H,00H,77H,0A5H,75H   ;GAME
+43F5   67 95 95 60 00 E7 14 E4 DB   67H,95H,95H,60H,00H,0E7H,14H,0E4H   ;OVER
+
+
+SCREEN:             5000 DEFINED AT LINE 32
+                    > USED AT LINE 125
+                    > USED AT LINE 131
+                    > USED AT LINE 145
+                    > USED AT LINE 161
+                    > USED AT LINE 176
+                    > USED AT LINE 568
+                    > USED AT LINE 634
+                    > USED AT LINE 642
+                    > USED AT LINE 660
+                    > USED AT LINE 685
+                    > USED AT LINE 714
+                    > USED AT LINE 715
+                    > USED AT LINE 729
+INVADV:             5008 DEFINED AT LINE 33
+                    > USED AT LINE 126
+                    > USED AT LINE 374
+                    > USED AT LINE 481
+INVADH:             5010 DEFINED AT LINE 34
+                    > USED AT LINE 317
+                    > USED AT LINE 353
+                    > USED AT LINE 365
+                    > USED AT LINE 379
+                    > USED AT LINE 396
+                    > USED AT LINE 486
+                    > USED AT LINE 514
+INVBOM:             5018 DEFINED AT LINE 35
+                    > USED AT LINE 132
+                    > USED AT LINE 283
+                    > USED AT LINE 420
+                    > USED AT LINE 490
+                    > USED AT LINE 491
+PLAYER:             5020 DEFINED AT LINE 36
+                    > USED AT LINE 160
+                    > USED AT LINE 234
+                    > USED AT LINE 237
+                    > USED AT LINE 242
+                    > USED AT LINE 245
+                    > USED AT LINE 255
+                    > USED AT LINE 463
+                    > USED AT LINE 554
+BULLET:             5021 DEFINED AT LINE 37
+                    > USED AT LINE 142
+                    > USED AT LINE 152
+                    > USED AT LINE 251
+                    > USED AT LINE 256
+                    > USED AT LINE 258
+                    > USED AT LINE 265
+                    > USED AT LINE 270
+                    > USED AT LINE 273
+                    > USED AT LINE 469
+                    > USED AT LINE 470
+                    > USED AT LINE 510
+                    > USED AT LINE 519
+                    > USED AT LINE 530
+                    > USED AT LINE 531
+                    > USED AT LINE 537
+                    > USED AT LINE 542
+                    > USED AT LINE 543
+UFOPOS:             5023 DEFINED AT LINE 38
+                    > USED AT LINE 102
+                    > USED AT LINE 106
+                    > USED AT LINE 173
+                    > USED AT LINE 304
+                    > USED AT LINE 308
+                    > USED AT LINE 538
+                    > USED AT LINE 541
+KEYPRE:             5024 DEFINED AT LINE 39
+                    > USED AT LINE 218
+                    > USED AT LINE 222
+                    > USED AT LINE 226
+INVDIR:             5025 DEFINED AT LINE 40
+                    > USED AT LINE 324
+                    > USED AT LINE 361
+                    > USED AT LINE 363
+                    > USED AT LINE 497
+PLAYSC:             5026 DEFINED AT LINE 41
+                    > USED AT LINE 193
+                    > USED AT LINE 437
+PLAYLV:             5028 DEFINED AT LINE 42
+                    > USED AT LINE 115
+                    > USED AT LINE 451
+                    > USED AT LINE 453
+                    > USED AT LINE 466
+INVCNT:             5029 DEFINED AT LINE 43
+                    > USED AT LINE 82
+                    > USED AT LINE 89
+                    > USED AT LINE 500
+LEDSCR:             502A DEFINED AT LINE 44
+                    > USED AT LINE 192
+                    > USED AT LINE 569
+RANDNO:             5030 DEFINED AT LINE 45
+                    > USED AT LINE 76
+                    > USED AT LINE 99
+                    > USED AT LINE 404
+                    > USED AT LINE 599
+                    > USED AT LINE 603
+INVSPD:             5031 DEFINED AT LINE 46
+                    > USED AT LINE 87
+                    > USED AT LINE 501
+                    > USED AT LINE 525
+INVREM:             5032 DEFINED AT LINE 47
+                    > USED AT LINE 429
+                    > USED AT LINE 504
+                    > USED AT LINE 527
+INITPL:             0010 DEFINED AT LINE 49
+                    > USED AT LINE 462
+INITLV:             0003 DEFINED AT LINE 50
+                    > USED AT LINE 465
+UFOSPD:             0003 DEFINED AT LINE 51
+                    > USED AT LINE 92
+                    > USED AT LINE 93
+UFOCRE:             0006 DEFINED AT LINE 52
+                    > USED AT LINE 100
+BOMCRE:             0010 DEFINED AT LINE 53
+                    > USED AT LINE 77
+START:              4000 DEFINED AT LINE 57
+                    > USED AT LINE 119
+GAME:               4009 DEFINED AT LINE 66
+                    > USED AT LINE 117
+SKIPBM:             401F DEFINED AT LINE 80
+                    > USED AT LINE 78
+SKIPMV:             402C DEFINED AT LINE 88
+                    > USED AT LINE 85
+SKIPUM:             403C DEFINED AT LINE 97
+                    > USED AT LINE 94
+SKIPUC:             404E DEFINED AT LINE 108
+                    > USED AT LINE 101
+                    > USED AT LINE 104
+UPDSCR:             4062 DEFINED AT LINE 122
+                    > USED AT LINE 110
+U1:                 4075 DEFINED AT LINE 133
+                    > USED AT LINE 139
+U2:                 4085 DEFINED AT LINE 146
+                    > USED AT LINE 150
+U3:                 408B DEFINED AT LINE 151
+                    > USED AT LINE 148
+U4:                 4092 DEFINED AT LINE 158
+                    > USED AT LINE 144
+U5:                 4098 DEFINED AT LINE 162
+                    > USED AT LINE 166
+U6:                 409E DEFINED AT LINE 167
+                    > USED AT LINE 164
+U7:                 40AB DEFINED AT LINE 177
+                    > USED AT LINE 181
+U8:                 40B1 DEFINED AT LINE 182
+                    > USED AT LINE 179
+U9:                 40B5 DEFINED AT LINE 186
+                    > USED AT LINE 175
+UPDSCO:             40B6 DEFINED AT LINE 191
+                    > USED AT LINE 111
+MOVPLA:             40CB DEFINED AT LINE 211
+                    > USED AT LINE 68
+MP2:                40D6 DEFINED AT LINE 220
+                    > USED AT LINE 215
+LEFT:               40E4 DEFINED AT LINE 231
+RIGHT:              40F1 DEFINED AT LINE 239
+                    > USED AT LINE 233
+SHOOT:              40FE DEFINED AT LINE 247
+                    > USED AT LINE 241
+MOVBUL:             4112 DEFINED AT LINE 263
+                    > USED AT LINE 69
+MB1:                4123 DEFINED AT LINE 275
+                    > USED AT LINE 272
+MOVBOM:             4127 DEFINED AT LINE 281
+                    > USED AT LINE 96
+MBM1:               412C DEFINED AT LINE 285
+                    > USED AT LINE 297
+MBM2:               4136 DEFINED AT LINE 294
+                    > USED AT LINE 288
+MOVUFO:             413C DEFINED AT LINE 302
+                    > USED AT LINE 95
+MU1:                4146 DEFINED AT LINE 309
+MOVINV:             4147 DEFINED AT LINE 315
+                    > USED AT LINE 86
+MI1:                414A DEFINED AT LINE 318
+                    > USED AT LINE 322
+MRIGHT:             4155 DEFINED AT LINE 327
+MI2:                4156 DEFINED AT LINE 329
+                    > USED AT LINE 337
+MLEFT:              4161 DEFINED AT LINE 338
+                    > USED AT LINE 326
+MI3:                4162 DEFINED AT LINE 340
+                    > USED AT LINE 348
+MDROP:              416D DEFINED AT LINE 351
+                    > USED AT LINE 331
+                    > USED AT LINE 342
+MI4:                4173 DEFINED AT LINE 355
+                    > USED AT LINE 359
+ROTCW:              4191 DEFINED AT LINE 373
+                    > USED AT LINE 336
+                    > USED AT LINE 347
+                    > USED AT LINE 367
+                    > USED AT LINE 524
+ROT1:               4196 DEFINED AT LINE 376
+                    > USED AT LINE 389
+ROT2:               419D DEFINED AT LINE 381
+                    > USED AT LINE 385
+CREBOM:             41A9 DEFINED AT LINE 395
+                    > USED AT LINE 79
+CB1:                41AF DEFINED AT LINE 399
+                    > USED AT LINE 403
+CB2:                41BD DEFINED AT LINE 409
+                    > USED AT LINE 415
+CB3:                41BF DEFINED AT LINE 412
+                    > USED AT LINE 417
+                    > USED AT LINE 418
+CHKINV:             41D2 DEFINED AT LINE 428
+                    > USED AT LINE 70
+ADDSCO:             41DB DEFINED AT LINE 436
+                    > USED AT LINE 533
+                    > USED AT LINE 545
+LOSELV:             41E9 DEFINED AT LINE 450
+                    > USED AT LINE 369
+                    > USED AT LINE 557
+SETUP:              41F4 DEFINED AT LINE 458
+                    > USED AT LINE 63
+RSTINV:             420F DEFINED AT LINE 478
+                    > USED AT LINE 370
+                    > USED AT LINE 432
+                    > USED AT LINE 460
+BULCOL:             4245 DEFINED AT LINE 509
+                    > USED AT LINE 276
+B1:                 424F DEFINED AT LINE 515
+                    > USED AT LINE 518
+BUFO:               4272 DEFINED AT LINE 535
+                    > USED AT LINE 512
+BOMCOL:             4289 DEFINED AT LINE 551
+                    > USED AT LINE 293
+SCAN:               4294 DEFINED AT LINE 563
+                    > USED AT LINE 112
+S1:                 4296 DEFINED AT LINE 565
+                    > USED AT LINE 592
+S2:                 429F DEFINED AT LINE 570
+                    > USED AT LINE 590
+S3:                 42AE DEFINED AT LINE 580
+                    > USED AT LINE 578
+S4:                 42B0 DEFINED AT LINE 582
+                    > USED AT LINE 582
+RANDOM:             42C2 DEFINED AT LINE 596
+                    > USED AT LINE 67
+SEGCON:             42CF DEFINED AT LINE 607
+                    > USED AT LINE 195
+                    > USED AT LINE 198
+                    > USED AT LINE 201
+SC1:                42D8 DEFINED AT LINE 615
+                    > USED AT LINE 613
+INTROM:             42E3 DEFINED AT LINE 628
+                    > USED AT LINE 60
+SL1:                42E8 DEFINED AT LINE 632
+                    > USED AT LINE 645
+SL2:                42EE DEFINED AT LINE 635
+                    > USED AT LINE 639
+GAMEOV:             4304 DEFINED AT LINE 653
+                    > USED AT LINE 118
+                    > USED AT LINE 675
+F1:                 430A DEFINED AT LINE 658
+                    > USED AT LINE 674
+F2:                 4315 DEFINED AT LINE 664
+                    > USED AT LINE 668
+FLIPSC:             4328 DEFINED AT LINE 680
+                    > USED AT LINE 454
+FS1:                432C DEFINED AT LINE 684
+                    > USED AT LINE 708
+FS2:                4332 DEFINED AT LINE 688
+                    > USED AT LINE 693
+FS3:                4340 DEFINED AT LINE 699
+                    > USED AT LINE 705
+FS4:                4343 DEFINED AT LINE 702
+                    > USED AT LINE 702
+CLRSCR:             4350 DEFINED AT LINE 713
+                    > USED AT LINE 59
+SCAN88:             435E DEFINED AT LINE 723
+                    > USED AT LINE 643
+                    > USED AT LINE 666
+                    > USED AT LINE 694
+S81:                4361 DEFINED AT LINE 726
+                    > USED AT LINE 744
+S82:                4367 DEFINED AT LINE 730
+                    > USED AT LINE 742
+S83:                436F DEFINED AT LINE 736
+                    > USED AT LINE 736
+INITIV:             437F DEFINED AT LINE 760
+                    > USED AT LINE 482
+INITIH:             4387 DEFINED AT LINE 772
+                    > USED AT LINE 487
+SEGTBL:             438F DEFINED AT LINE 775
+                    > USED AT LINE 617
+ININSP:             4399 DEFINED AT LINE 778
+                    > USED AT LINE 499
+INITIC:             439A DEFINED AT LINE 781
+                    > USED AT LINE 503
+INTMSG:             439B DEFINED AT LINE 784
+                    > USED AT LINE 629
+OVRMSG:             43EC DEFINED AT LINE 800
+                    > USED AT LINE 654
