@@ -1,0 +1,1563 @@
+; z80dasm 1.1.6
+; command line: z80dasm -l -g 0x0900 -o Maze.z80 Maze.bin
+
+;	.binfrom 0900h
+;	.binto 1007h
+	org	00900h
+
+	xor a	
+	push af	
+	ld b,008h
+	ld hl,l0cc5h
+l0907h:
+	ld (hl),a	
+	inc hl	
+	djnz l0907h
+	ld (hl),01bh
+	inc hl	
+	ld (hl),03ch
+	inc hl	
+	ld (hl),090h
+	inc hl	
+	ld (hl),008h
+	inc hl	
+	ld (hl),001h
+	ld b,002h
+l091bh:
+	inc hl	
+	inc hl	
+	ld (hl),0a0h
+	djnz l091bh
+	inc hl	
+	ld (hl),001h
+	inc hl	
+	ld (hl),0c4h
+	inc hl	
+	ld (hl),010h
+	inc hl	
+	ld (hl),0d9h
+	inc hl	
+	ld (hl),001h
+	inc hl	
+	ld (hl),004h
+	inc hl	
+	ld (hl),01bh
+	inc hl	
+	ld (hl),023h
+	ld de,l0dcdh
+l093ch:
+	ld hl,l0cd6h
+	ld a,(hl)	
+	out (005h),a
+	rlc (hl)
+	inc hl	
+	ld a,0cch
+	cp (hl)	
+	jr nz,l094ch
+	ld (hl),0c4h
+l094ch:
+	inc (hl)	
+	ld l,(hl)	
+	ld a,(hl)	
+	out (006h),a
+	ld l,0d8h
+	ld b,(hl)	
+	rrc (hl)
+	jr nc,l095ah
+	ld (hl),010h
+l095ah:
+	ld a,(l0cd4h)
+	cp 000h
+	jr z,l0965h
+	pop af	
+	xor 080h
+	push af	
+l0965h:
+	add a,b	
+	out (001h),a
+	bit 1,(hl)
+	jr z,l0970h
+	ld a,004h
+	jr l097eh
+l0970h:
+	inc hl	
+	ld a,0ddh
+	cp (hl)	
+	jr nz,l0978h
+	ld (hl),0d9h
+l0978h:
+	inc (hl)	
+	ld l,(hl)	
+	ld l,(hl)	
+	ld h,00ch
+	ld a,(hl)	
+l097eh:
+	out (002h),a
+	ld a,(l0cd1h+1)
+	call sub_098fh
+l0986h:
+	djnz l0986h
+	xor a	
+	out (002h),a
+	out (006h),a
+	jr l093ch
+sub_098fh:
+	push af	
+	ld hl,l0cd0h
+	xor a	
+	cp (hl)	
+	jr z,l09a8h
+	dec hl	
+	dec (hl)	
+	jr nz,l09b6h
+	ld (hl),090h
+	inc hl	
+	dec (hl)	
+	call sub_0a13h
+	pop af	
+	sub 040h
+	push af	
+	jr l09b6h
+l09a8h:
+	ld l,0d5h
+	cp (hl)	
+	jr z,l09b6h
+	in a,(003h)
+	bit 6,a
+	jr nz,l09b6h
+	call sub_0afch
+l09b6h:
+	ld l,0d1h
+	dec (hl)	
+	jr nz,l0a0ch
+	ld l,0d5h
+	xor a	
+	cp (hl)	
+	jr z,l09ech
+	ld l,0d0h
+	cp (hl)	
+	jr nz,l09cch
+	ld l,0d3h
+	ld (hl),0a0h
+	jr l09f9h
+l09cch:
+	call sub_0a0eh
+	inc hl	
+	ld (hl),a	
+	ld l,a	
+	ld h,00bh
+	ld a,(hl)	
+	ld (l0cd1h+1),a
+	cp 090h
+	jr nz,l09e0h
+	ld a,020h
+	jr l09e7h
+l09e0h:
+	ld a,015h
+	ld hl,l0cd3h
+	ld (hl),0a0h
+l09e7h:
+	ld (l0cd1h),a
+	jr l0a0ch
+l09ech:
+	call sub_0a0eh
+	cp 0ffh
+	jr nz,l09f5h
+	ld (hl),0a2h
+l09f5h:
+	ld l,a	
+	ld h,00bh
+	ld a,(hl)	
+l09f9h:
+	ld (l0cd1h+1),a
+	ld (l0cd4h),a
+	cp 000h
+	jr nz,l0a07h
+	ld a,040h
+	jr l0a09h
+l0a07h:
+	ld a,0ffh
+l0a09h:
+	ld (l0cd1h),a
+l0a0ch:
+	pop bc	
+	ret	
+sub_0a0eh:
+	ld l,0d3h
+	inc (hl)	
+	ld a,(hl)	
+	ret	
+sub_0a13h:
+	ld b,007h
+	ld l,0cdh
+	ld l,(hl)	
+	ld h,00ah
+	jp (hl)	
+	ld hl,l0ccbh
+l0a1eh:
+	ld a,(hl)	
+	inc hl	
+	ld (hl),a	
+	dec hl	
+	dec hl	
+	djnz l0a1eh
+	call sub_0a62h
+	dec a	
+	ld (l0cceh),a
+	ld l,0c5h
+	ld (hl),c	
+	ret	
+	ld hl,l0cc6h
+l0a33h:
+	ld a,(hl)	
+	dec hl	
+	ld (hl),a	
+	inc hl	
+	inc hl	
+	djnz l0a33h
+	call sub_0a62h
+	inc a	
+	ld (l0cceh),a
+	ld l,0cch
+	ld (hl),c	
+	cp 0a5h
+	ret nz	
+	ld hl,l0cd5h
+	ld (hl),000h
+	ld l,0d1h
+	ld (hl),001h
+	ld l,0d3h
+	ld (hl),0a2h
+	ld l,0cdh
+	ld (hl),0d4h
+	inc hl	
+	ld (hl),09dh
+	inc hl	
+	ld (hl),001h
+	inc hl	
+	ld (hl),064h
+	ret	
+sub_0a62h:
+	ld a,(l0cceh)
+	ld l,a	
+	ld h,00ch
+	ld c,(hl)	
+	ret	
+	ld h,d	
+	ld l,e	
+	push de	
+	call sub_0aaah
+	push hl	
+l0a71h:
+	ld h,00ch
+	ld l,c	
+	srl (hl)
+	push hl	
+	call sub_0ab4h
+	pop hl	
+	jr z,l0a7fh
+	set 7,(hl)
+l0a7fh:
+	inc c	
+	inc d	
+	djnz l0a71h
+	pop hl	
+	ld a,(hl)	
+	add a,003h
+	ld (hl),a	
+	pop de	
+	ret	
+	ld h,d	
+	ld l,e	
+	push de	
+	call sub_0aaah
+	push hl	
+l0a91h:
+	ld h,00ch
+	ld l,c	
+	sla (hl)
+	push hl	
+	call sub_0ab4h
+	pop hl	
+	jr z,l0a9fh
+	set 0,(hl)
+l0a9fh:
+	inc c	
+	inc d	
+	djnz l0a91h
+	pop hl	
+	ld a,(hl)	
+	sub 003h
+	ld (hl),a	
+	pop de	
+	ret	
+sub_0aaah:
+	ld d,(hl)	
+	ld c,0c5h
+	ld hl,l0cceh
+	ld e,(hl)	
+	ld b,008h
+	ret	
+sub_0ab4h:
+	ld h,00ch
+	ld l,d	
+	ld a,(hl)	
+	ld h,00ah
+	ld l,e	
+	jp (hl)	
+	bit 0,a
+	ret	
+	bit 1,a
+	ret	
+	bit 2,a
+	ret	
+	bit 3,a
+	ret	
+	bit 4,a
+	ret	
+	bit 5,a
+	ret	
+	bit 6,a
+	ret	
+	bit 7,a
+	ret	
+	push bc	
+	push de	
+	ld de,l0cc5h
+	ld hl,l0cd0h
+	xor a	
+	cp (hl)	
+	jr nz,l0ae4h
+	ld l,09dh
+	jr l0af2h
+l0ae4h:
+	ld l,0ceh
+	ld a,0c5h
+	cp (hl)	
+	jr nz,l0aedh
+	ld (hl),09dh
+l0aedh:
+	ld a,008h
+	add a,(hl)	
+	ld (hl),a	
+	ld l,(hl)	
+l0af2h:
+	ld h,00ch
+	ld bc,00008h
+	ldir
+	pop bc	
+	pop de	
+	ret	
+sub_0afch:
+	in a,(000h)
+	and 01fh
+	cp 001h
+	jr nz,l0b24h
+	ld hl,l0cc5h
+	ld a,024h
+	cp (hl)	
+	ret nz	
+	ld hl,l0ccdh
+	ld (hl),01bh
+	dec de	
+	ld a,(de)	
+	add a,007h
+	inc hl	
+	ld (hl),a	
+	ld l,0dbh
+	dec (hl)	
+	ld a,000h
+	cp (hl)	
+	jr nz,l0b99h
+	ld (hl),01ah
+	dec hl	
+	dec (hl)	
+	jr l0b99h
+l0b24h:
+	cp 004h
+	jr nz,l0b4fh
+	ld hl,l0cc8h
+	xor a	
+	cp (hl)	
+	jr z,l0b33h
+	ld a,020h
+	cp (hl)	
+	ret nz	
+l0b33h:
+	ld hl,0001eh
+	add hl,de	
+	ld d,h	
+	ld e,l	
+	ld hl,l0ccdh
+	ld (hl),08ah
+	inc hl	
+	ld (hl),0d1h
+	ld l,0ddh
+	inc (hl)	
+	ld a,025h
+	cp (hl)	
+	jr nz,l0b99h
+	ld (hl),01bh
+	dec hl	
+	inc (hl)	
+	jr l0b99h
+l0b4fh:
+	cp 009h
+	jr nz,l0b71h
+	ld hl,l0ccch
+	ld a,024h
+	cp (hl)	
+	ret nz	
+	ld hl,l0ccdh
+	ld (hl),030h
+	inc de	
+	ld a,(de)	
+	inc hl	
+	ld (hl),a	
+	ld l,0dbh
+	inc (hl)	
+	ld a,01bh
+	cp (hl)	
+	jr nz,l0b99h
+	ld (hl),001h
+	dec hl	
+	inc (hl)	
+	jr l0b99h
+l0b71h:
+	cp 006h
+	ret nz	
+	ld hl,l0cc8h
+	xor a	
+	cp (hl)	
+	jr z,l0b7fh
+	ld a,004h
+	cp (hl)	
+	ret nz	
+l0b7fh:
+	ld hl,0ffe2h
+	add hl,de	
+	ld d,h	
+	ld e,l	
+	ld hl,l0ccdh
+	ld (hl),06ah
+	inc hl	
+	ld (hl),0bch
+	ld l,0ddh
+	dec (hl)	
+	ld a,01ah
+	cp (hl)	
+	jr nz,l0b99h
+	ld (hl),024h
+	dec hl	
+	dec (hl)	
+l0b99h:
+	ld l,0d0h
+	ld (hl),008h
+	inc hl	
+	ld (hl),001h
+	ret	
+	sub b	
+	jr nz,l0bf4h
+	ld d,b	
+	nop	
+	ld h,b	
+	ld h,b	
+	nop	
+	add a,b	
+	nop	
+	add a,b	
+	add a,b	
+	nop	
+	sub b	
+	nop	
+	add a,b	
+	add a,b	
+	nop	
+	sub b	
+	nop	
+	add a,b	
+	add a,b	
+	nop	
+	ld d,b	
+	ld d,b	
+	nop	
+	ld h,b	
+	ld h,b	
+	nop	
+	add a,b	
+	nop	
+	add a,b	
+	add a,b	
+	nop	
+	ld h,b	
+	ld h,b	
+	nop	
+	ld c,(hl)	
+	ld c,(hl)	
+	ld c,(hl)	
+	nop	
+	nop	
+	ld d,b	
+	ld d,b	
+	nop	
+	ld h,b	
+	ld h,b	
+	nop	
+	add a,b	
+	nop	
+	add a,b	
+	add a,b	
+	nop	
+	sub b	
+	nop	
+	add a,b	
+	add a,b	
+	nop	
+	sub b	
+	nop	
+	add a,b	
+	add a,b	
+	nop	
+	ld d,b	
+	ld d,b	
+	ld h,b	
+	ld h,b	
+	add a,b	
+	add a,b	
+	nop	
+	sub b	
+	nop	
+	sub b	
+	sub b	
+l0bebh:
+	nop	
+	sbc a,d	
+	sbc a,d	
+	add a,b	
+	add a,b	
+	add a,b	
+	add a,b	
+	nop	
+l0bf3h:
+	nop	
+l0bf4h:
+	nop	
+	nop	
+	nop	
+	nop	
+	nop	
+	nop	
+	nop	
+	nop	
+	nop	
+	nop	
+	nop	
+	nop	
+	nop	
+	ld l,a	
+	and 0c3h
+	call pe,047c7h
+	ex (sp),hl	
+	ld h,(hl)	
+	jr z,l0bf3h
+	ld c,(hl)	
+	jp nz,06b65h
+	ex de,hl	
+	ld c,a	
+	ccf	
+	ld c,e	
+	and a	
+	ld b,(hl)	
+	jp pe,0e1e0h
+	and h	
+	xor (hl)	
+	ret	
+	ex de,hl	
+	jr z,l0bebh
+	xor l	
+	ld l,0a7h
+	rst 20h	
+	add hl,hl	
+	rst 28h	
+	cpl	
+	inc h	
+	inc h	
+	rst 20h	
+	nop	
+	nop	
+	rst 20h	
+	inc h	
+	inc h	
+	nop	
+	nop	
+	rst 38h	
+	nop	
+	nop	
+	rst 20h	
+	inc h	
+	inc h	
+	inc h	
+	inc h	
+	rst 20h	
+	nop	
+	nop	
+	rst 38h	
+	nop	
+	nop	
+	inc h	
+	inc h	
+	call po,00404h
+	call po,02424h
+	inc h	
+	inc h	
+	daa	
+	jr nz,l0c6ah
+	daa	
+	inc h	
+	inc h	
+	inc h	
+	inc h	
+	inc h	
+	ld h,(hl)	
+	ld h,(hl)	
+	inc h	
+	inc h	
+	inc h	
+	nop	
+	jr $+1
+	nop	
+	nop	
+	rst 38h	
+	jr l0c5dh
+l0c5dh:
+	nop	
+	nop	
+	ccf	
+	jr nz,l0c82h
+	daa	
+	inc h	
+	inc h	
+	inc h	
+	inc h	
+	daa	
+	jr nz,l0c8ah
+l0c6ah:
+	ccf	
+	nop	
+	nop	
+	inc h	
+	inc h	
+	call po,00404h
+	call m,00000h
+	nop	
+	nop	
+	call m,00404h
+	call po,02424h
+	nop	
+	nop	
+	ccf	
+	jr nz,l0ca2h
+l0c82h:
+	ccf	
+	nop	
+	nop	
+	nop	
+	nop	
+	call m,00404h
+l0c8ah:
+	call m,00000h
+	nop	
+	nop	
+	inc a	
+	inc h	
+	inc h	
+	inc h	
+	inc h	
+	inc h	
+	inc h	
+	inc h	
+	inc h	
+	inc h	
+	inc h	
+	inc a	
+	nop	
+	nop	
+	inc h	
+	rst 20h	
+	add a,c	
+	add a,c	
+	add a,c	
+l0ca2h:
+	add a,c	
+	add a,c	
+	rst 38h	
+	nop	
+	nop	
+	nop	
+	jr l0cc2h
+	nop	
+	nop	
+	nop	
+	nop	
+	nop	
+	inc a	
+	inc h	
+	inc h	
+	inc a	
+	nop	
+	nop	
+	nop	
+	ld a,(hl)	
+	ld b,d	
+	ld b,d	
+	ld b,d	
+	ld b,d	
+	ld a,(hl)	
+	nop	
+	rst 38h	
+	add a,c	
+	add a,c	
+	add a,c	
+	add a,c	
+l0cc2h:
+	add a,c	
+	add a,c	
+	rst 38h	
+l0cc5h:
+	inc h	
+l0cc6h:
+	inc h	
+	rst 20h	
+l0cc8h:
+	nop	
+	nop	
+	rst 38h	
+l0ccbh:
+	nop	
+l0ccch:
+	nop	
+l0ccdh:
+	dec de	
+l0cceh:
+	inc (hl)	
+	sub b	
+l0cd0h:
+	nop	
+l0cd1h:
+	ld d,000h
+l0cd3h:
+	and b	
+l0cd4h:
+	nop	
+l0cd5h:
+	and b	
+l0cd6h:
+	ld (bc),a	
+	push bc	
+	ex af,af'	
+	jp c,00401h
+	dec de	
+	inc hl	
+	adc a,l	
+	ld c,l	
+	ld h,l	
+	ld e,l	
+	ld h,l	
+	ld e,l	
+	ld b,l	
+	ld c,l	
+	ld c,l	
+	ld b,l	
+	ld c,l	
+	ld b,l	
+	ld c,l	
+	ld h,l	
+	ld e,l	
+	sub l	
+	adc a,l	
+	ld c,l	
+	ld b,l	
+	ld b,l	
+	sbc a,l	
+	ld e,l	
+	ld c,l	
+	ld h,l	
+	ld e,l	
+	ld c,l	
+	sub l	
+	ld e,l	
+	sub l	
+	ld a,l	
+	ld e,l	
+	sub l	
+	ld d,l	
+	add a,l	
+	ld (hl),l	
+	ld l,l	
+	ld d,l	
+	ld e,l	
+	ld h,l	
+	ld d,l	
+	adc a,l	
+	ld l,l	
+	ld a,l	
+	ld (hl),l	
+	dec h	
+	ld c,l	
+	ld b,l	
+	ld c,l	
+	ld l,l	
+	ld (hl),l	
+	ld c,l	
+	ld l,l	
+	ld e,l	
+	ld l,l	
+	ld (hl),l	
+	ld c,l	
+	ld h,l	
+	ld d,l	
+	ld a,l	
+	ld d,l	
+	dec l	
+	ld c,l	
+	ld l,l	
+	adc a,l	
+	ld h,l	
+	ld a,l	
+	add a,l	
+	add a,l	
+	ld (hl),l	
+	dec a	
+	ld h,l	
+	ld a,l	
+	ld (hl),l	
+	ld c,l	
+	ld l,l	
+	ld a,l	
+	add a,l	
+	ld a,l	
+	ld a,l	
+	ld e,l	
+	ld c,l	
+	ld c,l	
+	dec (hl)	
+	adc a,l	
+	ld c,l	
+	ld h,l	
+	ld d,l	
+	ld d,l	
+	dec l	
+	ld l,l	
+	ld (hl),l	
+	ld h,l	
+	adc a,l	
+	ld h,l	
+	ld d,l	
+	ld (hl),l	
+	ld c,l	
+	ld c,l	
+	ld b,l	
+	ld h,l	
+	ld d,l	
+	ld d,l	
+	adc a,l	
+	ld b,l	
+	ld c,l	
+	dec a	
+	ld h,l	
+	ld d,l	
+	ld d,l	
+	ld d,l	
+	ld a,l	
+	ld a,l	
+	dec l	
+	ld c,l	
+	sub l	
+	dec l	
+	ld l,l	
+	ld d,l	
+	ld d,l	
+	ld a,l	
+	ld e,l	
+	dec (hl)	
+	ld a,l	
+	ld d,l	
+	ld d,l	
+	ld e,l	
+	sub l	
+	ld a,l	
+	add a,l	
+	ld (hl),l	
+	dec a	
+	dec a	
+	ld c,l	
+	dec (hl)	
+	adc a,l	
+	ld h,l	
+	dec l	
+	ld l,l	
+	ld d,l	
+	dec l	
+	dec a	
+	ld l,l	
+	ld (hl),l	
+	sub l	
+	ld a,l	
+	ld (hl),l	
+	ld h,l	
+	ld d,l	
+	ld (hl),l	
+	dec (hl)	
+	ld d,l	
+	add a,l	
+	ld (hl),l	
+	dec (hl)	
+	ld (hl),l	
+	dec a	
+	ld h,l	
+	ld (hl),l	
+	ld c,l	
+	ld b,l	
+	sub l	
+	adc a,l	
+	ld c,l	
+	ld l,l	
+	ld e,l	
+	ld l,l	
+	ld d,l	
+	adc a,l	
+	dec (hl)	
+	add a,l	
+	ld e,l	
+	ld h,l	
+	adc a,l	
+	ld h,l	
+	ld (hl),l	
+	ld c,l	
+	dec (hl)	
+	dec l	
+	ld h,l	
+	ld d,l	
+	ld (hl),l	
+	ld h,l	
+	adc a,l	
+	dec h	
+	ld c,l	
+	sub l	
+	dec l	
+	ld c,l	
+	ld c,l	
+	dec a	
+	ld c,l	
+	ld c,l	
+	ld b,l	
+	ld b,l	
+	dec h	
+	ld b,l	
+	ld l,l	
+	ld e,l	
+	ld l,l	
+	ld e,l	
+	dec (hl)	
+	add a,l	
+	ld a,l	
+	ld (hl),l	
+	ld c,l	
+	ld h,l	
+	ld d,l	
+	ld d,l	
+	ld d,l	
+	ld d,l	
+	ld e,l	
+	dec a	
+	ld c,l	
+	dec a	
+	ld c,l	
+	ld c,l	
+	ld l,l	
+	ld e,l	
+	ld b,l	
+	ld c,l	
+	ld b,l	
+	ld h,l	
+	ld d,l	
+	ld d,l	
+	ld d,l	
+	dec l	
+	ld h,l	
+	ld d,l	
+	ld e,l	
+	dec (hl)	
+	add a,l	
+	adc a,l	
+	dec a	
+	ld c,l	
+	ld b,l	
+	dec h	
+	dec h	
+	dec (hl)	
+	dec l	
+l0dcdh:
+	dec (hl)	
+	add a,l	
+	adc a,l	
+	ld b,l	
+	ld c,l	
+	ld b,l	
+	ld c,l	
+	ld b,l	
+	dec a	
+	ld l,l	
+	adc a,l	
+	dec (hl)	
+	ld d,l	
+	ld (hl),l	
+	dec (hl)	
+	dec l	
+	dec (hl)	
+	ld (hl),l	
+	dec (hl)	
+	ld d,l	
+	add a,l	
+	ld a,l	
+	ld e,l	
+	sub l	
+	ld a,l	
+	ld d,l	
+	ld d,l	
+	ld d,l	
+	dec l	
+	dec (hl)	
+	ld d,l	
+	adc a,l	
+	ld c,l	
+	dec h	
+	ld c,l	
+	dec h	
+	ld c,l	
+	dec a	
+	sub l	
+	ld e,l	
+	ld h,l	
+	ld (hl),l	
+	dec a	
+	ld c,l	
+	ld l,l	
+	ld d,l	
+	dec l	
+	ld b,l	
+	ld l,l	
+	dec l	
+	ld h,l	
+	ld d,l	
+	dec l	
+	ld h,l	
+	ld d,l	
+	dec l	
+	ld l,l	
+	ld d,l	
+	ld d,l	
+	ld d,l	
+	ld d,l	
+	ld e,l	
+	ld h,l	
+	ld d,l	
+	ld e,l	
+	dec a	
+	ld h,l	
+	ld e,l	
+	ld c,l	
+	dec a	
+	dec (hl)	
+	adc a,l	
+	ld c,l	
+	ld h,l	
+	ld a,l	
+	add a,l	
+	add a,l	
+	ld (hl),l	
+	sub l	
+	ld d,l	
+	dec l	
+	ld l,l	
+	ld (hl),l	
+	dec h	
+	dec a	
+	ld l,l	
+	adc a,l	
+	dec a	
+	dec (hl)	
+	dec l	
+	dec (hl)	
+	add a,l	
+	ld (hl),l	
+	dec (hl)	
+	add a,l	
+	adc a,l	
+	ld l,l	
+	ld d,l	
+	ld a,l	
+	ld a,l	
+	ld (hl),l	
+	ld b,l	
+	ld c,l	
+	dec a	
+	dec (hl)	
+	ld a,l	
+	ld a,l	
+	adc a,l	
+	ld h,l	
+	ld d,l	
+	ld d,l	
+	ld e,l	
+	sub l	
+	ld d,l	
+	ld e,l	
+	ld c,l	
+	ld c,l	
+	ld h,l	
+	ld (hl),l	
+	dec (hl)	
+	ld d,l	
+	ld a,l	
+	ld a,l	
+	ld (hl),l	
+	ld c,l	
+	ld b,l	
+	ld c,l	
+	ld l,l	
+	ld d,l	
+	ld (hl),l	
+	ld b,l	
+	dec (hl)	
+	ld e,l	
+	sub l	
+	ld d,l	
+	dec l	
+	ld l,l	
+	ld e,l	
+	dec a	
+	dec (hl)	
+	add a,l	
+	ld d,l	
+	ld e,l	
+	dec (hl)	
+	add a,l	
+	adc a,l	
+	ld c,l	
+	dec (hl)	
+	adc a,l	
+	dec a	
+	ld l,l	
+	ld d,l	
+	ld (hl),l	
+	ld b,l	
+	ld c,l	
+	dec (hl)	
+	ld a,l	
+	adc a,l	
+	dec a	
+	ld c,l	
+	dec a	
+	dec h	
+	dec a	
+	ld c,l	
+	ld l,l	
+	ld d,l	
+	ld a,l	
+	dec l	
+	ld b,l	
+	dec a	
+	ld b,l	
+	ld l,l	
+	add a,l	
+	ld (hl),l	
+	ld c,l	
+	ld b,l	
+	ld h,l	
+	dec l	
+	ld b,l	
+	ld h,l	
+	ld a,l	
+	ld (hl),l	
+	ld h,l	
+	add a,l	
+	ld a,l	
+	add a,l	
+	ld d,l	
+	ld a,l	
+	adc a,l	
+	ld c,l	
+	ld h,l	
+	ld d,l	
+	ld a,l	
+	ld a,l	
+	ld a,l	
+	ld d,l	
+	ld (hl),l	
+	dec a	
+	dec h	
+	ld c,l	
+	dec (hl)	
+	adc a,l	
+	ld h,l	
+	adc a,l	
+	ld c,l	
+	dec (hl)	
+	ld d,l	
+	ld d,l	
+	dec l	
+	dec h	
+	dec (hl)	
+	ld e,l	
+	ld l,l	
+	ld a,l	
+	dec l	
+	ld c,l	
+	dec h	
+	dec a	
+	ld b,l	
+	ld c,l	
+	dec (hl)	
+	ld d,l	
+	ld d,l	
+	ld d,l	
+	ld (hl),l	
+	dec a	
+	ld h,l	
+	ld e,l	
+	dec h	
+	ld c,l	
+	dec h	
+	ld c,l	
+	dec h	
+	ld b,l	
+	sub l	
+	ld d,l	
+	ld (hl),l	
+	ld l,l	
+	ld d,l	
+	dec l	
+	dec (hl)	
+	ld d,l	
+	adc a,l	
+	dec (hl)	
+	dec l	
+	ld c,l	
+	dec a	
+	ld c,l	
+	dec a	
+	ld c,l	
+	dec a	
+	dec (hl)	
+	dec l	
+	dec h	
+	ld c,l	
+	ld c,l	
+	dec (hl)	
+	dec l	
+	dec h	
+	ld b,l	
+	dec (hl)	
+	ld a,l	
+	ld d,l	
+	add a,l	
+	ld a,l	
+	ld d,l	
+	adc a,l	
+	ld h,l	
+	ld d,l	
+	add a,l	
+	ld d,l	
+	ld (hl),l	
+	ld c,l	
+	dec (hl)	
+	ld d,l	
+	adc a,l	
+	ld c,l	
+	ld h,l	
+	ld e,l	
+	ld c,l	
+	ld h,l	
+	ld (hl),l	
+	dec a	
+	ld l,l	
+	adc a,l	
+	ld c,l	
+	ld l,l	
+	ld d,l	
+	ld d,l	
+	dec l	
+	ld l,l	
+	ld d,l	
+	ld (hl),l	
+	ld b,l	
+	ld l,l	
+	ld (hl),l	
+	ld c,l	
+	dec (hl)	
+	ld (hl),l	
+	sub l	
+	add a,l	
+	ld e,l	
+	sub l	
+	ld d,l	
+	ld (hl),l	
+	ld c,l	
+	ld b,l	
+	ld l,l	
+	ld (hl),l	
+	ld b,l	
+	dec h	
+	ld h,l	
+	adc a,l	
+	ld c,l	
+	ld b,l	
+	ld h,l	
+	ld e,l	
+	dec a	
+	dec (hl)	
+	ld (hl),l	
+	sub l	
+	dec l	
+	ld b,l	
+	dec (hl)	
+	ld a,l	
+	adc a,l	
+	ld h,l	
+	ld d,l	
+	adc a,l	
+	ld b,l	
+	sub l	
+	dec l	
+	ld h,l	
+	dec l	
+	ld b,l	
+	ld c,l	
+	ld l,l	
+	ld a,l	
+	ld a,l	
+	ld d,l	
+	add a,l	
+	ld (hl),l	
+	ld b,l	
+	ld c,l	
+	dec (hl)	
+	dec l	
+	dec h	
+	ld c,l	
+	dec h	
+	ld c,l	
+	ld h,l	
+	ld d,l	
+	ld d,l	
+	ld d,l	
+	ld (hl),l	
+	ld h,l	
+	dec l	
+	ld l,l	
+	ld e,l	
+	dec a	
+	ld h,l	
+	ld (hl),l	
+	dec (hl)	
+	ld d,l	
+	ld (hl),l	
+	ld b,l	
+	ld b,l	
+	dec (hl)	
+	ld (hl),l	
+	dec h	
+	ld c,l	
+	ld b,l	
+	ld l,l	
+	ld a,l	
+	ld d,l	
+	dec l	
+	dec (hl)	
+	ld e,l	
+	ld l,l	
+	ld e,l	
+	dec (hl)	
+	add a,l	
+	ld (hl),l	
+	dec a	
+	ld h,l	
+	dec l	
+	dec (hl)	
+	ld e,l	
+	dec h	
+	ld c,l	
+	dec (hl)	
+	ld a,l	
+	ld d,l	
+	ld (hl),l	
+	ld c,l	
+	dec a	
+	dec (hl)	
+	dec l	
+	sub l	
+	dec l	
+	ld b,l	
+	dec (hl)	
+	ld a,l	
+	dec l	
+	dec (hl)	
+	ld d,l	
+	ld d,l	
+	ld d,l	
+	ld e,l	
+	ld l,l	
+	ld d,l	
+	adc a,l	
+	ld h,l	
+	ld a,l	
+	ld d,l	
+	add a,l	
+	ld d,l	
+	ld d,l	
+	ld (hl),l	
+	ld h,l	
+	ld d,l	
+	ld (hl),l	
+	dec h	
+	sub l	
+	adc a,l	
+	ld h,l	
+	ld d,l	
+	ld (hl),l	
+	ld b,l	
+	dec (hl)	
+	dec l	
+	ld l,l	
+	ld d,l	
+	dec l	
+	dec h	
+	dec a	
+	dec h	
+	dec (hl)	
+	ld d,l	
+	ld e,l	
+	dec (hl)	
+	ld a,l	
+	ld d,l	
+	ld (hl),l	
+	dec h	
+	ld c,l	
+	dec (hl)	
+	ld d,l	
+	ld e,l	
+	dec (hl)	
+	add a,l	
+	adc a,l	
+	dec a	
+	ld b,l	
+	ld h,l	
+	ld (hl),l	
+	dec a	
+	ld c,l	
+	dec a	
+	ld l,l	
+	add a,l	
+	ld e,l	
+	dec a	
+	ld l,l	
+	add a,l	
+	ld e,l	
+	dec (hl)	
+	dec l	
+	dec (hl)	
+	ld (hl),l	
+	dec (hl)	
+	ld d,l	
+	ld (hl),l	
+	ld h,l	
+	ld (hl),l	
+	ld c,l	
+	dec a	
+	dec (hl)	
+	add a,l	
+	ld (hl),l	
+	sub l	
+	ld e,l	
+	ld b,l	
+	dec a	
+	dec h	
+	ld c,l	
+	ld c,l	
+	ld b,l	
+	ld c,l	
+	ld h,l	
+	adc a,l	
+	ld l,l	
+	ld e,l	
+	ld b,l	
+	ld c,l	
+	dec (hl)	
+	ld d,l	
+	ld d,l	
+	ld (hl),l	
+	ld h,l	
+	ld d,l	
+	dec l	
+	ld c,l	
+	dec a	
+	ld c,l	
+	ld c,l	
+	ld h,l	
+	add a,l	
+	ld e,l	
+	sub l	
+	ld a,l	
+	ld d,l	
+	ld (hl),l	
+	ld c,l	
+	dec a	
+	ld c,l	
+	ld c,l	
+	dec a	
+	ld h,l	
+	ld (hl),l	
+	ld c,l	
+	ld c,l	
+	dec h	
+	ld l,l	
+	ld e,l	
+	ld l,l	
+	ld (hl),l	
+	dec (hl)	
+	adc a,l	
+	ld l,l	
+	add a,l	
+	ld d,l	
+	ld e,l	
+	ld c,l	
+	ld c,l	
+	sub l	
+	ld (hl),l	
+	ld c,l	
+	dec a	
+	ld c,l	
+	ld l,l	
+	ld (hl),l	
+	ld c,l	
+	ld c,l	
+	sub l	
+	adc a,l	
+	ld c,l	
+	ld c,l	
+	dec a	
+	ld c,l	
+	ld c,l	
+	sub l	
+	add a,l	
+	adc a,l	
+	dec a	
+	ld c,l	
+	sub l	
+	ld (hl),l	
+	ld c,l	
+	ld c,l	
+	ld c,l	
+	dec a	
+	.db 3DH,4DH,4DH,4DH,4DH,4DH,4DH,4DH,95H

@@ -2,16 +2,16 @@
 # TEC Games
 
 ## General Setup
-To be run on the TEC-1D with any Monitor.  For the keyboard to work it requires EITHER a 4k7 (or 2k2 or lower) resistor between the NMI (pin 17 on Z-80) and D6 (pin 10 on the Z-80) OR the DAT (LCD) expanstion board fitted to port 3.  The current TEC-1D boards have the JMON MOD resitor connection already there.
+To be run on the TEC-1D with any Monitor.  For the keyboard to work it requires EITHER a 4k7 (or 2k2 or lower) resistor between the NMI (pin 17 on Z-80) and D6 (pin 10 on the Z-80) OR the DAT (LCD) expansion board fitted to port 3.  The current TEC-1D boards have the JMON MOD resistor connection already there.
 
 The 8x8 LED board is fitted to ports 5 and 6 with the port select strobe of the left hand latch going to port 6.
 
 If using an LCD, it is to be connected as per the DAT board schematics.
  
-All ROM files are to be loaded at address **0x0900**.  If this doesn't suit then just complie the **.Z80** file and change the starting **.ORG** address.  They can be manually typed using the **.lst** file but I recommend using a serial loader.  See my  [SIO Transfer](https://github.com/bchiha/TEC-1D-Stuff/tree/master/sio_transfer) project.
+All ROM files are to be loaded at address **0x0900**.  If this doesn't suit then just compile the **.Z80** file and change the starting **.ORG** address.  They can be manually typed using the **.lst** file but I recommend using a serial loader.  See my  [SIO Transfer](https://github.com/bchiha/TEC-1D-Stuff/tree/master/sio_transfer) project.
 
 ## TEC Invaders (The Return)
-This is my version of the TEC invaders that was originally writen by __Cameron Sheppard__
+This is my version of the TEC invaders that was originally written by __Cameron Sheppard__
 
 ### To Play
 Use '1' to move Left, '9' to move right and '+' to shoot.  10 Points for hitting an invader and 50 Points for the UFO on the top row.  Player has 3 lives and the game is over when all lives are lost.  You lose a life if the invaders land or you get hit by one of their bombs.  Invaders come in waves and get faster with less invaders alive.
@@ -31,8 +31,8 @@ The Maze has a total of 64 rooms on an 8x8 grid.  Rooms are represented vertical
 ## Game Of Life
 Game of Life is a cellular automation simulation created by John Conway.  It uses the 8x8 LED Matrix.  Each cell evolves based on the number of cells that surround it.  The basic cell rules are:
 
- 1. Any live cell with two or three live neighbours survives.
- 2. Any dead cell with three live neighbours becomes a live cell.
+ 1. Any live cell with two or three live neighbors survives.
+ 2. Any dead cell with three live neighbors becomes a live cell.
  3. All other live cells die in the next generation. Similarly, all other dead cells stay dead.
 
 ### To Play
@@ -46,7 +46,7 @@ Just run the program and watch.  Use the keyboard to either select a random star
 | 4 | Pulsar | 9 | Drummer | E | Face | AD | Heart |
 
 ## Magic Square
-This game written by Jim Robinson uses the 8x8 LED matrix.  The aim of the game is to create a Hollow Square.  It's been modified to be played on a ROM.
+This game written by Jim Robertson uses the 8x8 LED matrix.  The aim of the game is to create a Hollow Square.  It's been modified to be played on a ROM.
 ### To Play
 There are 9 Keys that change parts of the square by inverting certain LED's.   The Keys are:
 
@@ -61,9 +61,9 @@ There are 9 Keys that change parts of the square by inverting certain LED's.   T
    If you can find the Magic Square, press 'GO' to play again.
 
 ## Segment Game
-This game  by Jim Robinson is a game of good timing and a quick reaction.
+This game  by Jim Robertson is a game of good timing and a quick reaction.
 ### To Play
-The player is to press **any key** when a moving target is in the bottom segment on the 3rd LED segment from the right.  On each hit the moving segment restarts and moves faster.  When a sucessful hit occurs, the current hit count is displayed (modification by me).  Can you hit the target more than 30 times in a row??  If you miss one target, it's game over.
+The player is to press **any key** when a moving target is in the bottom segment on the 3rd LED segment from the right.  On each hit the moving segment restarts and moves faster.  When a successful hit occurs, the current hit count is displayed (modification by me).  Can you hit the target more than 30 times in a row??  If you miss one target, it's game over.
 
         A D D R E S S       D A T A
       --   --   --   --     --   --
@@ -108,7 +108,7 @@ From what I know, this is the First LCD game published for the TEC.
 This game uses an LCD works on JMON.  If using another Monitor, the JMON keyboard mod is required.  It is to be set up similar to the LCD that is on the DAT board.  In summary the connections from the TEC to the LCD are: D0-D7 -> D0-D2, A7 -> RS, Port 4 -> E (inverted), R/W -> R/W with RC circuit.  Please see TE Issue 15 for more details.  Code for the LCD is to be loaded at address **0xA00**.  This is due to how JMON uses the Soft Reset feature.  See Issue 15.
 
 ### To Play
-Try to avoid obstacles by jumping over them as they get near.  Press the '**4**' button to jump.  You need to time the jump to make it over the obstacle.  The player automatically jumps off the obstacle.  Every time you jump, the speed of the game gets faster.  The counter records the distance travelled.
+Try to avoid obstacles by jumping over them as they get near.  Press the '**4**' button to jump.  You need to time the jump to make it over the obstacle.  The player automatically jumps off the obstacle.  Every time you jump, the speed of the game gets faster.  The counter records the distance traveled.
 
 How far can you make it!.
 
@@ -116,4 +116,4 @@ How far can you make it!.
 
 
 ## Dodgy
-A game of skill, try to dodge past obsticles.  The Player is on the left hand side of the Seven Segments.  You are a '-' character.  Coming towards you are three types of obsticles.  You wil need to dodge them to survive.  Use the '7' key to move up and the '4' key to move down.  The longer you survive the faster the obsticles come.  When you die (you will die!), your distance travelled will be displayed.  Press 'GO' to start the dodgy game again!.
+A game of skill, try to dodge past obstacles.  The Player is on the left hand side of the Seven Segments.  You are a '-' character.  Coming towards you are three types of obstacles.  You wil need to dodge them to survive.  Use the '7' key to move up and the '4' key to move down.  The longer you survive the faster the obstacles come.  When you die (you will die!), your distance traveled will be displayed.  Press 'GO' to start the dodgy game again!.

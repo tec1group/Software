@@ -1,0 +1,1643 @@
+0000                             ; z80dasm 1.1.6
+0000                             ; command line: z80dasm -l -g 0x0900 -o Invaders.z80 Invaders.bin
+0000                          .BINFROM   0900h   
+0000                          .BINTO   0FFFh   
+0900                          .ORG   00900h   
+0900   21 A1 0E               LD   hl,l0ea1h   
+0903   AF                     XOR   a   
+0904   77                     LD   (hl),a   
+0905   23                     INC   hl   
+0906   36 01                  LD   (hl),001h   
+0908   23                     INC   hl   
+0909   36 03                  LD   (hl),003h   
+090B   23                     INC   hl   
+090C   36 03                  LD   (hl),003h   
+090E   23                     INC   hl   
+090F   36 15                  LD   (hl),015h   
+0911   23                     INC   hl   
+0912   36 20                  LD   (hl),020h   
+0914   2E C7                  LD   l,0c7h   
+0916   77                     LD   (hl),a   
+0917   2E CA                  LD   l,0cah   
+0919   77                     LD   (hl),a   
+091A   2E CC                  LD   l,0cch   
+091C   77                     LD   (hl),a   
+091D   2E E6                  LD   l,0e6h   
+091F   36 96                  LD   (hl),096h   
+0921   23                     INC   hl   
+0922   06 03                  LD   b,003h   
+0924                L0924H:      
+0924   36 93                  LD   (hl),093h   
+0926   23                     INC   hl   
+0927   10 FB                  DJNZ   l0924h   
+0929   CD 93 0D               CALL   sub_0d93h   
+092C   1E 90                  LD   e,090h   
+092E                L092EH:      
+092E   2E D0                  LD   l,0d0h   
+0930   36 60                  LD   (hl),060h   
+0932   23                     INC   hl   
+0933   7B                     LD   a,e   
+0934   77                     LD   (hl),a   
+0935   CD 4F 0D               CALL   sub_0d4fh   
+0938   7B                     LD   a,e   
+0939   D6 10                  SUB   010h   
+093B   5F                     LD   e,a   
+093C   FE 50                  CP   050h   
+093E   20 EE                  JR   nz,l092eh   
+0940   3E 90                  LD   a,090h   
+0942                L0942H:      
+0942   06 FF                  LD   b,0ffh   
+0944                L0944H:      
+0944   10 FE                  DJNZ   l0944h   
+0946   3D                     DEC   a   
+0947   20 F9                  JR   nz,l0942h   
+0949   2E D1                  LD   l,0d1h   
+094B   36 80                  LD   (hl),080h   
+094D   2B                     DEC   hl   
+094E   36 70                  LD   (hl),070h   
+0950   CD 4F 0D               CALL   sub_0d4fh   
+0953   1E 02                  LD   e,002h   
+0955                L0955H:      
+0955   2E D0                  LD   l,0d0h   
+0957   36 D0                  LD   (hl),0d0h   
+0959   23                     INC   hl   
+095A   36 60                  LD   (hl),060h   
+095C   CD 4F 0D               CALL   sub_0d4fh   
+095F   1D                     DEC   e   
+0960   20 F3                  JR   nz,l0955h   
+0962   2E CA                  LD   l,0cah   
+0964   34                     INC   (hl)   
+0965   23                     INC   hl   
+0966   36 50                  LD   (hl),050h   
+0968   CD C7 09               CALL   sub_09c7h   
+096B   2B                     DEC   hl   
+096C   36 00                  LD   (hl),000h   
+096E                L096EH:      
+096E   06 10                  LD   b,010h   
+0970   2E A7                  LD   l,0a7h   
+0972                L0972H:      
+0972   7E                     LD   a,(hl)   
+0973   D3 05                  OUT   (005h),a   
+0975   23                     INC   hl   
+0976   7E                     LD   a,(hl)   
+0977   D3 06                  OUT   (006h),a   
+0979   CD 43 0D               CALL   sub_0d43h   
+097C   23                     INC   hl   
+097D   10 F3                  DJNZ   l0972h   
+097F   7E                     LD   a,(hl)   
+0980   D3 05                  OUT   (005h),a   
+0982   3E 80                  LD   a,080h   
+0984   D3 06                  OUT   (006h),a   
+0986   CD 43 0D               CALL   sub_0d43h   
+0989   23                     INC   hl   
+098A   AF                     XOR   a   
+098B   BE                     CP   (hl)   
+098C   28 0A                  JR   z,l0998h   
+098E   23                     INC   hl   
+098F   7E                     LD   a,(hl)   
+0990   D3 05                  OUT   (005h),a   
+0992   7A                     LD   a,d   
+0993   D3 06                  OUT   (006h),a   
+0995   CD 43 0D               CALL   sub_0d43h   
+0998                L0998H:      
+0998   79                     LD   a,c   
+0999   D3 05                  OUT   (005h),a   
+099B   3E 01                  LD   a,001h   
+099D   D3 06                  OUT   (006h),a   
+099F   CD 43 0D               CALL   sub_0d43h   
+09A2   3E 04                  LD   a,004h   
+09A4   D3 01                  OUT   (001h),a   
+09A6   3E EB                  LD   a,0ebh   
+09A8   D3 02                  OUT   (002h),a   
+09AA   CD 43 0D               CALL   sub_0d43h   
+09AD   3E 01                  LD   a,001h   
+09AF   2E E6                  LD   l,0e6h   
+09B1   06 04                  LD   b,004h   
+09B3   58                     LD   e,b   
+09B4   18 01                  JR   l09b7h   
+09B6                L09B6H:      
+09B6   7B                     LD   a,e   
+09B7                L09B7H:      
+09B7   D3 01                  OUT   (001h),a   
+09B9   E5                     PUSH   hl   
+09BA   6E                     LD   l,(hl)   
+09BB   7E                     LD   a,(hl)   
+09BC   D3 02                  OUT   (002h),a   
+09BE   E1                     POP   hl   
+09BF   CD 43 0D               CALL   sub_0d43h   
+09C2   23                     INC   hl   
+09C3   CB 03                  RLC   e   
+09C5   10 EF                  DJNZ   l09b6h   
+09C7                SUB_09C7H:      
+09C7   2E CA                  LD   l,0cah   
+09C9   AF                     XOR   a   
+09CA   BE                     CP   (hl)   
+09CB   28 06                  JR   z,l09d3h   
+09CD   23                     INC   hl   
+09CE   35                     DEC   (hl)   
+09CF   BE                     CP   (hl)   
+09D0   20 9C                  JR   nz,l096eh   
+09D2   C9                     RET      
+09D3                L09D3H:      
+09D3   2E CC                  LD   l,0cch   
+09D5   BE                     CP   (hl)   
+09D6   20 96                  JR   nz,l096eh   
+09D8   23                     INC   hl   
+09D9   BE                     CP   (hl)   
+09DA   20 15                  JR   nz,l09f1h   
+09DC   2E CA                  LD   l,0cah   
+09DE   34                     INC   (hl)   
+09DF   23                     INC   hl   
+09E0   36 30                  LD   (hl),030h   
+09E2   CD C7 09               CALL   sub_09c7h   
+09E5   2B                     DEC   hl   
+09E6   36 00                  LD   (hl),000h   
+09E8   2E A2                  LD   l,0a2h   
+09EA   34                     INC   (hl)   
+09EB   CD 93 0D               CALL   sub_0d93h   
+09EE   C3 6E 09               JP   l096eh   
+09F1                L09F1H:      
+09F1   2E C8                  LD   l,0c8h   
+09F3   BE                     CP   (hl)   
+09F4   28 41                  JR   z,l0a37h   
+09F6   2E A7                  LD   l,0a7h   
+09F8   1E E5                  LD   e,0e5h   
+09FA                L09FAH:      
+09FA   06 03                  LD   b,003h   
+09FC                L09FCH:      
+09FC   3A C9 0E               LD   a,(l0ec9h)   
+09FF   BE                     CP   (hl)   
+0A00   20 0D                  JR   nz,l0a0fh   
+0A02   23                     INC   hl   
+0A03   7A                     LD   a,d   
+0A04   BE                     CP   (hl)   
+0A05   20 09                  JR   nz,l0a10h   
+0A07   AF                     XOR   a   
+0A08   77                     LD   (hl),a   
+0A09   2B                     DEC   hl   
+0A0A   77                     LD   (hl),a   
+0A0B   6B                     LD   l,e   
+0A0C   35                     DEC   (hl)   
+0A0D   18 0C                  JR   l0a1bh   
+0A0F                L0A0FH:      
+0A0F   23                     INC   hl   
+0A10                L0A10H:      
+0A10   23                     INC   hl   
+0A11   10 E9                  DJNZ   l09fch   
+0A13   1D                     DEC   e   
+0A14   3E E1                  LD   a,0e1h   
+0A16   BB                     CP   e   
+0A17   20 E1                  JR   nz,l09fah   
+0A19   18 1C                  JR   l0a37h   
+0A1B                L0A1BH:      
+0A1B   2E C8                  LD   l,0c8h   
+0A1D   36 00                  LD   (hl),000h   
+0A1F   2E CD                  LD   l,0cdh   
+0A21   35                     DEC   (hl)   
+0A22   23                     INC   hl   
+0A23   7E                     LD   a,(hl)   
+0A24   1E 04                  LD   e,004h   
+0A26   93                     SUB   e   
+0A27   77                     LD   (hl),a   
+0A28   1E 01                  LD   e,001h   
+0A2A   CD 80 0D               CALL   sub_0d80h   
+0A2D   2E D0                  LD   l,0d0h   
+0A2F   36 FF                  LD   (hl),0ffh   
+0A31   23                     INC   hl   
+0A32   36 10                  LD   (hl),010h   
+0A34   CD 4F 0D               CALL   sub_0d4fh   
+0A37                L0A37H:      
+0A37   2E C8                  LD   l,0c8h   
+0A39   BE                     CP   (hl)   
+0A3A   28 36                  JR   z,l0a72h   
+0A3C   2B                     DEC   hl   
+0A3D   3A C9 0E               LD   a,(l0ec9h)   
+0A40   BE                     CP   (hl)   
+0A41   20 2E                  JR   nz,$+48   
+0A43   7A                     LD   a,d   
+0A44   FE 80                  CP   080h   
+0A46   20 29                  JR   nz,$+43   
+0A48   AF                     XOR   a   
+0A49   77                     LD   (hl),a   
+0A4A   2E A1                  LD   l,0a1h   
+0A4C   77                     LD   (hl),a   
+0A4D   2E A5                  LD   l,0a5h   
+0A4F   36 50                  LD   (hl),050h   
+0A51   06 05                  LD   b,005h   
+0A53                L0A53H:      
+0A53   C5                     PUSH   bc   
+0A54   1E 01                  LD   e,001h   
+0A56   CD 80 0D               CALL   sub_0d80h   
+0A59   2E D0                  LD   l,0d0h   
+0A5B   36 10                  LD   (hl),010h   
+0A5D   23                     INC   hl   
+0A5E   36 FF                  LD   (hl),0ffh   
+0A60   CD 4F 0D               CALL   sub_0d4fh   
+0A63   2E CA                  LD   l,0cah   
+0A65   34                     INC   (hl)   
+0A66   23                     INC   hl   
+0A67   36 04                  LD   (hl),004h   
+0A69   CD C7 09               CALL   sub_09c7h   
+0A6C   C1                     POP   bc   
+0A6D   10 E4                  DJNZ   l0a53h   
+0A6F   2B                     DEC   hl   
+0A70   36 00                  LD   (hl),000h   
+0A72                L0A72H:      
+0A72   06 04                  LD   b,004h   
+0A74   2E C6                  LD   l,0c6h   
+0A76                L0A76H:      
+0A76   3E 01                  LD   a,001h   
+0A78   BE                     CP   (hl)   
+0A79   20 07                  JR   nz,l0a82h   
+0A7B   2B                     DEC   hl   
+0A7C   79                     LD   a,c   
+0A7D   BE                     CP   (hl)   
+0A7E   28 08                  JR   z,l0a88h   
+0A80   18 01                  JR   l0a83h   
+0A82                L0A82H:      
+0A82   2B                     DEC   hl   
+0A83                L0A83H:      
+0A83   2B                     DEC   hl   
+0A84   10 F0                  DJNZ   l0a76h   
+0A86   18 54                  JR   l0adch   
+0A88                L0A88H:      
+0A88   2E C8                  LD   l,0c8h   
+0A8A   36 00                  LD   (hl),000h   
+0A8C   4E                     LD   c,(hl)   
+0A8D   2E CA                  LD   l,0cah   
+0A8F   34                     INC   (hl)   
+0A90   23                     INC   hl   
+0A91   36 30                  LD   (hl),030h   
+0A93   2E D0                  LD   l,0d0h   
+0A95   36 60                  LD   (hl),060h   
+0A97   23                     INC   hl   
+0A98   36 E0                  LD   (hl),0e0h   
+0A9A   CD 4F 0D               CALL   sub_0d4fh   
+0A9D   CD C7 09               CALL   sub_09c7h   
+0AA0   2E E6                  LD   l,0e6h   
+0AA2   35                     DEC   (hl)   
+0AA3   2E A4                  LD   l,0a4h   
+0AA5   35                     DEC   (hl)   
+0AA6   AF                     XOR   a   
+0AA7   BE                     CP   (hl)   
+0AA8   20 1D                  JR   nz,l0ac7h   
+0AAA   2E CA                  LD   l,0cah   
+0AAC   77                     LD   (hl),a   
+0AAD   1E 40                  LD   e,040h   
+0AAF                L0AAFH:      
+0AAF   2E D0                  LD   l,0d0h   
+0AB1   36 60                  LD   (hl),060h   
+0AB3   23                     INC   hl   
+0AB4   7B                     LD   a,e   
+0AB5   77                     LD   (hl),a   
+0AB6   CD 4F 0D               CALL   sub_0d4fh   
+0AB9   7B                     LD   a,e   
+0ABA   C6 10                  ADD   a,010h   
+0ABC   5F                     LD   e,a   
+0ABD   FE 90                  CP   090h   
+0ABF   20 EE                  JR   nz,l0aafh   
+0AC1   2E CC                  LD   l,0cch   
+0AC3   34                     INC   (hl)   
+0AC4   C3 6E 09               JP   l096eh   
+0AC7                L0AC7H:      
+0AC7   06 04                  LD   b,004h   
+0AC9   2E BF                  LD   l,0bfh   
+0ACB                L0ACBH:      
+0ACB   77                     LD   (hl),a   
+0ACC   23                     INC   hl   
+0ACD   23                     INC   hl   
+0ACE   10 FB                  DJNZ   l0acbh   
+0AD0   0E 01                  LD   c,001h   
+0AD2   2E CB                  LD   l,0cbh   
+0AD4   36 40                  LD   (hl),040h   
+0AD6   CD C7 09               CALL   sub_09c7h   
+0AD9   2B                     DEC   hl   
+0ADA   36 00                  LD   (hl),000h   
+0ADC                L0ADCH:      
+0ADC   2E CF                  LD   l,0cfh   
+0ADE   35                     DEC   (hl)   
+0ADF   AF                     XOR   a   
+0AE0   BE                     CP   (hl)   
+0AE1   20 79                  JR   nz,l0b5ch   
+0AE3   2E A5                  LD   l,0a5h   
+0AE5   35                     DEC   (hl)   
+0AE6   2E D0                  LD   l,0d0h   
+0AE8   36 05                  LD   (hl),005h   
+0AEA   23                     INC   hl   
+0AEB   36 FF                  LD   (hl),0ffh   
+0AED   CD 4F 0D               CALL   sub_0d4fh   
+0AF0   2E A0                  LD   l,0a0h   
+0AF2   BE                     CP   (hl)   
+0AF3   20 3A                  JR   nz,l0b2fh   
+0AF5   06 0C                  LD   b,00ch   
+0AF7   2E A7                  LD   l,0a7h   
+0AF9   3E 80                  LD   a,080h   
+0AFB                L0AFBH:      
+0AFB   BE                     CP   (hl)   
+0AFC   28 08                  JR   z,l0b06h   
+0AFE   CB 06                  RLC   (hl)   
+0B00   23                     INC   hl   
+0B01   23                     INC   hl   
+0B02   10 F7                  DJNZ   l0afbh   
+0B04   18 51                  JR   l0b57h   
+0B06                L0B06H:      
+0B06   2E A0                  LD   l,0a0h   
+0B08   34                     INC   (hl)   
+0B09   18 03                  JR   l0b0eh   
+0B0B                L0B0BH:      
+0B0B   2E A0                  LD   l,0a0h   
+0B0D   35                     DEC   (hl)   
+0B0E                L0B0EH:      
+0B0E   06 0C                  LD   b,00ch   
+0B10   2E A8                  LD   l,0a8h   
+0B12   3E 02                  LD   a,002h   
+0B14                L0B14H:      
+0B14   BE                     CP   (hl)   
+0B15   28 06                  JR   z,l0b1dh   
+0B17   23                     INC   hl   
+0B18   23                     INC   hl   
+0B19   10 F9                  DJNZ   l0b14h   
+0B1B   18 06                  JR   l0b23h   
+0B1D                L0B1DH:      
+0B1D   CD 64 0D               CALL   sub_0d64h   
+0B20   2E CC                  LD   l,0cch   
+0B22   34                     INC   (hl)   
+0B23                L0B23H:      
+0B23   06 0C                  LD   b,00ch   
+0B25   2E A8                  LD   l,0a8h   
+0B27                L0B27H:      
+0B27   CB 0E                  RRC   (hl)   
+0B29   23                     INC   hl   
+0B2A   23                     INC   hl   
+0B2B   10 FA                  DJNZ   l0b27h   
+0B2D   18 28                  JR   l0b57h   
+0B2F                L0B2FH:      
+0B2F   5F                     LD   e,a   
+0B30   2E B9                  LD   l,0b9h   
+0B32                L0B32H:      
+0B32   06 03                  LD   b,003h   
+0B34   3E 01                  LD   a,001h   
+0B36                L0B36H:      
+0B36   BE                     CP   (hl)   
+0B37   28 D2                  JR   z,l0b0bh   
+0B39   CB 0E                  RRC   (hl)   
+0B3B   23                     INC   hl   
+0B3C   23                     INC   hl   
+0B3D   10 F7                  DJNZ   l0b36h   
+0B3F   1C                     INC   e   
+0B40   BB                     CP   e   
+0B41   20 04                  JR   nz,l0b47h   
+0B43   2E B3                  LD   l,0b3h   
+0B45   18 EB                  JR   l0b32h   
+0B47                L0B47H:      
+0B47   3C                     INC   a   
+0B48   BB                     CP   e   
+0B49   20 04                  JR   nz,l0b4fh   
+0B4B   2E AD                  LD   l,0adh   
+0B4D   18 E3                  JR   l0b32h   
+0B4F                L0B4FH:      
+0B4F   3C                     INC   a   
+0B50   BB                     CP   e   
+0B51   20 04                  JR   nz,l0b57h   
+0B53   2E A7                  LD   l,0a7h   
+0B55   18 DB                  JR   l0b32h   
+0B57                L0B57H:      
+0B57   2E CE                  LD   l,0ceh   
+0B59   7E                     LD   a,(hl)   
+0B5A   23                     INC   hl   
+0B5B   77                     LD   (hl),a   
+0B5C                L0B5CH:      
+0B5C   2E A1                  LD   l,0a1h   
+0B5E   AF                     XOR   a   
+0B5F   BE                     CP   (hl)   
+0B60   28 27                  JR   z,l0b89h   
+0B62   3E 80                  LD   a,080h   
+0B64   D3 01                  OUT   (001h),a   
+0B66   AF                     XOR   a   
+0B67   D3 01                  OUT   (001h),a   
+0B69   2E A6                  LD   l,0a6h   
+0B6B   35                     DEC   (hl)   
+0B6C   BE                     CP   (hl)   
+0B6D   20 29                  JR   nz,l0b98h   
+0B6F   2E C7                  LD   l,0c7h   
+0B71   3E 80                  LD   a,080h   
+0B73   BE                     CP   (hl)   
+0B74   20 0B                  JR   nz,l0b81h   
+0B76   36 00                  LD   (hl),000h   
+0B78   2E A1                  LD   l,0a1h   
+0B7A   35                     DEC   (hl)   
+0B7B   2E A5                  LD   l,0a5h   
+0B7D   36 50                  LD   (hl),050h   
+0B7F   18 17                  JR   l0b98h   
+0B81                L0B81H:      
+0B81   CB 06                  RLC   (hl)   
+0B83   2E A6                  LD   l,0a6h   
+0B85   36 20                  LD   (hl),020h   
+0B87   18 0F                  JR   l0b98h   
+0B89                L0B89H:      
+0B89   2E A5                  LD   l,0a5h   
+0B8B   BE                     CP   (hl)   
+0B8C   20 0A                  JR   nz,l0b98h   
+0B8E   23                     INC   hl   
+0B8F   36 20                  LD   (hl),020h   
+0B91   2E A1                  LD   l,0a1h   
+0B93   34                     INC   (hl)   
+0B94   2E C7                  LD   l,0c7h   
+0B96   36 01                  LD   (hl),001h   
+0B98                L0B98H:      
+0B98   DB 03                  IN   a,(003h)   
+0B9A   CB 77                  BIT   6,a   
+0B9C   20 0D                  JR   nz,l0babh   
+0B9E   DB 00                  IN   a,(000h)   
+0BA0   E6 1F                  AND   01fh   
+0BA2   5F                     LD   e,a   
+0BA3   2E EA                  LD   l,0eah   
+0BA5   AF                     XOR   a   
+0BA6   BE                     CP   (hl)   
+0BA7   20 3B                  JR   nz,l0be4h   
+0BA9   18 06                  JR   l0bb1h   
+0BAB                L0BABH:      
+0BAB   2E EA                  LD   l,0eah   
+0BAD   36 00                  LD   (hl),000h   
+0BAF   18 33                  JR   l0be4h   
+0BB1                L0BB1H:      
+0BB1   34                     INC   (hl)   
+0BB2   3E 01                  LD   a,001h   
+0BB4   BB                     CP   e   
+0BB5   20 07                  JR   nz,l0bbeh   
+0BB7   3E 01                  LD   a,001h   
+0BB9   B9                     CP   c   
+0BBA   28 0E                  JR   z,l0bcah   
+0BBC   CB 09                  RRC   c   
+0BBE                L0BBEH:      
+0BBE   3E 09                  LD   a,009h   
+0BC0   BB                     CP   e   
+0BC1   20 07                  JR   nz,l0bcah   
+0BC3   3E 80                  LD   a,080h   
+0BC5   B9                     CP   c   
+0BC6   28 02                  JR   z,l0bcah   
+0BC8   CB 01                  RLC   c   
+0BCA                L0BCAH:      
+0BCA   2E C8                  LD   l,0c8h   
+0BCC   AF                     XOR   a   
+0BCD   BE                     CP   (hl)   
+0BCE   20 14                  JR   nz,l0be4h   
+0BD0   3E 10                  LD   a,010h   
+0BD2   BB                     CP   e   
+0BD3   20 0F                  JR   nz,l0be4h   
+0BD5   34                     INC   (hl)   
+0BD6   23                     INC   hl   
+0BD7   71                     LD   (hl),c   
+0BD8   16 02                  LD   d,002h   
+0BDA   2E D0                  LD   l,0d0h   
+0BDC   36 20                  LD   (hl),020h   
+0BDE   23                     INC   hl   
+0BDF   36 30                  LD   (hl),030h   
+0BE1   CD 4F 0D               CALL   sub_0d4fh   
+0BE4                L0BE4H:      
+0BE4   2E C8                  LD   l,0c8h   
+0BE6   AF                     XOR   a   
+0BE7   BE                     CP   (hl)   
+0BE8   28 16                  JR   z,l0c00h   
+0BEA   7A                     LD   a,d   
+0BEB   FE 80                  CP   080h   
+0BED   20 06                  JR   nz,l0bf5h   
+0BEF   36 00                  LD   (hl),000h   
+0BF1   2E A3                  LD   l,0a3h   
+0BF3   18 09                  JR   l0bfeh   
+0BF5                L0BF5H:      
+0BF5   2E A3                  LD   l,0a3h   
+0BF7   35                     DEC   (hl)   
+0BF8   AF                     XOR   a   
+0BF9   BE                     CP   (hl)   
+0BFA   20 04                  JR   nz,l0c00h   
+0BFC   CB 02                  RLC   d   
+0BFE                L0BFEH:      
+0BFE   36 03                  LD   (hl),003h   
+0C00                L0C00H:      
+0C00   2E D2                  LD   l,0d2h   
+0C02   AF                     XOR   a   
+0C03   BE                     CP   (hl)   
+0C04   28 12                  JR   z,l0c18h   
+0C06   23                     INC   hl   
+0C07   35                     DEC   (hl)   
+0C08   BE                     CP   (hl)   
+0C09   20 45                  JR   nz,l0c50h   
+0C0B   2E C0                  LD   l,0c0h   
+0C0D   3C                     INC   a   
+0C0E   BE                     CP   (hl)   
+0C0F   20 37                  JR   nz,l0c48h   
+0C11   AF                     XOR   a   
+0C12   77                     LD   (hl),a   
+0C13   32 D2 0E               LD   (l0ed2h),a   
+0C16   18 38                  JR   l0c50h   
+0C18                L0C18H:      
+0C18   23                     INC   hl   
+0C19   23                     INC   hl   
+0C1A   35                     DEC   (hl)   
+0C1B   BE                     CP   (hl)   
+0C1C   20 32                  JR   nz,l0c50h   
+0C1E   23                     INC   hl   
+0C1F   7E                     LD   a,(hl)   
+0C20   2B                     DEC   hl   
+0C21   77                     LD   (hl),a   
+0C22   2E E2                  LD   l,0e2h   
+0C24   AF                     XOR   a   
+0C25   BE                     CP   (hl)   
+0C26   28 28                  JR   z,l0c50h   
+0C28   2E D2                  LD   l,0d2h   
+0C2A   34                     INC   (hl)   
+0C2B   06 02                  LD   b,002h   
+0C2D   2E BE                  LD   l,0beh   
+0C2F                L0C2FH:      
+0C2F   BE                     CP   (hl)   
+0C30   28 06                  JR   z,l0c38h   
+0C32   7E                     LD   a,(hl)   
+0C33   32 C0 0E               LD   (l0ec0h),a   
+0C36   18 0A                  JR   l0c42h   
+0C38                L0C38H:      
+0C38   2B                     DEC   hl   
+0C39   2B                     DEC   hl   
+0C3A   10 F3                  DJNZ   l0c2fh   
+0C3C   2E BA                  LD   l,0bah   
+0C3E   7E                     LD   a,(hl)   
+0C3F   2E C0                  LD   l,0c0h   
+0C41   77                     LD   (hl),a   
+0C42                L0C42H:      
+0C42   2E B9                  LD   l,0b9h   
+0C44   7E                     LD   a,(hl)   
+0C45   2E BF                  LD   l,0bfh   
+0C47   77                     LD   (hl),a   
+0C48                L0C48H:      
+0C48   2E C0                  LD   l,0c0h   
+0C4A   CB 0E                  RRC   (hl)   
+0C4C   2E D3                  LD   l,0d3h   
+0C4E   36 1B                  LD   (hl),01bh   
+0C50                L0C50H:      
+0C50   2E D6                  LD   l,0d6h   
+0C52   AF                     XOR   a   
+0C53   BE                     CP   (hl)   
+0C54   28 12                  JR   z,l0c68h   
+0C56   23                     INC   hl   
+0C57   35                     DEC   (hl)   
+0C58   BE                     CP   (hl)   
+0C59   20 45                  JR   nz,l0ca0h   
+0C5B   2E C2                  LD   l,0c2h   
+0C5D   3C                     INC   a   
+0C5E   BE                     CP   (hl)   
+0C5F   20 37                  JR   nz,l0c98h   
+0C61   AF                     XOR   a   
+0C62   77                     LD   (hl),a   
+0C63   32 D6 0E               LD   (l0ed6h),a   
+0C66   18 38                  JR   l0ca0h   
+0C68                L0C68H:      
+0C68   23                     INC   hl   
+0C69   23                     INC   hl   
+0C6A   35                     DEC   (hl)   
+0C6B   BE                     CP   (hl)   
+0C6C   20 32                  JR   nz,l0ca0h   
+0C6E   23                     INC   hl   
+0C6F   7E                     LD   a,(hl)   
+0C70   2B                     DEC   hl   
+0C71   77                     LD   (hl),a   
+0C72   2E E3                  LD   l,0e3h   
+0C74   AF                     XOR   a   
+0C75   BE                     CP   (hl)   
+0C76   28 28                  JR   z,l0ca0h   
+0C78   2E D6                  LD   l,0d6h   
+0C7A   34                     INC   (hl)   
+0C7B   06 02                  LD   b,002h   
+0C7D   2E B8                  LD   l,0b8h   
+0C7F                L0C7FH:      
+0C7F   BE                     CP   (hl)   
+0C80   28 06                  JR   z,l0c88h   
+0C82   7E                     LD   a,(hl)   
+0C83   32 C2 0E               LD   (l0ec2h),a   
+0C86   18 0A                  JR   l0c92h   
+0C88                L0C88H:      
+0C88   2B                     DEC   hl   
+0C89   2B                     DEC   hl   
+0C8A   10 F3                  DJNZ   l0c7fh   
+0C8C   2E B4                  LD   l,0b4h   
+0C8E   7E                     LD   a,(hl)   
+0C8F   2E C2                  LD   l,0c2h   
+0C91   77                     LD   (hl),a   
+0C92                L0C92H:      
+0C92   2E B3                  LD   l,0b3h   
+0C94   7E                     LD   a,(hl)   
+0C95   2E C1                  LD   l,0c1h   
+0C97   77                     LD   (hl),a   
+0C98                L0C98H:      
+0C98   2E C2                  LD   l,0c2h   
+0C9A   CB 0E                  RRC   (hl)   
+0C9C   2E D7                  LD   l,0d7h   
+0C9E   36 1B                  LD   (hl),01bh   
+0CA0                L0CA0H:      
+0CA0   2E DA                  LD   l,0dah   
+0CA2   AF                     XOR   a   
+0CA3   BE                     CP   (hl)   
+0CA4   28 12                  JR   z,l0cb8h   
+0CA6   23                     INC   hl   
+0CA7   35                     DEC   (hl)   
+0CA8   BE                     CP   (hl)   
+0CA9   20 45                  JR   nz,l0cf0h   
+0CAB   2E C4                  LD   l,0c4h   
+0CAD   3C                     INC   a   
+0CAE   BE                     CP   (hl)   
+0CAF   20 37                  JR   nz,l0ce8h   
+0CB1   AF                     XOR   a   
+0CB2   77                     LD   (hl),a   
+0CB3   32 DA 0E               LD   (l0edah),a   
+0CB6   18 38                  JR   l0cf0h   
+0CB8                L0CB8H:      
+0CB8   23                     INC   hl   
+0CB9   23                     INC   hl   
+0CBA   35                     DEC   (hl)   
+0CBB   BE                     CP   (hl)   
+0CBC   20 32                  JR   nz,l0cf0h   
+0CBE   23                     INC   hl   
+0CBF   7E                     LD   a,(hl)   
+0CC0   2B                     DEC   hl   
+0CC1   77                     LD   (hl),a   
+0CC2   2E E4                  LD   l,0e4h   
+0CC4   AF                     XOR   a   
+0CC5   BE                     CP   (hl)   
+0CC6   28 28                  JR   z,l0cf0h   
+0CC8   2E DA                  LD   l,0dah   
+0CCA   34                     INC   (hl)   
+0CCB   06 02                  LD   b,002h   
+0CCD   2E B2                  LD   l,0b2h   
+0CCF                L0CCFH:      
+0CCF   BE                     CP   (hl)   
+0CD0   28 06                  JR   z,l0cd8h   
+0CD2   7E                     LD   a,(hl)   
+0CD3   32 C4 0E               LD   (l0ec4h),a   
+0CD6   18 0A                  JR   l0ce2h   
+0CD8                L0CD8H:      
+0CD8   2B                     DEC   hl   
+0CD9   2B                     DEC   hl   
+0CDA   10 F3                  DJNZ   l0ccfh   
+0CDC   2E AE                  LD   l,0aeh   
+0CDE   7E                     LD   a,(hl)   
+0CDF   2E C4                  LD   l,0c4h   
+0CE1   77                     LD   (hl),a   
+0CE2                L0CE2H:      
+0CE2   2E AD                  LD   l,0adh   
+0CE4   7E                     LD   a,(hl)   
+0CE5   2E C3                  LD   l,0c3h   
+0CE7   77                     LD   (hl),a   
+0CE8                L0CE8H:      
+0CE8   2E C4                  LD   l,0c4h   
+0CEA   CB 0E                  RRC   (hl)   
+0CEC   2E DB                  LD   l,0dbh   
+0CEE   36 1B                  LD   (hl),01bh   
+0CF0                L0CF0H:      
+0CF0   2E DE                  LD   l,0deh   
+0CF2   AF                     XOR   a   
+0CF3   BE                     CP   (hl)   
+0CF4   28 12                  JR   z,l0d08h   
+0CF6   23                     INC   hl   
+0CF7   35                     DEC   (hl)   
+0CF8   BE                     CP   (hl)   
+0CF9   20 45                  JR   nz,l0d40h   
+0CFB   2E C6                  LD   l,0c6h   
+0CFD   3C                     INC   a   
+0CFE   BE                     CP   (hl)   
+0CFF   20 37                  JR   nz,l0d38h   
+0D01   AF                     XOR   a   
+0D02   77                     LD   (hl),a   
+0D03   32 DE 0E               LD   (00edeh),a   
+0D06   18 38                  JR   l0d40h   
+0D08                L0D08H:      
+0D08   23                     INC   hl   
+0D09   23                     INC   hl   
+0D0A   35                     DEC   (hl)   
+0D0B   BE                     CP   (hl)   
+0D0C   20 32                  JR   nz,l0d40h   
+0D0E   23                     INC   hl   
+0D0F   7E                     LD   a,(hl)   
+0D10   2B                     DEC   hl   
+0D11   77                     LD   (hl),a   
+0D12   2E E5                  LD   l,0e5h   
+0D14   AF                     XOR   a   
+0D15   BE                     CP   (hl)   
+0D16   28 28                  JR   z,l0d40h   
+0D18   2E DE                  LD   l,0deh   
+0D1A   34                     INC   (hl)   
+0D1B   06 02                  LD   b,002h   
+0D1D   2E AC                  LD   l,0ach   
+0D1F                L0D1FH:      
+0D1F   BE                     CP   (hl)   
+0D20   28 06                  JR   z,l0d28h   
+0D22   7E                     LD   a,(hl)   
+0D23   32 C6 0E               LD   (l0ec6h),a   
+0D26   18 0A                  JR   l0d32h   
+0D28                L0D28H:      
+0D28   2B                     DEC   hl   
+0D29   2B                     DEC   hl   
+0D2A   10 F3                  DJNZ   l0d1fh   
+0D2C   2E A8                  LD   l,0a8h   
+0D2E   7E                     LD   a,(hl)   
+0D2F   2E C6                  LD   l,0c6h   
+0D31   77                     LD   (hl),a   
+0D32                L0D32H:      
+0D32   2E A7                  LD   l,0a7h   
+0D34   7E                     LD   a,(hl)   
+0D35   2E C5                  LD   l,0c5h   
+0D37   77                     LD   (hl),a   
+0D38                L0D38H:      
+0D38   2E C6                  LD   l,0c6h   
+0D3A   CB 0E                  RRC   (hl)   
+0D3C   2E DF                  LD   l,0dfh   
+0D3E   36 1B                  LD   (hl),01bh   
+0D40                L0D40H:      
+0D40   C3 6E 09               JP   l096eh   
+0D43                SUB_0D43H:      
+0D43   C5                     PUSH   bc   
+0D44   06 70                  LD   b,070h   
+0D46                L0D46H:      
+0D46   10 FE                  DJNZ   l0d46h   
+0D48   AF                     XOR   a   
+0D49   D3 06                  OUT   (006h),a   
+0D4B   D3 02                  OUT   (002h),a   
+0D4D   C1                     POP   bc   
+0D4E   C9                     RET      
+0D4F                SUB_0D4FH:      
+0D4F   2E D1                  LD   l,0d1h   
+0D51   3E 80                  LD   a,080h   
+0D53   D3 01                  OUT   (001h),a   
+0D55   46                     LD   b,(hl)   
+0D56                L0D56H:      
+0D56   10 FE                  DJNZ   l0d56h   
+0D58   AF                     XOR   a   
+0D59   D3 01                  OUT   (001h),a   
+0D5B   46                     LD   b,(hl)   
+0D5C                L0D5CH:      
+0D5C   10 FE                  DJNZ   l0d5ch   
+0D5E   2B                     DEC   hl   
+0D5F   35                     DEC   (hl)   
+0D60   BE                     CP   (hl)   
+0D61   20 EC                  JR   nz,sub_0d4fh   
+0D63   C9                     RET      
+0D64                SUB_0D64H:      
+0D64   1E 00                  LD   e,000h   
+0D66                L0D66H:      
+0D66   3E 80                  LD   a,080h   
+0D68   D3 01                  OUT   (001h),a   
+0D6A   AF                     XOR   a   
+0D6B   D3 01                  OUT   (001h),a   
+0D6D   06 00                  LD   b,000h   
+0D6F                L0D6FH:      
+0D6F   10 FE                  DJNZ   l0d6fh   
+0D71   21 6E 0D               LD   hl,00d6eh   
+0D74   34                     INC   (hl)   
+0D75   20 EF                  JR   nz,l0d66h   
+0D77   1C                     INC   e   
+0D78   7B                     LD   a,e   
+0D79   FE 07                  CP   007h   
+0D7B   20 E9                  JR   nz,l0d66h   
+0D7D   26 0E                  LD   h,00eh   
+0D7F   C9                     RET      
+0D80                SUB_0D80H:      
+0D80   2E E7                  LD   l,0e7h   
+0D82   3E 9D                  LD   a,09dh   
+0D84   06 03                  LD   b,003h   
+0D86                L0D86H:      
+0D86   34                     INC   (hl)   
+0D87   BE                     CP   (hl)   
+0D88   20 05                  JR   nz,l0d8fh   
+0D8A   36 93                  LD   (hl),093h   
+0D8C   23                     INC   hl   
+0D8D   10 F7                  DJNZ   l0d86h   
+0D8F                L0D8FH:      
+0D8F   1D                     DEC   e   
+0D90   20 EE                  JR   nz,sub_0d80h   
+0D92   C9                     RET      
+0D93                SUB_0D93H:      
+0D93   1E 04                  LD   e,004h   
+0D95   06 03                  LD   b,003h   
+0D97   2E A7                  LD   l,0a7h   
+0D99   3E 08                  LD   a,008h   
+0D9B   CD B1 0D               CALL   sub_0db1h   
+0D9E                L0D9EH:      
+0D9E   1D                     DEC   e   
+0D9F   28 08                  JR   z,l0da9h   
+0DA1   1F                     RRA      
+0DA2   06 03                  LD   b,003h   
+0DA4   CD B1 0D               CALL   sub_0db1h   
+0DA7   18 F5                  JR   l0d9eh   
+0DA9                L0DA9H:      
+0DA9   06 04                  LD   b,004h   
+0DAB   AF                     XOR   a   
+0DAC   CD B1 0D               CALL   sub_0db1h   
+0DAF   18 06                  JR   l0db7h   
+0DB1                SUB_0DB1H:      
+0DB1   77                     LD   (hl),a   
+0DB2   23                     INC   hl   
+0DB3   23                     INC   hl   
+0DB4   10 FB                  DJNZ   sub_0db1h   
+0DB6   C9                     RET      
+0DB7                L0DB7H:      
+0DB7   2E A0                  LD   l,0a0h   
+0DB9   77                     LD   (hl),a   
+0DBA   2E C8                  LD   l,0c8h   
+0DBC   77                     LD   (hl),a   
+0DBD   23                     INC   hl   
+0DBE   77                     LD   (hl),a   
+0DBF   2E CD                  LD   l,0cdh   
+0DC1   36 0C                  LD   (hl),00ch   
+0DC3   0E 01                  LD   c,001h   
+0DC5   51                     LD   d,c   
+0DC6   5F                     LD   e,a   
+0DC7   2E D2                  LD   l,0d2h   
+0DC9   CD D5 0D               CALL   sub_0dd5h   
+0DCC   1E 1B                  LD   e,01bh   
+0DCE   2E D3                  LD   l,0d3h   
+0DD0   CD D5 0D               CALL   sub_0dd5h   
+0DD3   18 0A                  JR   l0ddfh   
+0DD5                SUB_0DD5H:      
+0DD5   06 04                  LD   b,004h   
+0DD7                L0DD7H:      
+0DD7   3E 04                  LD   a,004h   
+0DD9   73                     LD   (hl),e   
+0DDA   85                     ADD   a,l   
+0DDB   6F                     LD   l,a   
+0DDC   10 F9                  DJNZ   l0dd7h   
+0DDE   C9                     RET      
+0DDF                L0DDFH:      
+0DDF   2E E2                  LD   l,0e2h   
+0DE1   06 04                  LD   b,004h   
+0DE3                L0DE3H:      
+0DE3   36 03                  LD   (hl),003h   
+0DE5   23                     INC   hl   
+0DE6   10 FB                  DJNZ   l0de3h   
+0DE8   3E 04                  LD   a,004h   
+0DEA   CD 88 0E               CALL   sub_0e88h   
+0DED   AF                     XOR   a   
+0DEE   B8                     CP   b   
+0DEF   28 21                  JR   z,l0e12h   
+0DF1   3E 34                  LD   a,034h   
+0DF3   CD 5D 0E               CALL   sub_0e5dh   
+0DF6   1E 40                  LD   e,040h   
+0DF8   CD 63 0E               CALL   sub_0e63h   
+0DFB   2E D4                  LD   l,0d4h   
+0DFD   3E 25                  LD   a,025h   
+0DFF   CD 81 0E               CALL   sub_0e81h   
+0E02   3E 46                  LD   a,046h   
+0E04   CD 81 0E               CALL   sub_0e81h   
+0E07   3E 20                  LD   a,020h   
+0E09   CD 81 0E               CALL   sub_0e81h   
+0E0C   3E 14                  LD   a,014h   
+0E0E   CD 81 0E               CALL   sub_0e81h   
+0E11   C9                     RET      
+0E12                L0E12H:      
+0E12   3E 08                  LD   a,008h   
+0E14   CD 88 0E               CALL   sub_0e88h   
+0E17   AF                     XOR   a   
+0E18   B8                     CP   b   
+0E19   28 21                  JR   z,l0e3ch   
+0E1B   3E 33                  LD   a,033h   
+0E1D   CD 5D 0E               CALL   sub_0e5dh   
+0E20   1E 20                  LD   e,020h   
+0E22   CD 63 0E               CALL   sub_0e63h   
+0E25   2E D4                  LD   l,0d4h   
+0E27   3E 33                  LD   a,033h   
+0E29   CD 81 0E               CALL   sub_0e81h   
+0E2C   3E 14                  LD   a,014h   
+0E2E   CD 81 0E               CALL   sub_0e81h   
+0E31   3E 24                  LD   a,024h   
+0E33   CD 81 0E               CALL   sub_0e81h   
+0E36   3E 0E                  LD   a,00eh   
+0E38   CD 81 0E               CALL   sub_0e81h   
+0E3B   C9                     RET      
+0E3C                L0E3CH:      
+0E3C   3E 32                  LD   a,032h   
+0E3E   CD 5D 0E               CALL   sub_0e5dh   
+0E41   1E 10                  LD   e,010h   
+0E43   CD 63 0E               CALL   sub_0e63h   
+0E46   2E D4                  LD   l,0d4h   
+0E48   3E 33                  LD   a,033h   
+0E4A   CD 81 0E               CALL   sub_0e81h   
+0E4D   3E 24                  LD   a,024h   
+0E4F   CD 81 0E               CALL   sub_0e81h   
+0E52   3E 35                  LD   a,035h   
+0E54   CD 81 0E               CALL   sub_0e81h   
+0E57   3E 12                  LD   a,012h   
+0E59   CD 81 0E               CALL   sub_0e81h   
+0E5C   C9                     RET      
+0E5D                SUB_0E5DH:      
+0E5D   2E CE                  LD   l,0ceh   
+0E5F   77                     LD   (hl),a   
+0E60   23                     INC   hl   
+0E61   77                     LD   (hl),a   
+0E62   C9                     RET      
+0E63                SUB_0E63H:      
+0E63   2E A8                  LD   l,0a8h   
+0E65   CD 77 0E               CALL   sub_0e77h   
+0E68   CB 0B                  RRC   e   
+0E6A   2E AA                  LD   l,0aah   
+0E6C   CD 77 0E               CALL   sub_0e77h   
+0E6F   CB 0B                  RRC   e   
+0E71   2E AC                  LD   l,0ach   
+0E73   CD 77 0E               CALL   sub_0e77h   
+0E76   C9                     RET      
+0E77                SUB_0E77H:      
+0E77   06 04                  LD   b,004h   
+0E79                L0E79H:      
+0E79   3E 06                  LD   a,006h   
+0E7B   73                     LD   (hl),e   
+0E7C   85                     ADD   a,l   
+0E7D   6F                     LD   l,a   
+0E7E   10 F9                  DJNZ   l0e79h   
+0E80   C9                     RET      
+0E81                SUB_0E81H:      
+0E81   77                     LD   (hl),a   
+0E82   23                     INC   hl   
+0E83   77                     LD   (hl),a   
+0E84   23                     INC   hl   
+0E85   23                     INC   hl   
+0E86   23                     INC   hl   
+0E87   C9                     RET      
+0E88                SUB_0E88H:      
+0E88   06 04                  LD   b,004h   
+0E8A   2E A2                  LD   l,0a2h   
+0E8C                L0E8CH:      
+0E8C   BE                     CP   (hl)   
+0E8D   28 03                  JR   z,l0e92h   
+0E8F   3D                     DEC   a   
+0E90   10 FA                  DJNZ   l0e8ch   
+0E92                L0E92H:      
+0E92   C9                     RET      
+0E93   EB                     EX   de,hl   
+0E94   28 CD                  JR   z,sub_0e63h   
+0E96   AD                     XOR   l   
+0E97   2E A7                  LD   l,0a7h   
+0E99   E7                     RST   20h   
+0E9A   29                     ADD   hl,hl   
+0E9B   EF                     RST   28h   
+0E9C   AF                     XOR   a   
+0E9D   FD FD FF               DB   0fdh,0fdh,0ffh   ;illegal sequence
+0EA0   00                     NOP      
+0EA1                L0EA1H:      
+0EA1   00                     NOP      
+0EA2   01 03 03               LD   bc,00303h   
+0EA5   14                     INC   d   
+0EA6   20 10                  JR   nz,l0eb8h   
+0EA8   40                     LD   b,b   
+0EA9   10 20                  DJNZ   l0ecbh   
+0EAB   10 10                  DJNZ   $+18   
+0EAD   08                     EX   af,af'   
+0EAE   40                     LD   b,b   
+0EAF   08                     EX   af,af'   
+0EB0   20 08                  JR   nz,l0ebah   
+0EB2   10 04                  DJNZ   l0eb8h   
+0EB4   40                     LD   b,b   
+0EB5   04                     INC   b   
+0EB6   20 04                  JR   nz,l0ebch   
+0EB8                L0EB8H:      
+0EB8   10 02                  DJNZ   l0ebch   
+0EBA                L0EBAH:      
+0EBA   40                     LD   b,b   
+0EBB   02                     LD   (bc),a   
+0EBC                L0EBCH:      
+0EBC   20 02                  JR   nz,l0ec0h   
+0EBE   10 01                  DJNZ   l0ec1h   
+0EC0                L0EC0H:      
+0EC0   04                     INC   b   
+0EC1                L0EC1H:      
+0EC1   04                     INC   b   
+0EC2                L0EC2H:      
+0EC2   08                     EX   af,af'   
+0EC3   04                     INC   b   
+0EC4                L0EC4H:      
+0EC4   04                     INC   b   
+0EC5   08                     EX   af,af'   
+0EC6                L0EC6H:      
+0EC6   02                     LD   (bc),a   
+0EC7   00                     NOP      
+0EC8   00                     NOP      
+0EC9                L0EC9H:      
+0EC9   00                     NOP      
+0ECA   00                     NOP      
+0ECB                L0ECBH:      
+0ECB   00                     NOP      
+0ECC   00                     NOP      
+0ECD   0C                     INC   c   
+0ECE   34                     INC   (hl)   
+0ECF   1D                     DEC   e   
+0ED0   00                     NOP      
+0ED1   FF                     RST   38h   
+0ED2                L0ED2H:      
+0ED2   01 10 25               LD   bc,02510h   
+0ED5   25                     DEC   h   
+0ED6                L0ED6H:      
+0ED6   01 16 46               LD   bc,04616h   
+0ED9   46                     LD   b,(hl)   
+0EDA                L0EDAH:      
+0EDA   01 0B 20               LD   bc,0200bh   
+0EDD   20 01                  JR   nz,l0ee0h   
+0EDF   1A                     LD   a,(de)   
+0EE0                L0EE0H:      
+0EE0   14                     INC   d   
+0EE1   14                     INC   d   
+0EE2   03                     INC   bc   
+0EE3   03                     INC   bc   
+0EE4   03                     INC   bc   
+0EE5   03                     INC   bc   
+0EE6   96                     SUB   (hl)   
+0EE7   93                     SUB   e   
+0EE8   93                     SUB   e   
+0EE9   93                     SUB   e   
+0EEA   00                     NOP      
+0EEB   FF                     RST   38h   
+0EEC   00                     NOP      
+0EED   FF                     RST   38h   
+0EEE   00                     NOP      
+0EEF   FF                     RST   38h   
+0EF0   00                     NOP      
+0EF1   FF                     RST   38h   
+0EF2   00                     NOP      
+0EF3   FF                     RST   38h   
+0EF4   00                     NOP      
+0EF5   FF                     RST   38h   
+0EF6   00                     NOP      
+0EF7   DF                     RST   18h   
+0EF8   00                     NOP      
+0EF9   FF                     RST   38h   
+0EFA   40                     LD   b,b   
+0EFB   FF                     RST   38h   
+0EFC   00                     NOP      
+0EFD   FF                     RST   38h   
+0EFE   D4 04 00               CALL   nc,00004h   
+0F01   FD 00 FF               DB   0fdh,000h,0ffh   ;illegal sequence
+0F04   00                     NOP      
+0F05   FF                     RST   38h   
+0F06   00                     NOP      
+0F07   F7                     RST   30h   
+0F08   AF                     XOR   a   
+0F09   52                     LD   d,d   
+0F0A   00                     NOP      
+0F0B   FF                     RST   38h   
+0F0C   00                     NOP      
+0F0D   FF                     RST   38h   
+0F0E   00                     NOP      
+0F0F   FF                     RST   38h   
+0F10   00                     NOP      
+0F11   FF                     RST   38h   
+0F12   00                     NOP      
+0F13   FF                     RST   38h   
+0F14   00                     NOP      
+0F15   FF                     RST   38h   
+0F16   00                     NOP      
+0F17   FF                     RST   38h   
+0F18   00                     NOP      
+0F19   FF                     RST   38h   
+0F1A   00                     NOP      
+0F1B   FB                     EI      
+0F1C   00                     NOP      
+0F1D   FF                     RST   38h   
+0F1E   00                     NOP      
+0F1F   FF                     RST   38h   
+0F20   00                     NOP      
+0F21   AF                     XOR   a   
+0F22   00                     NOP      
+0F23   FF                     RST   38h   
+0F24   00                     NOP      
+0F25   FF                     RST   38h   
+0F26   00                     NOP      
+0F27   FF                     RST   38h   
+0F28   00                     NOP      
+0F29   FF                     RST   38h   
+0F2A   00                     NOP      
+0F2B   FF                     RST   38h   
+0F2C   00                     NOP      
+0F2D   FF                     RST   38h   
+0F2E   04                     INC   b   
+0F2F   AF                     XOR   a   
+0F30   00                     NOP      
+0F31   D7                     RST   10h   
+0F32   00                     NOP      
+0F33   FF                     RST   38h   
+0F34   00                     NOP      
+0F35   FF                     RST   38h   
+0F36   00                     NOP      
+0F37   7F                     LD   a,a   
+0F38   00                     NOP      
+0F39   FF                     RST   38h   
+0F3A   00                     NOP      
+0F3B   F7                     RST   30h   
+0F3C   00                     NOP      
+0F3D   FF                     RST   38h   
+0F3E   00                     NOP      
+0F3F   FF                     RST   38h   
+0F40   00                     NOP      
+0F41   FF                     RST   38h   
+0F42   00                     NOP      
+0F43   FF                     RST   38h   
+0F44   00                     NOP      
+0F45   FF                     RST   38h   
+0F46   00                     NOP      
+0F47   FF                     RST   38h   
+0F48   00                     NOP      
+0F49   FB                     EI      
+0F4A   00                     NOP      
+0F4B   FF                     RST   38h   
+0F4C   10 FF                  DJNZ   $+1   
+0F4E   00                     NOP      
+0F4F   FF                     RST   38h   
+0F50   00                     NOP      
+0F51   FF                     RST   38h   
+0F52   00                     NOP      
+0F53   FF                     RST   38h   
+0F54   00                     NOP      
+0F55   FF                     RST   38h   
+0F56   00                     NOP      
+0F57   D7                     RST   10h   
+0F58   00                     NOP      
+0F59   FF                     RST   38h   
+0F5A   00                     NOP      
+0F5B   FF                     RST   38h   
+0F5C   00                     NOP      
+0F5D   FF                     RST   38h   
+0F5E   00                     NOP      
+0F5F   DF                     RST   18h   
+0F60   00                     NOP      
+0F61   7B                     LD   a,e   
+0F62   00                     NOP      
+0F63   FF                     RST   38h   
+0F64   00                     NOP      
+0F65   FB                     EI      
+0F66   00                     NOP      
+0F67   FF                     RST   38h   
+0F68   00                     NOP      
+0F69   FF                     RST   38h   
+0F6A   00                     NOP      
+0F6B   FF                     RST   38h   
+0F6C   00                     NOP      
+0F6D   FF                     RST   38h   
+0F6E   00                     NOP      
+0F6F   FF                     RST   38h   
+0F70   00                     NOP      
+0F71   7F                     LD   a,a   
+0F72   00                     NOP      
+0F73   FF                     RST   38h   
+0F74   00                     NOP      
+0F75   FF                     RST   38h   
+0F76   00                     NOP      
+0F77   BE                     CP   (hl)   
+0F78   00                     NOP      
+0F79   BF                     CP   a   
+0F7A   00                     NOP      
+0F7B   FF                     RST   38h   
+0F7C   00                     NOP      
+0F7D   FF                     RST   38h   
+0F7E   00                     NOP      
+0F7F   FF                     RST   38h   
+0F80   00                     NOP      
+0F81   FF                     RST   38h   
+0F82   00                     NOP      
+0F83   FF                     RST   38h   
+0F84   00                     NOP      
+0F85   FF                     RST   38h   
+0F86   00                     NOP      
+0F87   FF                     RST   38h   
+0F88   BF                     CP   a   
+0F89   A2                     AND   d   
+0F8A   00                     NOP      
+0F8B   FF                     RST   38h   
+0F8C   36 05                  LD   (hl),005h   
+0F8E   FD 05 00               DB   0fdh,005h,000h   ;illegal sequence
+0F91   3F                     CCF      
+0F92   00                     NOP      
+0F93   FF                     RST   38h   
+0F94   00                     NOP      
+0F95   FF                     RST   38h   
+0F96   00                     NOP      
+0F97   FF                     RST   38h   
+0F98   00                     NOP      
+0F99   F9                     LD   sp,hl   
+0F9A   00                     NOP      
+0F9B   FF                     RST   38h   
+0F9C   00                     NOP      
+0F9D   FF                     RST   38h   
+0F9E   00                     NOP      
+0F9F   BF                     CP   a   
+0FA0   00                     NOP      
+0FA1   FF                     RST   38h   
+0FA2   00                     NOP      
+0FA3   FF                     RST   38h   
+0FA4   00                     NOP      
+0FA5   FF                     RST   38h   
+0FA6   00                     NOP      
+0FA7   FF                     RST   38h   
+0FA8   00                     NOP      
+0FA9   EF                     RST   28h   
+0FAA   00                     NOP      
+0FAB   FF                     RST   38h   
+0FAC   00                     NOP      
+0FAD   FF                     RST   38h   
+0FAE   00                     NOP      
+0FAF   9F                     SBC   a,a   
+0FB0   00                     NOP      
+0FB1   BF                     CP   a   
+0FB2   00                     NOP      
+0FB3   FF                     RST   38h   
+0FB4   00                     NOP      
+0FB5   FF                     RST   38h   
+0FB6   00                     NOP      
+0FB7   FB                     EI      
+0FB8   00                     NOP      
+0FB9   FF                     RST   38h   
+0FBA   00                     NOP      
+0FBB   FF                     RST   38h   
+0FBC   00                     NOP      
+0FBD   FF                     RST   38h   
+0FBE   00                     NOP      
+0FBF   FF                     RST   38h   
+0FC0   00                     NOP      
+0FC1   FA 00 FF               JP   m,0ff00h   
+0FC4   00                     NOP      
+0FC5   FF                     RST   38h   
+0FC6   00                     NOP      
+0FC7   D3 00                  OUT   (000h),a   
+0FC9   DF                     RST   18h   
+0FCA   00                     NOP      
+0FCB   DF                     RST   18h   
+0FCC   00                     NOP      
+0FCD   FF                     RST   38h   
+0FCE   F7                     RST   30h   
+0FCF   03                     INC   bc   
+0FD0   00                     NOP      
+0FD1   FF                     RST   38h   
+0FD2   00                     NOP      
+0FD3   FF                     RST   38h   
+0FD4   00                     NOP      
+0FD5   F7                     RST   30h   
+0FD6   00                     NOP      
+0FD7   FF                     RST   38h   
+0FD8   00                     NOP      
+0FD9   7F                     LD   a,a   
+0FDA   00                     NOP      
+0FDB   7F                     LD   a,a   
+0FDC   00                     NOP      
+0FDD   F7                     RST   30h   
+0FDE   F7                     RST   30h   
+0FDF   31 00 FF               LD   sp,0ff00h   
+0FE2   00                     NOP      
+0FE3   FF                     RST   38h   
+0FE4   00                     NOP      
+0FE5   FF                     RST   38h   
+0FE6   00                     NOP      
+0FE7   DF                     RST   18h   
+0FE8   00                     NOP      
+0FE9   BF                     CP   a   
+0FEA   00                     NOP      
+0FEB   FF                     RST   38h   
+0FEC   00                     NOP      
+0FED   FF                     RST   38h   
+0FEE   00                     NOP      
+0FEF   FF                     RST   38h   
+0FF0   00                     NOP      
+0FF1   F9                     LD   sp,hl   
+0FF2   00                     NOP      
+0FF3   FF                     RST   38h   
+0FF4   00                     NOP      
+0FF5   FF                     RST   38h   
+0FF6   00                     NOP      
+0FF7   CF                     RST   8   
+0FF8   00                     NOP      
+0FF9   DF                     RST   18h   
+0FFA   00                     NOP      
+0FFB   FF                     RST   38h   
+0FFC   00                     NOP      
+0FFD   FF                     RST   38h   
+0FFE   FD 00                  DB   0fdh,000h   
+
+
+L0924H:             0924 DEFINED AT LINE 32
+                    > USED AT LINE 35
+L092EH:             092E DEFINED AT LINE 38
+                    > USED AT LINE 49
+L0942H:             0942 DEFINED AT LINE 51
+                    > USED AT LINE 56
+L0944H:             0944 DEFINED AT LINE 53
+                    > USED AT LINE 54
+L0955H:             0955 DEFINED AT LINE 63
+                    > USED AT LINE 70
+L096EH:             096E DEFINED AT LINE 78
+                    > USED AT LINE 142
+                    > USED AT LINE 147
+                    > USED AT LINE 161
+                    > USED AT LINE 304
+                    > USED AT LINE 757
+L0972H:             0972 DEFINED AT LINE 81
+                    > USED AT LINE 89
+L0998H:             0998 DEFINED AT LINE 105
+                    > USED AT LINE 98
+L09B6H:             09B6 DEFINED AT LINE 121
+                    > USED AT LINE 133
+L09B7H:             09B7 DEFINED AT LINE 123
+                    > USED AT LINE 120
+SUB_09C7H:          09C7 DEFINED AT LINE 134
+                    > USED AT LINE 75
+                    > USED AT LINE 155
+                    > USED AT LINE 243
+                    > USED AT LINE 279
+                    > USED AT LINE 316
+L09D3H:             09D3 DEFINED AT LINE 144
+                    > USED AT LINE 138
+L09F1H:             09F1 DEFINED AT LINE 162
+                    > USED AT LINE 150
+L09FAH:             09FA DEFINED AT LINE 168
+                    > USED AT LINE 193
+L09FCH:             09FC DEFINED AT LINE 170
+                    > USED AT LINE 189
+L0A0FH:             0A0F DEFINED AT LINE 185
+                    > USED AT LINE 173
+L0A10H:             0A10 DEFINED AT LINE 187
+                    > USED AT LINE 177
+L0A1BH:             0A1B DEFINED AT LINE 195
+                    > USED AT LINE 184
+L0A37H:             0A37 DEFINED AT LINE 212
+                    > USED AT LINE 165
+                    > USED AT LINE 194
+L0A53H:             0A53 DEFINED AT LINE 230
+                    > USED AT LINE 245
+L0A72H:             0A72 DEFINED AT LINE 248
+                    > USED AT LINE 215
+L0A76H:             0A76 DEFINED AT LINE 251
+                    > USED AT LINE 264
+L0A82H:             0A82 DEFINED AT LINE 260
+                    > USED AT LINE 254
+L0A83H:             0A83 DEFINED AT LINE 262
+                    > USED AT LINE 259
+L0A88H:             0A88 DEFINED AT LINE 266
+                    > USED AT LINE 258
+L0AAFH:             0AAF DEFINED AT LINE 290
+                    > USED AT LINE 301
+L0AC7H:             0AC7 DEFINED AT LINE 305
+                    > USED AT LINE 286
+L0ACBH:             0ACB DEFINED AT LINE 308
+                    > USED AT LINE 312
+L0ADCH:             0ADC DEFINED AT LINE 319
+                    > USED AT LINE 265
+L0AFBH:             0AFB DEFINED AT LINE 338
+                    > USED AT LINE 344
+L0B06H:             0B06 DEFINED AT LINE 346
+                    > USED AT LINE 340
+L0B0BH:             0B0B DEFINED AT LINE 350
+                    > USED AT LINE 385
+L0B0EH:             0B0E DEFINED AT LINE 353
+                    > USED AT LINE 349
+L0B14H:             0B14 DEFINED AT LINE 357
+                    > USED AT LINE 362
+L0B1DH:             0B1D DEFINED AT LINE 364
+                    > USED AT LINE 359
+L0B23H:             0B23 DEFINED AT LINE 368
+                    > USED AT LINE 363
+L0B27H:             0B27 DEFINED AT LINE 371
+                    > USED AT LINE 375
+L0B2FH:             0B2F DEFINED AT LINE 377
+                    > USED AT LINE 334
+L0B32H:             0B32 DEFINED AT LINE 380
+                    > USED AT LINE 394
+                    > USED AT LINE 400
+                    > USED AT LINE 406
+L0B36H:             0B36 DEFINED AT LINE 383
+                    > USED AT LINE 389
+L0B47H:             0B47 DEFINED AT LINE 395
+                    > USED AT LINE 392
+L0B4FH:             0B4F DEFINED AT LINE 401
+                    > USED AT LINE 398
+L0B57H:             0B57 DEFINED AT LINE 407
+                    > USED AT LINE 345
+                    > USED AT LINE 376
+                    > USED AT LINE 404
+L0B5CH:             0B5C DEFINED AT LINE 412
+                    > USED AT LINE 324
+L0B81H:             0B81 DEFINED AT LINE 435
+                    > USED AT LINE 428
+L0B89H:             0B89 DEFINED AT LINE 440
+                    > USED AT LINE 416
+L0B98H:             0B98 DEFINED AT LINE 450
+                    > USED AT LINE 424
+                    > USED AT LINE 434
+                    > USED AT LINE 439
+                    > USED AT LINE 443
+L0BABH:             0BAB DEFINED AT LINE 462
+                    > USED AT LINE 453
+L0BB1H:             0BB1 DEFINED AT LINE 466
+                    > USED AT LINE 461
+L0BBEH:             0BBE DEFINED AT LINE 475
+                    > USED AT LINE 470
+L0BCAH:             0BCA DEFINED AT LINE 483
+                    > USED AT LINE 473
+                    > USED AT LINE 478
+                    > USED AT LINE 481
+L0BE4H:             0BE4 DEFINED AT LINE 500
+                    > USED AT LINE 460
+                    > USED AT LINE 465
+                    > USED AT LINE 487
+                    > USED AT LINE 490
+L0BF5H:             0BF5 DEFINED AT LINE 511
+                    > USED AT LINE 507
+L0BFEH:             0BFE DEFINED AT LINE 518
+                    > USED AT LINE 510
+L0C00H:             0C00 DEFINED AT LINE 520
+                    > USED AT LINE 504
+                    > USED AT LINE 516
+L0C18H:             0C18 DEFINED AT LINE 537
+                    > USED AT LINE 524
+L0C2FH:             0C2F DEFINED AT LINE 555
+                    > USED AT LINE 564
+L0C38H:             0C38 DEFINED AT LINE 561
+                    > USED AT LINE 557
+L0C42H:             0C42 DEFINED AT LINE 569
+                    > USED AT LINE 560
+L0C48H:             0C48 DEFINED AT LINE 574
+                    > USED AT LINE 532
+L0C50H:             0C50 DEFINED AT LINE 579
+                    > USED AT LINE 528
+                    > USED AT LINE 536
+                    > USED AT LINE 542
+                    > USED AT LINE 550
+L0C68H:             0C68 DEFINED AT LINE 596
+                    > USED AT LINE 583
+L0C7FH:             0C7F DEFINED AT LINE 614
+                    > USED AT LINE 623
+L0C88H:             0C88 DEFINED AT LINE 620
+                    > USED AT LINE 616
+L0C92H:             0C92 DEFINED AT LINE 628
+                    > USED AT LINE 619
+L0C98H:             0C98 DEFINED AT LINE 633
+                    > USED AT LINE 591
+L0CA0H:             0CA0 DEFINED AT LINE 638
+                    > USED AT LINE 587
+                    > USED AT LINE 595
+                    > USED AT LINE 601
+                    > USED AT LINE 609
+L0CB8H:             0CB8 DEFINED AT LINE 655
+                    > USED AT LINE 642
+L0CCFH:             0CCF DEFINED AT LINE 673
+                    > USED AT LINE 682
+L0CD8H:             0CD8 DEFINED AT LINE 679
+                    > USED AT LINE 675
+L0CE2H:             0CE2 DEFINED AT LINE 687
+                    > USED AT LINE 678
+L0CE8H:             0CE8 DEFINED AT LINE 692
+                    > USED AT LINE 650
+L0CF0H:             0CF0 DEFINED AT LINE 697
+                    > USED AT LINE 646
+                    > USED AT LINE 654
+                    > USED AT LINE 660
+                    > USED AT LINE 668
+L0D08H:             0D08 DEFINED AT LINE 714
+                    > USED AT LINE 701
+L0D1FH:             0D1F DEFINED AT LINE 732
+                    > USED AT LINE 741
+L0D28H:             0D28 DEFINED AT LINE 738
+                    > USED AT LINE 734
+L0D32H:             0D32 DEFINED AT LINE 746
+                    > USED AT LINE 737
+L0D38H:             0D38 DEFINED AT LINE 751
+                    > USED AT LINE 709
+L0D40H:             0D40 DEFINED AT LINE 756
+                    > USED AT LINE 705
+                    > USED AT LINE 713
+                    > USED AT LINE 719
+                    > USED AT LINE 727
+SUB_0D43H:          0D43 DEFINED AT LINE 758
+                    > USED AT LINE 87
+                    > USED AT LINE 94
+                    > USED AT LINE 104
+                    > USED AT LINE 110
+                    > USED AT LINE 115
+                    > USED AT LINE 130
+L0D46H:             0D46 DEFINED AT LINE 761
+                    > USED AT LINE 762
+SUB_0D4FH:          0D4F DEFINED AT LINE 768
+                    > USED AT LINE 44
+                    > USED AT LINE 61
+                    > USED AT LINE 68
+                    > USED AT LINE 211
+                    > USED AT LINE 238
+                    > USED AT LINE 278
+                    > USED AT LINE 296
+                    > USED AT LINE 331
+                    > USED AT LINE 499
+                    > USED AT LINE 783
+L0D56H:             0D56 DEFINED AT LINE 773
+                    > USED AT LINE 774
+L0D5CH:             0D5C DEFINED AT LINE 778
+                    > USED AT LINE 779
+SUB_0D64H:          0D64 DEFINED AT LINE 785
+                    > USED AT LINE 365
+L0D66H:             0D66 DEFINED AT LINE 787
+                    > USED AT LINE 797
+                    > USED AT LINE 801
+L0D6FH:             0D6F DEFINED AT LINE 793
+                    > USED AT LINE 794
+SUB_0D80H:          0D80 DEFINED AT LINE 804
+                    > USED AT LINE 206
+                    > USED AT LINE 233
+                    > USED AT LINE 817
+L0D86H:             0D86 DEFINED AT LINE 808
+                    > USED AT LINE 814
+L0D8FH:             0D8F DEFINED AT LINE 815
+                    > USED AT LINE 811
+SUB_0D93H:          0D93 DEFINED AT LINE 819
+                    > USED AT LINE 36
+                    > USED AT LINE 160
+L0D9EH:             0D9E DEFINED AT LINE 825
+                    > USED AT LINE 831
+L0DA9H:             0DA9 DEFINED AT LINE 832
+                    > USED AT LINE 827
+SUB_0DB1H:          0DB1 DEFINED AT LINE 837
+                    > USED AT LINE 824
+                    > USED AT LINE 830
+                    > USED AT LINE 835
+                    > USED AT LINE 841
+L0DB7H:             0DB7 DEFINED AT LINE 843
+                    > USED AT LINE 836
+SUB_0DD5H:          0DD5 DEFINED AT LINE 861
+                    > USED AT LINE 856
+                    > USED AT LINE 859
+L0DD7H:             0DD7 DEFINED AT LINE 863
+                    > USED AT LINE 868
+L0DDFH:             0DDF DEFINED AT LINE 870
+                    > USED AT LINE 860
+L0DE3H:             0DE3 DEFINED AT LINE 873
+                    > USED AT LINE 876
+L0E12H:             0E12 DEFINED AT LINE 896
+                    > USED AT LINE 881
+L0E3CH:             0E3C DEFINED AT LINE 916
+                    > USED AT LINE 901
+SUB_0E5DH:          0E5D DEFINED AT LINE 931
+                    > USED AT LINE 883
+                    > USED AT LINE 903
+                    > USED AT LINE 918
+SUB_0E63H:          0E63 DEFINED AT LINE 937
+                    > USED AT LINE 885
+                    > USED AT LINE 905
+                    > USED AT LINE 920
+                    > USED AT LINE 975
+SUB_0E77H:          0E77 DEFINED AT LINE 947
+                    > USED AT LINE 939
+                    > USED AT LINE 942
+                    > USED AT LINE 945
+L0E79H:             0E79 DEFINED AT LINE 949
+                    > USED AT LINE 954
+SUB_0E81H:          0E81 DEFINED AT LINE 956
+                    > USED AT LINE 888
+                    > USED AT LINE 890
+                    > USED AT LINE 892
+                    > USED AT LINE 894
+                    > USED AT LINE 908
+                    > USED AT LINE 910
+                    > USED AT LINE 912
+                    > USED AT LINE 914
+                    > USED AT LINE 923
+                    > USED AT LINE 925
+                    > USED AT LINE 927
+                    > USED AT LINE 929
+SUB_0E88H:          0E88 DEFINED AT LINE 964
+                    > USED AT LINE 878
+                    > USED AT LINE 898
+L0E8CH:             0E8C DEFINED AT LINE 967
+                    > USED AT LINE 971
+L0E92H:             0E92 DEFINED AT LINE 972
+                    > USED AT LINE 969
+L0EA1H:             0EA1 DEFINED AT LINE 984
+                    > USED AT LINE 9
+L0EB8H:             0EB8 DEFINED AT LINE 1000
+                    > USED AT LINE 988
+                    > USED AT LINE 996
+L0EBAH:             0EBA DEFINED AT LINE 1002
+                    > USED AT LINE 995
+L0EBCH:             0EBC DEFINED AT LINE 1005
+                    > USED AT LINE 999
+                    > USED AT LINE 1001
+L0EC0H:             0EC0 DEFINED AT LINE 1008
+                    > USED AT LINE 559
+                    > USED AT LINE 1006
+L0EC1H:             0EC1 DEFINED AT LINE 1010
+                    > USED AT LINE 1007
+L0EC2H:             0EC2 DEFINED AT LINE 1012
+                    > USED AT LINE 618
+L0EC4H:             0EC4 DEFINED AT LINE 1015
+                    > USED AT LINE 677
+L0EC6H:             0EC6 DEFINED AT LINE 1018
+                    > USED AT LINE 736
+L0EC9H:             0EC9 DEFINED AT LINE 1022
+                    > USED AT LINE 171
+                    > USED AT LINE 217
+L0ECBH:             0ECB DEFINED AT LINE 1025
+                    > USED AT LINE 990
+L0ED2H:             0ED2 DEFINED AT LINE 1033
+                    > USED AT LINE 535
+L0ED6H:             0ED6 DEFINED AT LINE 1036
+                    > USED AT LINE 594
+L0EDAH:             0EDA DEFINED AT LINE 1039
+                    > USED AT LINE 653
+L0EE0H:             0EE0 DEFINED AT LINE 1043
+                    > USED AT LINE 1041
