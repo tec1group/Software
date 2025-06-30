@@ -62,7 +62,7 @@ Uses the LCD screen.  Instructions to play the game are given in the game.
 ### TEC Runner
 ``LCDRUN.HEX`` - Load running Jumping game.
 
-The runner is on the left, coming towards the runner from the right are walls.  By pressing the `Plus` button, the runner will attempt to jump on a wall.  Timing is everything.  Every time the runner jumps, the game gets faster.  How far you can travel without loosing your head.
+The runner is on the left, coming towards the runner from the right are walls.  By pressing the `Plus` button, the runner will attempt to jump on a wall.  Timing is everything.  Every time the runner jumps, the game gets faster.  How far you can travel without loosing your head.  If you have read this far, to activate cheat mode, press AD in the menu screen before pressing GO...
 
 ## Graphical LCD (GLCD) Programs
 ### Terminal Emulator
