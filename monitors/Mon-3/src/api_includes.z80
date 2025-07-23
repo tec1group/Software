@@ -57,6 +57,11 @@ parseMatrixScan_  .equ 54
 LCDConfirm_       .equ 55
 getGLCDTerm_      .equ 56
 setGLCDTerm_      .equ 57
+loadFromDisk_     .equ 58
+openFile_         .equ 59
+readSector_       .equ 60
+writeSector_      .equ 61
+RGBScan_          .equ 62
 
 APINames2:
 initLCD_          .equ 0  ;Initalise the LCD
@@ -80,7 +85,7 @@ setBufClear_      .equ 17 ;Clear the Graphics buffer on after Plotting to the sc
 setBufNoClear_    .equ 18 ;Retain the Graphics buffer on after Plotting to the screen
 clearPixel_       .equ 19 ;Remove a Pixel at X,Y
 flipPixel_        .equ 20 ;Flip a Pixel On/Off at X,Y
-drawGraphic_      .equ 21 ;Draw an ASCII charcter or Sprite to the LCD
+drawGraphic_      .equ 21 ;Draw an ASCII character or Sprite to the LCD
 invGraphic_       .equ 22 ;Inverse graphics printing
 initTerminal_     .equ 23 ;Initialize the LCD for terminal emulation
 sendCharToLCD_    .equ 24 ;Send an ASCII Character to the LCD
@@ -90,7 +95,9 @@ sendHLToLCD_      .equ 27 ;Send register HL to the LCD
 setCursor_        .equ 28 ;Set the graphics cursor
 getCursor_        .equ 29 ;Get the current cursor
 displayCursor_    .equ 30 ;Turn Cursor on or off
-
+autoLF_           .equ 31 ;Toggle the terminal auto LF on and off
+underline_        .equ 32 ;Set the underline mode on or off
+plotAlways_       .equ 33 ;Plot the graphics buffer to the LCD on sentCharToLCD
 
 RTCAPINames:                    ; B register value for RTCAPI call
 checkDS1302_      .equ 00

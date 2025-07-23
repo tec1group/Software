@@ -668,10 +668,10 @@ DS_EXIT:
         JP (HL)
         
 ;Print Characters at a position X,Y
-;Eventhough there are 16 columns, only every second column can be written
+;Even though there are 16 columns, only every second column can be written
 ;to and two characters are to be printed.  IE: if you want to print one
 ;character in column 2, then you must set B=0 and print " x", putting
-;a space before the chracter.
+;a space before the character.
 ;Input B = column/X (0-7), C = row/Y (0-3)
 ;      HL = Start address of text to display, terminate with 0
 printChars:
@@ -732,14 +732,17 @@ initTerminal:
         XOR A                   ;Clear A
         LD (CURSOR_ON),A        ;Cursor ON
         LD (INVERSE),A          ;Inverse OFF
+        LD (AUTO_LF),A          ;Auto LF ON
+        LD (ULINE),A            ;UnderLine OFF
+        LD (PLOT_ALWAYS),A      ;Plot always ON
         LD BC,0000H
         CALL setCursor          ;Move cursor to top left
         JR DRAW_CURSOR          ;Draw Cursor and exit
 
 ;Send or handle ASCII characters to the GLCD screen.  This routines displays
-;ASCII charcters to the GLCD screen and handles some special control characters
-;It also handles srolling history of 10 lines.  Characters are drawn at the 
-;current cursor position.  Cursor increments if characger is drawn.
+;ASCII characters to the GLCD screen and handles some special control characters
+;It also handles scrolling history of 10 lines.  Characters are drawn at the 
+;current cursor position.  Cursor increments if character is drawn.
 ;       CR / 0DH = will move the cursor down and reset it column
 ;       LF / 0AH = is ignored
 ;       FF / 0CH = clears the terminal (restarts)
@@ -747,7 +750,7 @@ initTerminal:
 ;       HT / 09H = will TAB 4 spaces
 ;       UP / 05H = will scroll up one line if any
 ;       DN / 06H = will scroll down one line if any
-;Input: C = ASCII charcter to send to the GLCD screen.
+;Input: C = ASCII character to send to the GLCD screen.
 ;       C = 0  cursor drawn only
 sendCharToLCD:
         ;Check for special characters
@@ -773,8 +776,12 @@ DO_CR:
         RET Z
         CP CR      ;CR
         JR NZ,DO_FF
-        LD D,SPACE              ;Clear Cursor
-        CALL drawGraphic
+        LD A,(CURSOR_X)         ;Are we on the first column?
+        OR A
+        PUSH AF
+        CALL Z,drawCursor
+        POP AF
+        CALL NZ,drawBlank          ;Clear cursor
         CALL INC_ROW
         LD (CURSOR_YS),A        ;Save start row
         JR DRAW_CURSOR
@@ -784,15 +791,14 @@ DO_FF:
 DO_BS:
         CP BKSP                 ;Backspace
         JR NZ,DO_TAB
-        LD D,SPACE              ;Space
-        CALL drawGraphic
+        CALL drawBlank          ;Clear cursor
         CALL DEC_CURSOR
+        CALL drawBlank
         JR DRAW_CURSOR
 DO_TAB:
         CP TAB                  ;Horizontal Tab
         JR NZ,DO_CHAR
-        LD D,SPACE              ;Space
-        CALL drawGraphic
+        CALL drawBlank          ;Clear cursor
         CALL INC_CURSOR
         CALL INC_CURSOR
         CALL INC_CURSOR
@@ -803,12 +809,11 @@ DO_CHAR:
         CALL drawGraphic
         CALL INC_CURSOR
 DRAW_CURSOR:
-        LD A,(CURSOR_ON)
+        CALL drawCursor         ;Attempt to Draw cursor
+JUST_PLOT:
+        LD A,(PLOT_ALWAYS)      ;Only plot if set
         OR A
-        LD D,SPACE              ;Space
-        JR NZ,$+4               ;Skip cursor draw
-        LD D,CURSOR             ;Cursor
-        CALL drawGraphic
+        RET NZ                  ;Exit if not set
         JP plotToLCD          ;Plot screen and exit
 
 ;Send a string of characters to the GLCD.  Prints a string pointed 
@@ -823,9 +828,15 @@ NEXT_CHAR:
         LD A,(DE)               ;Get character
         INC DE                  ;Move pointer
         CP B                    ;Same as B?
-        JR Z,DRAW_CURSOR        ;Yes exit and plot LCD screen
+        JR Z,JUST_PLOT          ;Yes exit and plot LCD screen
         CP CR                   ;Is it a CR?
-        JR Z,DO_CR              ;Yes do a CR and plot LCD screen and exit
+        JR NZ,CHECK_FF
+        LD HL,TGBUF
+        LD (VPORT),HL
+        CALL INC_ROW
+        LD (CURSOR_YS),A        ;Save start row
+        JR JUST_PLOT
+CHECK_FF:
         CP FF                   ;Is it a FF?
         JR Z,DO_FF              ;Yes do a Form Feed and plot LCD screen and exit
         EXX                     ;Save bulk registers
@@ -834,7 +845,7 @@ NEXT_CHAR:
         CALL INC_CURSOR         ;Move cursor by one
         EXX                     ;Restore bulk registers
         JR NEXT_CHAR            ;Repeat for next character
-        RET     
+        RET
 
 ;Display a register in ASCII on the GLCD
 ;Input: C = value to convert and display
@@ -907,6 +918,9 @@ INC_CURSOR:
 INC_ROW:
         XOR A
         LD (CURSOR_X),A         ;reset column to 0
+        LD A,(AUTO_LF)          ;Check for AutoLF
+        OR A
+        RET NZ                  ;Don't CR and exit
         LD A,(CURSOR_Y)         ;get row
         ADD A,6                 ;Add 6
         CP 60                   ;Is it >= 60
@@ -1012,6 +1026,8 @@ getCursor:
 displayCursor:
         LD A,C
         LD (CURSOR_ON),A
+        OR A
+        JP NZ,drawBlank
         JP DRAW_CURSOR
 
 ;Inverse Graphic Drawing
@@ -1021,6 +1037,32 @@ invGraphic:
         LD A,(INVERSE)
         CPL                 ;flip bits
         LD (INVERSE),A
+        RET
+
+;Display underline on character
+;Initial state is no underline.  Calling this routine will TOGGLE the underline flag
+;Destroys: A
+underline:
+        LD A,(ULINE)
+        CPL                 ;flip bits
+        LD (ULINE),A
+        RET
+
+;Automatic Line Feed when cursor reaches the end of the row
+;Input: C = 0, Automatic Line Feed, C = non zero, No Automatic Line Feed
+;Default is AutoLF ON
+autoLF:
+        LD A,C
+        LD (AUTO_LF),A
+        RET
+
+;When sendCharToLCD is called, determine if character should be sent to the GLCD
+;or not.  If not sent, then a call to plotToLCD will be made to update the GLCD
+;Input: C = 0, Plot Always, C = non zero, Do not plot
+;Default is Plot Always
+plotAlways:
+        LD A,C
+        LD (PLOT_ALWAYS),A
         RET
 
 ;Draw Graphic at the current cursor.  Draw either an ASCII character or
@@ -1057,11 +1099,22 @@ PLOT_BYTE:
         LD A,D              ;Get column bit count
         SUB 8
         LD D,A
-        PUSH DE        
-        LD D,8
+        PUSH DE 
+        PUSH AF
+        ;underline check
+        LD A,E
+        CP 1                ;are we on the last row?
+        JR NZ,GET_ROW_DATA  ;no, just continue
+        LD A,(ULINE)        ;check underline flag
+        OR A                ;is it set?
+        JR Z,GET_ROW_DATA   ;no, just continue
+        LD E,0FFH           ;yes, set to all ones
+        JR $+3
+GET_ROW_DATA:
         LD E,(HL)           ;get pixel data
+        POP AF
         JR NC,INV_BIT
-        ADD A,D             ;Restore column bit count
+        ADD A,8             ;Restore column bit count
         LD D,A
         LD A,D
         ;D = Rotate adjust count
@@ -1101,6 +1154,46 @@ REMOVE_PIXEL:
         LD A,(PIXEL_X)
         LD D,A              ;reset pixel length per row
         JR PLOT_BYTE
+
+;Draw a cursor at the current cursor position.  This will XOR the bits underneith
+;the cursor position.  The cursor is a 6x6 pixel square.
+drawCursor:
+        LD A,(CURSOR_ON)
+        OR A
+        RET NZ              ;exit if cursor off
+        LD DE,0606H         ;Six pixels across, Six pixels down
+        LD BC,(CURSOR_XY)   ;Get graphics cursor position
+FLIP_BIT:        
+        LD A,(INVERSE)      ;check inverse flag
+        OR A
+        CALL Z,flipPixel    ;Flip the bit at the cursor position if not inverse
+        INC B               ;move X to the right by one
+        DEC D
+        JR NZ,FLIP_BIT
+        DEC E               ;move column pixel count down by one
+        RET Z               ;if its zero no more to do, just exit
+        INC C               ;move down a row
+        LD D,6              ;reset pixel length per row
+        LD A,(CURSOR_X)     ;restore original column
+        LD B,A              ;reset column
+        JR FLIP_BIT
+
+;Draw a blank at the current cursor position.  This is for DELETE character
+drawBlank:
+        LD DE,0606H         ;Six pixels across, Six pixels down
+        LD BC,(CURSOR_XY)   ;Get graphics cursor position
+FLIP_BIT1:        
+        CALL clearPixel     ;clear the bit at the cursor position
+        INC B               ;move X to the right by one
+        DEC D
+        JR NZ,FLIP_BIT1
+        DEC E               ;move column pixel count down by one
+        RET Z               ;if its zero no more to do, just exit
+        INC C               ;move down a row
+        LD D,6              ;reset pixel length per row
+        LD A,(CURSOR_X)     ;restore original column
+        LD B,A              ;reset column
+        JR FLIP_BIT1
 
 ; Contstants
 ROWS:   .db      80H,90H,88H,98H ;Text Row start position
@@ -1439,11 +1532,11 @@ FONT_DATA:
         .db 00010000b   ;  #
         .db 00000000b   ;
         ;047 /
+        .db 00000010b   ;     #
         .db 00000100b   ;    #
         .db 00001000b   ;   #
-        .db 00001000b   ;   #
-        .db 00001000b   ;   #
         .db 00010000b   ;  #
+        .db 00100000b   ; #
         .db 00000000b   ;
         ;048 0
         .db 00011100b   ;  ###
@@ -1565,15 +1658,15 @@ FONT_DATA:
         .db 00001100b   ;   ##
         .db 00000000b   ;
         ;065 A
-        .db 00011000b   ;  ##
-        .db 00100100b   ; #  #
+        .db 00011100b   ;  ###
+        .db 00100010b   ; #   #
         .db 00100010b   ; #   #
         .db 00111110b   ; #####
         .db 00100010b   ; #   #
         .db 00000000b   ; 
         ;066 B
-        .db 00111000b   ; ###
-        .db 00100100b   ; #  #
+        .db 00111100b   ; ####
+        .db 00100010b   ; #   #
         .db 00111100b   ; ####
         .db 00100010b   ; #   #
         .db 00111100b   ; ####
@@ -1587,7 +1680,7 @@ FONT_DATA:
         .db 00000000b   ;
         ;068 D
         .db 00111100b   ; ####
-        .db 00100110b   ; #  ##
+        .db 00100010b   ; #   #
         .db 00100010b   ; #   #
         .db 00100010b   ; #   #
         .db 00111100b   ; ####
@@ -1614,7 +1707,7 @@ FONT_DATA:
         .db 00011100b   ;  ###
         .db 00000000b   ;
         ;072 H
-        .db 00100100b   ; #  #
+        .db 00100010b   ; #   #
         .db 00100010b   ; #   #
         .db 00111110b   ; #####
         .db 00100010b   ; #   #
@@ -1705,7 +1798,7 @@ FONT_DATA:
         .db 00001000b   ;   #
         .db 00000000b   ; 
         ;085 U
-        .db 00100100b   ; #  #
+        .db 00100010b   ; #   #
         .db 00100010b   ; #   #
         .db 00100010b   ; #   #
         .db 00100010b   ; #   #
@@ -1719,7 +1812,7 @@ FONT_DATA:
         .db 00001000b   ;   #
         .db 00000000b   ; 
         ;087 W
-        .db 00100100b   ; #  #
+        .db 00100010b   ; #   #
         .db 00100010b   ; #   #
         .db 00101010b   ; # # #
         .db 00101010b   ; # # #
@@ -1754,11 +1847,11 @@ FONT_DATA:
         .db 00001100b   ;   ##
         .db 00000000b   ; 
         ;092 \
+        .db 00100000b   ; #
         .db 00010000b   ;  #
         .db 00001000b   ;   #
-        .db 00001000b   ;   #
-        .db 00001000b   ;   #
         .db 00000100b   ;    #
+        .db 00000010b   ;     #
         .db 00000000b   ; 
         ;093 ]
         .db 00011000b   ;  ##
@@ -2997,5 +3090,8 @@ INVERSE:    .equ    0E11H   ;Inverse Flag
 PIXEL_X:    .equ    0E12H   ;Pixel X length
 VPORT:      .equ    0E13H   ;View port start address
 TBUF:       .equ    0E15H   ;Top of Buffer pointer
+ULINE:      .equ    0E17H   ;Underline flag
+AUTO_LF:    .equ    0E18H   ;Auto line feed flag
+PLOT_ALWAYS:.equ    0E19H   ;Plot always flag
 SBUF:       .equ    16 * 60 ;Scroll Buffer size  16 * 60 = 960 byte (10 lines)
 TGBUF:      .equ    1000H + SBUF ;Terminal GBUF 

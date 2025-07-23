@@ -101,6 +101,8 @@ noteLoop:
         sbc hl,de           ;HL = HL - 1
         jr nz,noteLoop      ;repeat for frequency
         pop de              ;restore DE
+        xor a               ;clear a
+        out (DIGITS),a      ;clear speaker bit
         ret
 
 ; frequency table, contains wavelength and frequency combined sequentially

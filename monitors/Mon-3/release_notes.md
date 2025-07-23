@@ -87,3 +87,18 @@ File MON3-1G_BC24-15.bin
   - Tiny Basic will display all 256 ASCII characters using PRINT $n.
   - Reset LCD prior to hard reboot check.  This helps when using FRAM.
   - `Reset RTC & PRAM` also resets the Date and Time which puts it in a proper state to be recognised.
+
+### V1.6
+File MON3-1G-BC25-16.bin
+
+- **Feature**
+  - Drive Access via the PATA or SD GPIO Add-On Board.  Allows the loading of files from disk to TEC.
+  - Save and Restore session feature to save all RAM to disk and load back.
+  - Add `loadFromDisk`, `openFile`, `readSector` and `writeSector` drive access API routines.
+  - Add GLCD terminal `autoLF`, `underline`, `plotAlways` API routines for character printing.
+  - Baud rate is selectable via the Settings menu. Up to 14400 baud rate can be selected.
+  - RTC PRAM now includes the saving of Baud Rate, Toggle Key Beep and Toggle Address Increment.
+  - Add `RGBScan` API to assist in multiplexing the RGB 8x8 LED Matrix Add-On Board.
+- **Bug Fix**
+  - Improved GLCD routines to display text faster via `plotAlways` flag.
+  - Fixed GLCD inverse character and cursor movement.

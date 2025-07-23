@@ -23,6 +23,8 @@ LED8X8H:    .equ    05H         ;LED 8x8 Horizontal
 LED8X8V:    .equ    06H         ;LED 8x8 Vertical
 GLCD_INST:  .equ    07H         ;Graphics LCD Instruction
 GLCD_DATA:  .equ    87H         ;Graphics LCD Data
+LED8X8G:    .equ    0F8H        ;LED 8x8 Green
+LED8X8B:    .equ    0F9H        ;LED 8x8 Blue
 SDIO:       .equ    0FDH        ;SD Card IO
 MATRIX:     .equ    0FEH        ;QWERTY Keyboard Matrix
 SYS_CTRL:   .equ    0FFH        ;System Control
@@ -41,7 +43,7 @@ CAPSLOCK:   .equ    80H         ;Caps lock for Keyboard
 ;      Bit 4 = Disassembler View=H/Data Entry View=L mode (for segment mode only)
 ;      Bit 5 = Menu=L/Parameter=H Format for Menu handler (for LCD mode only)
 ;      Bit 6 = RTC Add-On Present=H
-;      Bit 7 = SD Card Add-On Present=H (not implemented yet)
+;      Bit 7 = SD Card Add-On Present=H
 MCB_AD_DATA .equ    04H         ;Address=H/Data=L mode
 MCB_LCD_SEG .equ    08H         ;LCD=H/Segment=L mode
 MCB_DIS_DE  .equ    10H         ;Disassembler View=H/Data Entry View=L mode
@@ -50,8 +52,15 @@ MCB_RTC     .equ    40H         ;RTC Add-On Present=H
 MCB_SD_CARD .equ    80H         ;SD Card Add-On Present=H
 
 ; Serial Constants Delay
-BAUD:       .equ    1BH         ;BAUD 4800 Delay
-;BAUD:       .equ    0BH         ;BAUD 9600 Delay
+BAUD_1200:  .equ    80H         ;BAUD 1200 Delay
+BAUD_2400:  .equ    3FH         ;BAUD 2400 Delay
+BAUD_4800:  .equ    1BH         ;BAUD 4800 Delay
+BAUD_9600:  .equ    0BH         ;BAUD 9600 Delay
+BAUD_14400: .equ    05H         ;BAUD 14400 Delay
+
+; ASCII Constants
+BKSP:       .equ    08H         ;Back space
+TAB:        .equ    09H         ;Horizontal Tab
 CR:         .equ    0DH         ;Carriage Return
 LF:         .equ    0AH         ;Line Feed
 SPACE:      .equ    " "         ;Space
@@ -89,8 +98,8 @@ CEL:        .equ    STACK_TOP+6     ;Current Editing location
 MCB:        .equ    STACK_TOP+8     ;Monitor Control Byte
 KEY_BUFF:   .equ    STACK_TOP+9     ;Keypress Buffer
 KEY_PRESS:  .equ    STACK_TOP+10    ;Keypress Flag
-KEY_AUTO:   .equ    STACK_TOP+11    ;Key Auto Increment Flag
-KEY_REPEAT: .equ    STACK_TOP+12    ;Key Auto Repeat timer
+KEY_REPEAT: .equ    STACK_TOP+11    ;Key Auto Repeat timer
+KEY_AUTO:   .equ    STACK_TOP+12    ;Key Auto Increment Flag
 KEY_BEEP:   .equ    STACK_TOP+13    ;Keypress Beep flag
 KEY_SECOND: .equ    STACK_TOP+14    ;Matrix Keyboard second key Buffer
 GLCD_TERM:  .equ    STACK_TOP+15    ;GLCD Terminal Enable Flag
@@ -98,7 +107,7 @@ DIS_ADDR:   .equ    STACK_TOP+16    ;Base Disassembler/Editing address
 USER_INT:   .equ    STACK_TOP+18    ;User defined INT routine
 USER_NMI:   .equ    STACK_TOP+20    ;User defined NMI routine
 MENU_POS:   .equ    STACK_TOP+22    ;Menu listing position
-MENU_SEL:   .equ    STACK_TOP+23    ;Menu pointer seletion
+MENU_SEL:   .equ    STACK_TOP+23    ;Menu pointer selection
 MENU_CNT:   .equ    STACK_TOP+24    ;Menu listing count
 MENU_CFG:   .equ    STACK_TOP+25    ;Menu configuration address
 MENU_IDX:   .equ    STACK_TOP+27    ;Menu depth index
@@ -125,6 +134,7 @@ MENU_CFG_D: .equ    MON_FRAM+8      ;Menu Config. depth (08A8H,08AAH,08ACH,08AEH
 
 ; RNG Seed
 RNG_SEED:   .equ    MON_FRAM+16     ;Random Number Seed (08B0H)
+BAUD:       .equ    MON_FRAM+17     ;Baud Rate (08B1H-08B2H)
 
 ; RAM for Smart Copy
 COPY_START: .equ    PARAM_DATA      ;Start (08C0H)
@@ -136,15 +146,15 @@ COPY_CORR:  .equ    COPY_START+10   ;Correction
 REST_START: .equ    COPY_START+12   ;Restore Start
 REST_END:   .equ    COPY_START+14   ;Restore End
 REST_DEST:  .equ    COPY_START+16   ;Restore Destination
-TEMP_START: .equ    COPY_START+18   ;Temporaly Start
-TEMP_END:   .equ    COPY_START+20   ;Temporaly End
-TEMP_DEST:  .equ    COPY_START+22   ;Temporaly Destination
+TEMP_START: .equ    COPY_START+18   ;Temporary Start
+TEMP_END:   .equ    COPY_START+20   ;Temporary End
+TEMP_DEST:  .equ    COPY_START+22   ;Temporary Destination
 
 ; RAM for To/From Addresses
 DATA_FROM:  .equ    PARAM_DATA      ;From (08C0H)
 DATA_TO:    .equ    DATA_FROM+2     ;To
 
-; Breakpoint regsiter save area.
+; Breakpoint register save area.
 BP_BASE_SP: .equ    MON_FRAM+96     ;Start of Register save area (0900H)   
 BP_HL:      .equ    BP_BASE_SP+2    ;HL position in BP stack
 BP_REGS:    .equ    BP_BASE_SP+20   ;Top of Stack (Goes down towards MON_RAM)
@@ -216,7 +226,7 @@ APICall2:
 APIGood2:
         push bc             ;save BC
         push hl             ;save HL
-        ld hl,APITable2  ;API Funciton Table
+        ld hl,APITable2  ;API Function Table
         add a,a             ;double it
         ld c,a              ;store index in
         ld b,0              ;bc
@@ -253,7 +263,7 @@ APICall:
 APIGood:
         push bc             ;save BC
         push hl             ;save HL
-        ld hl,APITable      ;API Funciton Table
+        ld hl,APITable      ;API Function Table
         add a,a             ;double it
         ld c,a              ;store index in
         ld b,0              ;bc
@@ -372,13 +382,23 @@ hardInit:
         jr z,$+5            ;all good, skip resetting PRAM
         call resetRTCPRAM   ;reset RTC PRAM
         call RTCFillRAM     ;fill RTC PRAM to Mon3 RAM
-        jr LCDbanners
+        jr checkSDCard
 skipRTC:
         ;Default CEL Jump Table
-        ld hl,USER_ADDR     ;default to intial CEL
+        ld hl,USER_ADDR     ;default to initial CEL
         ld (CEL_QJMP),hl
         ld (CEL_QJMP+2),hl
         ld (CEL_QJMP+4),hl
+        ;default baud rate delay
+        ld hl,BAUD_4800     ;4800 baud delay
+        ;ld hl,BAUD_14400     ;14400 baud delay
+        ld (BAUD),hl        ;save it
+checkSDCard:
+        ;Check if SD Card Add-On is installed
+        call checkSDCardPresent ;Zero set = SD Card
+        jr nz,LCDbanners    ;skip SD Card config as no SD Card Add-on found
+        ld hl,MCB           ;set MCB
+        set 7,(hl)          ;bit 7 SD Card present
 LCDbanners:
         ;Display Welcome Message
         ld hl,hardResetMessage
@@ -386,23 +406,13 @@ LCDbanners:
         ;send a welcome message to the Serial Terminal if connected
         ld hl,serialStartup
         call stringToSerial
-        ;send a welcome banner to the GCLD (disabled for now)
-        ; call initLCD        ;Initialise the GLCD
-        ; ld c,0              ;first row
-        ; call printString    ;display text
-        ; .db 10H," Initialising ",11H,0
-        ; ld bc,0             ;set cursor to top left
-        ; call setCursor
-        ; ld hl,GLCD_BANNER   ;point to welcome banner
-        ; ld bc,8040H         ;full screen graphic
-        ; ld d,0
-        ; call drawGraphic    ;Draw to GLCD buffer
-        ; ld a,01H
-        ; out (GLCD_INST),a   ;clear text buffer
-        ; ld de,0140H         ;1.6 ms
-        ; call delayMS
-        ; call setGrMode      ;Set it for graphics mode
-        ; call plotToLCD      ;Display it
+        ;send a welcome banner to the GLCD (disabled for now)
+        call initLCD        ;Initialise the GLCD (default graphics mode)
+        ld hl,GLCD_BANNER   ;point to welcome banner
+        ld de,GBUF          ;internal graphics buffer
+        ld bc,16*64         ;full screen
+        ldir
+        call plotToLCD      ;Display it
         ;play a tone...
         ld de,hardResetTune ;Set DE to tune data
         call playTune
@@ -530,7 +540,7 @@ keyHex:
         ld a,b              ;get MCB
         and 03H             ;mask out to nibble counter
         cp 02H              ;is this the second nibble?
-        ld a,b              ;get orginal MCB
+        ld a,b              ;get original MCB
         jr nz,enterNibble   ;no, just enter the nibble into (CEL)
         push af             ;save MCB
         ld a,(KEY_AUTO)     ;check for auto address increment flag
@@ -542,7 +552,7 @@ skipAutoInc:
         pop af              ;restore MCB
         and 0FCH            ;clear nibble counter
 enterNibble:
-        inc a               ;add one to nibble conter
+        inc a               ;add one to nibble counter
         ld (MCB),a          ;store it
         ld a,c              ;get key
         rld                 ;shift key into CEL
@@ -865,12 +875,12 @@ drawDisRow:
         ld (DISLINE1+6),a   ;just display address
         call stringToLCD    ;update LCD
         ld hl,DISLINE2      ;Point to second line
-        call stringZeroSpace ;Place 0 at actual end of stirng
+        call stringZeroSpace ;Place 0 at actual end of string
         call stringToLCD    ;update LCD
         pop de              ;restore row table
         ret
 
-; Set the DATA_BASE varaible with the CEL rounded down to base hex value
+; Set the DATA_BASE variable with the CEL rounded down to base hex value
 ; Input: none
 ; Output: DATA_BASE set
 ; Destroy: HL
@@ -878,7 +888,7 @@ setDataBase:
         ld hl,(CEL)         ;get CEL
         ld a,l              ;get lower byte
         and 0FCH            ;mask out two lowest bits
-        ld l,a              ;store it back to get read base adderss
+        ld l,a              ;store it back to get read base address
         ld (DATA_BASE),hl   ;store new Base
         ret
 
@@ -941,7 +951,7 @@ convNibToSeg:
         inc de              ;move to next DE address
         ret
 
-; Sets the Segement decimal point depending on what mode the TEC is in.
+; Sets the Segment decimal point depending on what mode the TEC is in.
 ; Either Address edit or Data edit.  And nibble data entry
 ; Destroys: A, B, HL
 setDots:
@@ -955,7 +965,7 @@ setDots:
         and 03H             ;mask out nibble bits
         or a                ;is it zero?
         jr z,setDot         ;yes, display two dots
-        dec a               ;subract 1
+        dec a               ;subtract 1
         or a                ;is it zero
         jr nz,$+3           ;no, skip buffer move
         inc hl              ;move to lower nibble of display
@@ -972,7 +982,7 @@ scanDisplayBuff:
 
 ; Multiplex the Seven Segment displays with the contents of DE
 ; Inputs: DE = 6 byte location of segment data
-; Destorys: A, B, DE = DE + 6
+; Destroys: A, B, DE = DE + 6
 scanSegments:
         ld b,00100000B      ;left most digit port address
 scanLoop:
@@ -1264,7 +1274,7 @@ txByte:
         push af             ;save AF
         push bc             ;save BC
         push hl             ;save HL
-        ld hl,BAUD          ;set HL to Baud delay
+        ld hl,(BAUD)        ;set HL to Baud delay
         ld c,a              ;save transmit byte in C
         ;transmit the start bit
         xor a               ;clear A
@@ -1306,7 +1316,7 @@ startBit:
         rlca                ;put bit 7 (TX line) in carry
         jr c,startBit       ;loop if TX line is high
         ;start bit detected
-        ld hl,BAUD          ;set HL to Baud delay
+        ld hl,(BAUD)        ;set HL to Baud delay
         srl h               ;half the delay
         rr l
         call timeDelay      ;do a baud delay
@@ -1316,7 +1326,7 @@ startBit:
         ;valid start bit detected
         ld b,8              ;eight bits to receive
 getBit:
-        ld hl,BAUD          ;set HL to Baud delay
+        ld hl,(BAUD)        ;set HL to Baud delay
         call timeDelay      ;do a baud delay
         in a,(SYS_INPUT)    ;get data bit
         rlca                ;move bit 7 into carry
@@ -2584,10 +2594,14 @@ RTCResetLoop1:
         ld e,h              ;load MSB
         call writeRTCByte   ;
         inc c               ;next slot
-        ld a,0CH            ;are we on the last 4 slots?
-        sub c
-        jr nz,$+4           ;no, ignore
-        ld h,00H            ;yes, set H=0
+        ld a,0CH            ;are we on slot 12?
+        cp c                ;yes, check if slot 12
+        jr nz,$+5           ;no, ignore
+        ld hl,BAUD_4800     ;set baud rate to 4800
+        ld a,0EH            ;are we on slot 14?
+        cp c                ;yes, check if slot 14
+        jr nz,$+5           ;no, ignore
+        ld hl,0000h         ;set beep and auto address inc to on
         djnz RTCResetLoop1
         call RTCfillRAM     ;fill RTC PRAM to Mon3 Ram
 
@@ -2651,6 +2665,15 @@ RTCFillRAM:
         ld a,10              ;get 11th slot
         call RTCGetPRAM
         ld (COPY_DEST),hl
+        ld a,12              ;get 13th slot
+        call RTCGetPRAM
+        ld (BAUD),hl
+        ld a,14              ;get 15th slot
+        call RTCGetPRAM
+        ld a,h
+        ld (KEY_BEEP),a
+        ld a,l
+        ld (KEY_AUTO),a
         ret
 
 ; Menu Initialise.  Set a custom user menu on the LCD. 
@@ -3011,7 +3034,7 @@ toggleBeep:
         ld a,(KEY_BEEP)     ; get current state
         cpl                 ; twos complement
         ld (KEY_BEEP),a     ; save it back
-        ret
+        jr toggleRTCUpdate
 
 ; Toggle Auto increment address after second nibble keyed
 ; Input: none
@@ -3020,6 +3043,19 @@ toggleAutoAddress:
         ld a,(KEY_AUTO)     ; get current state
         cpl                 ; twos complement
         ld (KEY_AUTO),a     ; save it back
+toggleRTCUpdate:
+        ld a,(MCB)          ;get MCB
+        and MCB_RTC         ;is bit 6 set?
+        ret z               ;no just exit
+        push hl
+        push de
+        push bc
+        ld hl,KEY_AUTO      ;get current state
+        ld a,14             ;index A for RTC slot
+        call RTCSetPRAM     ;save it 
+        pop bc
+        pop de
+        pop hl
         ret
 
 ; Display credits via menu
@@ -3030,6 +3066,16 @@ displayCredits:
 ; Display setting menu
 displaySettings:
         ld hl,settingsCFG
+        call menuDriver
+
+; Display baud rate menu
+displayBaud:
+        ld hl,baudCFG
+        call menuDriver
+
+; Display Drive menu
+displayDrive:
+        ld hl,driveCFG
         call menuDriver
 
 ; Random Number generator.
@@ -3206,10 +3252,247 @@ parseMatrix:
         scf                 ;set carry for good exit
         ret
 
+; Baud Rate Selection entries
+baud2400:
+        ld a,BAUD_2400          ;2400
+        jr saveBaud
+baud4800:
+        ld a,BAUD_4800          ;4800
+        jr saveBaud
+baud9600:
+        ld a,BAUD_9600          ;9600
+        jr saveBaud
+baud14400:
+        ld a,BAUD_14400         ;14400
+saveBaud:
+        ld (BAUD),a             ;save in RAM (most significant byte)
+        ld a,(MCB)          ;get MCB
+        and MCB_RTC         ;is bit 6 set?
+        jp z,menuPop        ;no just exit
+        push hl
+        push de
+        push bc
+        ld hl,BAUD          ;get current state
+        ld a,12             ;index A for RTC slot
+        call RTCSetPRAM     ;save it 
+        pop bc
+        pop de
+        pop hl
+        jp menuPop              ;pop off baud menu and return the prevous menu
+
+;Baud Rate Select Menu
+baudCFG:
+        .db 4   ;four entries
+        .db "BAUD  "    ;7segment Text
+           ;"                   " <- Max LCD entry width
+        .db "= Select Baud Rate =",0
+        .db "14400",0
+        .dw baud14400
+        .db "9600",0
+        .dw baud9600
+        .db "4800",0
+        .dw baud4800
+        .db "2400",0
+        .dw baud2400
+
+;Drive Menu
+driveCFG:
+        .db 3   ;three entries
+        .db "DRIVE "       ;7segment Text
+           ;"                   " <- Max LCD entry width
+        .db "=   Drive Access   =",0
+        .db "Catalog",0
+        .dw loadFromDisk
+        .db "Save Session",0
+        .dw saveRAM
+        .db "Load Session",0
+        .dw loadRAMConfirm
+
+;Restoring Session confirmation
+loadRAMConfirm:
+        call LCDConfirm     ;this is serious mum!
+        ret nz              ;no, just exit
+        jp loadRAM
+
+egg:
+        ld c,0
+egg1:
+        ld ix,EGG_DATA
+egg2:
+        push ix
+        ld d,ixh
+        ld e,ixl
+        rst 20h
+        pop ix
+        cp 13h
+        ret z
+        dec c
+        jr nz,egg2
+        ld a,(ix+6)
+        inc a
+        jr z,egg1
+        inc ix
+        jr egg2
+
+EGG_DATA:
+        .db 00H, 00H, 00H, 00H,  00H, 00H, 04H, 04H
+        .db 04H, 00H, 61H, 0EBH, 6BH,0ADH, 00H,0C3H
+        .db 0EBH,0ECH,0C7H,0ECH, 00H,0E6H,0AEH, 00H
+        .db 4BH, 0C7H, 6FH,0ECH,0AEH, 00H,0CDH,0EFH
+        .db 0EBH, 10H, 10H, 10H, 00H,0C7H,0C2H,0C7H
+        .db 0C3H,0C6H, 4BH, 42H,0C3H, 00H,0E6H,0EBH
+        .db 0EBH,0E3H, 6FH,0C2H,0EBH,0EBH, 00H, 00H
+        .db 00H,00H,0FFH
+
+; GLCD API Table
+        .org BASE_ADDR+1280H
+APITable2:
+        .dw initLCD            ;Initalise the LCD
+        .dw clearGBUF          ;Clear the Graphics Buffer
+        .dw clearGrLCD         ;Clear the Graphics LCD Screen
+        .dw clearTxtLCD        ;Clear the Text LCD Screen
+        .dw setGrMode          ;Set Graphics Mode
+        .dw setTxtMode         ;Set Text Mode
+        .dw drawBox            ;Draw a rectangle between two points
+        .dw drawLine           ;Draw a line between two points
+        .dw drawCircle         ;Draw a circle from Mid X,Y to Radius
+        .dw drawPixel          ;Draw one pixel at X,Y
+        .dw fillBox            ;Draw a filled rectangle between two points
+        .dw fillCircle         ;Draw a filled circle from Mid X,Y to Radius
+        .dw plotToLCD          ;Display the Graphics Buffer to the LCD Screen
+        .dw printString        ;Print Text on the screen in a given row
+        .dw printChars         ;Print Characters on the screen in a given row and column
+        .dw delayUS            ;Microsecond delay for LCD updates
+        .dw delayMS            ;Millisecond delay for LCD updates
+        .dw setBufClear        ;Clear the Graphics buffer on after Plotting to the screen
+        .dw setBufNoClear      ;Retain the Graphics buffer on after Plotting to the screen
+        .dw clearPixel         ;Remove a Pixel at X,Y
+        .dw flipPixel          ;Flip a Pixel On/Off at X,Y
+        .dw drawGraphic        ;Draw an ASCII charcter or Sprite to the LCD
+        .dw invGraphic         ;Inverse graphics printing
+        .dw initTerminal       ;Initialize the LCD for terminal emulation
+        .dw sendCharToLCD      ;Send an ASCII Character to the LCD
+        .dw sendStringToLCD    ;Send an ASCII String to the LCD
+        .dw sendRegToLCD       ;Send register A to the LCD
+        .dw sendHLToLCD        ;Send register HL to the LCD
+        .dw setCursor          ;Set the graphics cursor
+        .dw getCursor          ;Get the current cursor
+        .dw displayCursor      ;Turn Cursor on or off
+        .dw autoLF             ;toggle the terminal auto LF on and off
+        .dw underline          ;Set the underline mode on or off
+        .dw plotAlways         ;Set the plot always mode on or off
+
+API_COUNT2:  .equ    $-APITable2  ;Total number of GLCD API functions
+
+        .org BASE_ADDR+12D0H
+
+;
+; RGB LED 8x8 Scan routine
+; This routine scans the RGB LED 8x8 matrix and outputs the data to the
+; LED8x8V, LED8x8G and LED8x8B ports.  It uses the REDSCR, GRNSCR and BLUSCR
+; buffers to get the data for each row.  The LED8x8H port is used to select the
+; row to be lit.  The RGB LED matrix is scanned in a loop, lighting each
+; row in turn and outputting the corresponding RGB data for that row.
+; The RGB LED matrix is scanned at a rate of 40Hz, which is fast enough
+; Inputs: IY = Pointer to REDSCR, GRNSCR and BLUSCR buffers
+; Outputs: None
+RGBScan:
+        push bc             ; Save registers
+        push iy             ; Save IY register
+        ld c,01H            ; Row counter (bitmask starts at row 1)
+RGBLoop:
+        ld a,(iy+0)         ; Get red data from REDSCR
+        out (LED8X8V),a     ; Output to red port
+        ld a,(iy+8)         ; Get green data from GRNSCR
+        out (LED8X8G),a     ; Output to green port
+        ld a,(iy+16)        ; Get blue data from BLUSCR
+        out (LED8X8B),a     ; Output to blue port
+        ld a,c              ; Current row select bitmask
+        out (LED8X8H),a     ; Select the row
+        ld b,40H            ; ON time counter
+        djnz $              ; Delay for 40 cycles to keep row lit
+        xor a              ; Clear A for next row
+        out (LED8X8H),a     ; Turn off red row to prevent ghosting
+        inc iy             ; Move to next row in red buffer
+        rl c               ; Shift row bitmask left
+        jr nc,RGBLoop      ; Continue until all 8 rows are done
+        pop iy             ; Restore IY register
+        pop bc             ; Restore BC register
+        ret
+
+; Mon3 API Table
+        .org BASE_ADDR+1300H
+APITable:
+        .dw softwareID
+        .dw versionID
+        .dw preInit
+        .dw beepAlways
+        .dw convAToSeg
+        .dw regAToASCII
+        .dw ASCIItoSegment
+        .dw stringCompare
+        .dw HLToString
+        .dw AToString
+        .dw scanSegments
+        .dw displayError
+        .dw LCDBusy
+        .dw stringToLCD
+        .dw charToLCD
+        .dw commandToLCD
+        .dw scanKeys
+        .dw scanKeysWait
+        .dw matrixScan
+        .dw joystickScan
+        .dw serialEnable
+        .dw serialDisable
+        .dw txByte
+        .dw rxByte
+        .dw intelHexLoad
+        .dw sendToSerialAPI
+        .dw receiveFromSerialAPI
+        .dw sendAssemblyAPI
+        .dw sendHexAPI
+        .dw genDataDump
+        .dw checkStartEnd
+        .dw menuDriver
+        .dw paramDriver
+        .dw timeDelay
+        .dw playNote
+        .dw playTune
+        .dw playTuneMenu
+        .dw getCaps
+        .dw getShadow
+        .dw getProtect
+        .dw getExpand
+        .dw setCaps
+        .dw setShadow
+        .dw setProtect
+        .dw setExpand
+        .dw stringToSerial
+        .dw RTCAPI
+        .dw menuPop
+        .dw toggleCaps
+        .dw random
+        .dw setDisStart
+        .dw getDisNext
+        .dw getDisassembly
+        .dw matrixScanASCII
+        .dw parseMatrixScan
+        .dw LCDConfirm
+        .dw getGLCDTerm
+        .dw setGLCDTerm
+        .dw loadFromDisk
+        .dw openFile
+        .dw readSector
+        .dw writeSector
+        .dw RGBScan
+
+API_COUNT:  .equ    $-APITable  ;Total number of API functions
+
 ; -----------------------------------------------------------------------------
 ; Strings, Constants, JP tables etc.
 ; -----------------------------------------------------------------------------
-        .org BASE_ADDR+1200H
+        .org BASE_ADDR+1400H
 ;Initial defaults on Hard Boot (Copied to RAM)
 ;MCB = Bits 0,1 = Data Nibbles Entered
 ;      Bit 2 = Address=H/Data=L mode
@@ -3217,7 +3500,7 @@ parseMatrix:
 ;      Bit 4 = Disassembler View=H/Data Entry View=L mode (for segment mode only)
 ;      Bit 5 = Menu=L/Parameter=H Format for Menu handler (for LCD mode only)
 ;      Bit 6 = RTC Add-On Present=H
-;      Bit 7 = SD Card Add-On Present=H (not implemented yet)
+;      Bit 7 = SD Card Add-On Present=H
 defaults:
         .dw USER_ADDR       ;Initial Editing Location
         .db 08H             ;Monitor Control Byte (Default LCD Menu Mode)
@@ -3263,8 +3546,8 @@ functionJumpTable:
         .dw getCELQuickJump ;3 = Get CEL Quick Jump 3
         .dw intelHexLoad    ;4 = Intel Hex File Loader
         .dw toggleGLCDTerminal ;5 = Toggle GLCD Terminal output
-        .dw displayNoFn     ;6 = Unused
-        .dw displayNoFn     ;7 = Unused
+        .dw saveRAM         ;6 = Save Session to Drive (if present)
+        .dw loadRAMConfirm  ;7 = Load Session to RAM (if present)
         .dw NOPFill         ;8 = NOP Fill
         .dw displayNoFn     ;9 = Unused
         .dw restoreBackup   ;A = Restore Backup
@@ -3272,7 +3555,7 @@ functionJumpTable:
         .dw smartCopy       ;C = Smart Copy
         .dw switchView      ;D = Switch between Hex and Disassembly view
         .dw toggleExpand    ;E = Toggle Expand
-        .dw displayNoFn     ;F = Unused
+        .dw loadFromDisk    ;F = Disk Menu
 
 ASCIISegTable:
         .db 00H,18H,0AH,0EEH,0A7H,5CH,2CH,02H       ;  ! " # $ % & '
@@ -3338,13 +3621,15 @@ hardResetMessage:
 
 ;Main Menu Configuration
 mainMenuCFG:
-        .db 12   ;thirteen entries
+        .db 12   ;twelve entries
         .db "TEC-1G"    ;7segment Text
            ;"                   " <- Max LCD entry width
         .db "= TEC-1G Main Menu =",0
 intelLabel:
         .db "Intel HEX Load",0
         .dw intelHexLoad
+        .db "Drive Access",0
+        .dw displayDrive
         .db "Smart Block Copy",0
         .dw smartCopy
         .db "Block Backup",0
@@ -3357,8 +3642,6 @@ intelLabel:
         .dw hexDumpToSerial
         .db "Import Binary File",0
         .dw dataFromSerial
-        .db "Tiny Basic",0
-        .dw tinyBasic
         .db "Music Routine",0
         .dw playTuneMenu
         .db "Settings",0
@@ -3370,16 +3653,18 @@ intelLabel:
 
 ;Settings Menu
 settingsCFG:
-        .db 6
+        .db 7
         .db "Config"    ;7segment Text
            ;"                   " <- Max LCD entry width
         .db "=  TEC-1G Settings =",0
         .db "Toggle Key Beep",0
         .dw toggleBeep
-        .db "Toggle Address Inc",0
-        .dw toggleAutoAddress
+        .db "Set Baud Rate",0
+        .dw displayBaud
         .db "Toggle GLCD Term",0
         .dw toggleGLCDTerminal
+        .db "Toggle Address Inc",0
+        .dw toggleAutoAddress
         .db "Configure RTC",0
         .dw RTCSetup
         .db "Reset RTC & PRAM",0
@@ -3396,7 +3681,7 @@ creditsCFG:
         .db "Mark Jelic - Design",0
         .dw softBoot
         .db "Brian Chiha - Coder",0
-        .dw softBoot
+        .dw egg
         .db "Craig Hart - TECGuy",0
         .dw softBoot
         .db "Ian McLean - Tester",0
@@ -3410,106 +3695,6 @@ creditsCFG:
         .db "   and Ken Stone   ",0
         .dw softBoot
 
-        .org BASE_ADDR+1600H
-APITable:
-        .dw softwareID
-        .dw versionID
-        .dw preInit
-        .dw beepAlways
-        .dw convAToSeg
-        .dw regAToASCII
-        .dw ASCIItoSegment
-        .dw stringCompare
-        .dw HLToString
-        .dw AToString
-        .dw scanSegments
-        .dw displayError
-        .dw LCDBusy
-        .dw stringToLCD
-        .dw charToLCD
-        .dw commandToLCD
-        .dw scanKeys
-        .dw scanKeysWait
-        .dw matrixScan
-        .dw joystickScan
-        .dw serialEnable
-        .dw serialDisable
-        .dw txByte
-        .dw rxByte
-        .dw intelHexLoad
-        .dw sendToSerialAPI
-        .dw receiveFromSerialAPI
-        .dw sendAssemblyAPI
-        .dw sendHexAPI
-        .dw genDataDump
-        .dw checkStartEnd
-        .dw menuDriver
-        .dw paramDriver
-        .dw timeDelay
-        .dw playNote
-        .dw playTune
-        .dw playTuneMenu
-        .dw getCaps
-        .dw getShadow
-        .dw getProtect
-        .dw getExpand
-        .dw setCaps
-        .dw setShadow
-        .dw setProtect
-        .dw setExpand
-        .dw stringToSerial
-        .dw RTCAPI
-        .dw menuPop
-        .dw toggleCaps
-        .dw random
-        .dw setDisStart
-        .dw getDisNext
-        .dw getDisassembly
-        .dw matrixScanASCII
-        .dw parseMatrixScan
-        .dw LCDConfirm
-        .dw getGLCDTerm
-        .dw setGLCDTerm
-
-
-API_COUNT:  .equ    $-APITable  ;Total number of API functions
-
-        .org BASE_ADDR+1700H
-APITable2:
-        .dw initLCD            ;Initalise the LCD
-        .dw clearGBUF          ;Clear the Graphics Buffer
-        .dw clearGrLCD         ;Clear the Graphics LCD Screen
-        .dw clearTxtLCD        ;Clear the Text LCD Screen
-        .dw setGrMode          ;Set Graphics Mode
-        .dw setTxtMode         ;Set Text Mode
-        .dw drawBox            ;Draw a rectangle between two points
-        .dw drawLine           ;Draw a line between two points
-        .dw drawCircle         ;Draw a circle from Mid X,Y to Radius
-        .dw drawPixel          ;Draw one pixel at X,Y
-        .dw fillBox            ;Draw a filled rectangle between two points
-        .dw fillCircle         ;Draw a filled circle from Mid X,Y to Radius
-        .dw plotToLCD          ;Display the Graphics Buffer to the LCD Screen
-        .dw printString        ;Print Text on the screen in a given row
-        .dw printChars         ;Print Characters on the screen in a given row and column
-        .dw delayUS            ;Microsecond delay for LCD updates
-        .dw delayMS            ;Millisecond delay for LCD updates
-        .dw setBufClear        ;Clear the Graphics buffer on after Plotting to the screen
-        .dw setBufNoClear      ;Retain the Graphics buffer on after Plotting to the screen
-        .dw clearPixel         ;Remove a Pixel at X,Y
-        .dw flipPixel          ;Flip a Pixel On/Off at X,Y
-        .dw drawGraphic        ;Draw an ASCII charcter or Sprite to the LCD
-        .dw invGraphic         ;Inverse graphics printing
-        .dw initTerminal       ;Initialize the LCD for terminal emulation
-        .dw sendCharToLCD      ;Send an ASCII Character to the LCD
-        .dw sendStringToLCD    ;Send an ASCII String to the LCD
-        .dw sendRegToLCD       ;Send register A to the LCD
-        .dw sendHLToLCD        ;Send register HL to the LCD
-        .dw setCursor          ;Set the graphics cursor
-        .dw getCursor          ;Get the current cursor
-        .dw displayCursor      ;Turn Cursor on or off
-
-API_COUNT2:  .equ    $-APITable2  ;Total number of GLCD API functions
-
 ; END OF CORE MONITOR
 
 ; Monitor Packages
@@ -3518,11 +3703,11 @@ API_COUNT2:  .equ    $-APITable2  ;Total number of GLCD API functions
 
         .org BASE_ADDR+3FECH    ; 16k
 
-RELMAJOR:   .dw 07E8h	; 2024 - for the API
-RELMINOR:   .dw 0015h
+RELMAJOR:   .dw 07E9h	; 2025 - for the API
+RELMINOR:   .dw 0016h
 SOFTWARE:   .db "MON3.1G",0
 RELEASE:    .db REL_TXT,0
-REL_TXT:    .equ "2024.15"
+REL_TXT:    .equ "2025.16"
 
         .end
 
