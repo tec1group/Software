@@ -87,6 +87,60 @@ Based a particular Bit rule, the cells neighbors are viewed and then determined 
 
 Use the Plus or Minus keys to cycle through the different rules.  Rule number is displayed on the seven segments.  Initial rule number can be set at address ``4001H``.
 
+### Wordle
+``WORDLE.HEX`` - Wordle implementaion (lite) including 2315 words
+
+``WORDLEDK.HEX`` - Wordle implementation (full) including 12972 words uses dictionary file.  Requires WORDS.DAT file placed on the TEC-1G's storage medium (SD card or PATA)
+
+``WORDS.DAT`` - Data file for WORDLEDK.HEX.  Must be placed on SD card or PATA card
+
+A classic word-guessing game implemented in Z80 assembly for the TEC-1G computer with 128×64 Graphics LCD display.
+
+#### Objective
+Guess the hidden 5-letter word in 6 attempts or fewer.
+
+#### How to Play
+
+1. **Enter a 5-letter word** using the matrix keyboard or serial termial (selectable in menu)
+2. **Submit your guess** by pressing Enter
+3. **Read the feedback** - each letter tile will change to show:
+   - **Inverse (white letter on black)** = Letter is in the word AND in the correct position ✓
+   - **Underline** = Letter is in the word but in the WRONG position ⚠
+   - **Normal (black letter on white)** = Letter is NOT in the word ✗
+4. **Use the feedback** to make your next guess.  Letters still in play are shown on the Right
+5. **Win** by guessing the word in 6 tries or less!
+
+#### Letter Tracker
+
+The game displays a keyboard showing which letters you've already tried:
+- **Available letters** = Not yet guessed
+- **Crossed out letters** = Tried but not in the word
+- **Highlighted letters** = In the word (helps you remember)
+
+#### Features
+
+- **Over 10,000 five-letter words** in the dictionary (full version)
+- **Graphical LCD interface** with clean, readable display
+- **Visual feedback** using inverse and underline text
+- **Letter availability tracker** to help manage your guesses
+- **Sound effects** for wins and losses
+- **Random word selection** - different word every game
+- **6 attempts** to guess correctly
+
+#### Technical Details
+
+- **Platform:** TEC-1G (Z80-based)
+- **Display:** 128×64 Graphics LCD
+- **Input:** Matrix keyboard or Serial Terminal
+
+#### Tips for Playing
+
+1. **Start with common letters** like E, A, R, T, O
+2. **Use the underline hints** - those letters ARE in the word!
+3. **Eliminate letters** - normal text means never use that letter again
+4. **Watch for duplicates** - words can have repeated letters
+5. **Think strategically** - use each guess to maximize information
+
 ## 8x8 LED Matrix Games
 ### Conway's Game of Life
 ``GOL.HEX`` - Cellular Automata Game of Life.

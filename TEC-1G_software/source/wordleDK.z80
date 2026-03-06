@@ -1,0 +1,1692 @@
+; ╔══════════════════════════════════════════════════════════════════════════╗
+; ║              WORDLE FOR TEC-1G - COMPLETE PROJECT SUMMARY                ║
+; ║   A full implementation of the popular Wordle game for the TEC-1G Z80.   ║
+; ║ Full version, 12972 words version of Wordle for the TEC-1G Z80 computer. ║
+; ╚══════════════════════════════════════════════════════════════════════════╝
+
+; Requires WORDS.DAT file placed on the TEC-1G's storage medium (SD card or PATA)
+; containing the 12,972-word dictionary in binary format.
+; 
+; ═══════════════════════════════════════════════════════════════════════════
+; PROJECT OVERVIEW
+; ═══════════════════════════════════════════════════════════════════════════
+
+; A complete Wordle implementation for the TEC-1G Z80 computer featuring:
+;   • 128×64 graphical LCD display
+;   • 2,315-word dictionary with binary search tree
+;   • QWERTY keyboard input with auto-capitalization
+;   • Visual feedback (underline/inverse video)
+;   • Sound effects for win/lose
+;   • Classic Wordle rules with proper duplicate letter handling
+
+; ═══════════════════════════════════════════════════════════════════════════
+; FILE STRUCTURE
+; ═══════════════════════════════════════════════════════════════════════════
+
+; CORE GAME FILES:
+;   ✓ wordle.z80                  - Lite Main game loop and integration guide
+;   ✓ wordleDK.z80                - Full Main game loop and integration guide
+
+; WORD LIST & SEARCH:
+;   ✓ wordle_words_az.z80         - 2,315 words in Alphabetical order (48KB)
+;     dictionary.z80              - 12,972 words in original order (for DAT construction)
+;   ✓ WORDS.DAT                   - Binary version of dictionary.z80 for Full Game use
+
+; ═══════════════════════════════════════════════════════════════════════════
+; SCREEN LAYOUT (128×64 pixels)
+; ═══════════════════════════════════════════════════════════════════════════
+
+; Y=0     ............WORDLE............    (Title at X=46, Y=0)
+
+; Y=10    [  ][  ][  ][  ][  ]              Attempt 0
+; Y=19    [  ][  ][  ][  ][  ]              Attempt 1
+; Y=28    [  ][  ][  ][  ][  ]              Attempt 2
+; Y=37    [  ][  ][  ][  ][  ]              Attempt 3
+; Y=46    [  ][  ][  ][  ][  ]              Attempt 4
+; Y=55    [  ][  ][  ][  ][  ]              Attempt 5
+
+; Each box: 8×8 pixels with 1px gap between boxes
+; Characters: 6×6 pixels, centered in boxes (1px padding)
+
+; ═══════════════════════════════════════════════════════════════════════════
+; GAME FLOW
+; ═══════════════════════════════════════════════════════════════════════════
+
+; 1. INITIALIZATION
+;    CALL INIT_SCREEN              ; Draw title and boxes
+;    CALL PICK_RANDOM_WORD         ; Choose answer from 2,315 words
+;    LD   A, 0
+;    LD   (ATTEMPT_ROW), A         ; Start at row 0
+
+; 2. GUESS LOOP (up to 6 attempts)
+;    CALL GET_GUESS                ; Player types word, auto-updates display
+;    LD   HL, GUESS_WORD
+;    CALL SEARCH_WORD_FINAL        ; Validate word exists
+;    JR   C, INVALID_WORD          ; Not in list - beep and retry
+
+;    LD   HL, GUESS_WORD
+;    LD   DE, ANSWER_WORD
+;    CALL WORDLE_COMPARE           ; Compare, result in RESULT buffer
+
+;    CALL DISPLAY_RESULT           ; Show with underline/inverse feedback
+
+;    CALL CHECK_WIN                ; All GREEN?
+;    JR   Z, PLAYER_WINS
+
+;    LD   A, (ATTEMPT_ROW)
+;    CP   5                        ; Was this attempt 6?
+;    JR   Z, PLAYER_LOSES
+
+;    INC  A
+;    LD   (ATTEMPT_ROW), A         ; Next row
+;    JR   GUESS_LOOP
+
+; 3. GAME END
+;    PLAYER_WINS:
+;      CALL PLAY_WIN_SOUND         ; C-E-G-C ascending arpeggio
+;      ; Display win message and stats
+
+;    PLAYER_LOSES:
+;      CALL PLAY_LOSE_SOUND        ; C-G-E-C descending arpeggio
+;      ; Show correct answer
+
+; ═══════════════════════════════════════════════════════════════════════════
+; KEY ALGORITHMS
+; ═══════════════════════════════════════════════════════════════════════════
+
+; WORD SEARCH (In Order Binary Search):
+;   • Array-based In Order with Binary search navigation
+;   • Root at index at WORD_COUNT / 2
+;   • Average 11 comparisons, max 12 comparisons
+;   • O(log n) performance
+
+; WORD COMPARISON (Wordle Rules):
+;   Pass 1: Mark exact position matches as GREEN (2)
+;           Mark these letters as "used" in answer
+  
+;   Pass 2: For each non-GREEN guess letter:
+;             Search for matching unused answer letter
+;             If found: mark as YELLOW (1), mark answer letter used
+  
+;   Remaining: GRAY (0)
+
+; MULTIPLY BY 9 (for Y position calculation):
+;   LD   B, A          ; Save original
+;   RLCA               ; ×2
+;   RLCA               ; ×4
+;   RLCA               ; ×8
+;   ADD  A, B          ; ×9
+;   ADD  A, 11         ; Add offset
+
+; ═══════════════════════════════════════════════════════════════════════════
+; VISUAL FEEDBACK
+; ═══════════════════════════════════════════════════════════════════════════
+
+; RESULT[i] codes:
+;   0 = GRAY   (letter not in word)      → Normal text
+;   1 = YELLOW (correct letter, wrong)   → Underlined text (API: A=32, RST 18H)
+;   2 = GREEN  (correct position)        → Inverse video (API: A=22, RST 18H)
+
+; Display sequence per letter:
+;   1. Set cursor position (API: A=28, RST 18H)
+;   2. Toggle format ON if needed (A=22 or A=23, RST 18H)
+;   3. Draw character (API: A=21, D=char, RST 18H)
+;   4. Toggle format OFF if it was turned on
+;   5. Repeat for next letter
+
+; ═══════════════════════════════════════════════════════════════════════════
+; SOUND EFFECTS
+; ═══════════════════════════════════════════════════════════════════════════
+
+; Win Sound (ascending C major arpeggio):
+;   Notes: C - E - G - C (higher octave)
+;   Bytes: 06H, 0AH, 0DH, 12H
+;   Feel: Cheerful, triumphant
+
+; Lose Sound (descending C major arpeggio):
+;   Notes: C - G - E - C (lower octave)
+;   Bytes: 12H, 0DH, 0AH, 06H
+;   Feel: Sad, disappointed
+
+; API call:
+;   LD   DE, <tune address>
+;   LD   C, 35H
+;   RST  10H
+
+; ═══════════════════════════════════════════════════════════════════════════
+; RAM USAGE
+; ═══════════════════════════════════════════════════════════════════════════
+
+; Required RAM variables (contiguous block recommended):
+;   USE_SERIAL      DS  1    ; Non zero if using Serial for input
+;   RNG_STATE:      DS  2    ; 16-bit state
+;   AVAILABLE_LETTERS:  DS  26 ; A-Z or spaces
+;   GUESS_WORD:     DS  5    ; Player's current guess
+;   ANSWER_WORD:    DS  5    ; Correct word for this game
+;   RESULT:         DS  5    ; Comparison result (0/1/2 per letter)
+;   ANSWER_USED:    DS  5    ; Internal to WORDLE_COMPARE
+;   ATTEMPT_ROW:    DS  1    ; Current row (0-5)
+  
+;   CURSOR_Y:       DS  1    ; Scratch for SCREEN_UPDATE
+;   DISPLAY_CURSOR_Y: DS 1   ; Scratch for DISPLAY_RESULT
+;   TEMP_CHAR:      DS  1    ; Scratch for DISPLAY_RESULT
+
+; Total: 52 bytes of RAM
+
+; ═══════════════════════════════════════════════════════════════════════════
+; ROM USAGE
+; ═══════════════════════════════════════════════════════════════════════════
+
+; Word list data:
+;   WORDLE_WORDS:   11,575 bytes  (2,315 words × 5 bytes)
+
+; Code estimates:
+;   Search routine:        ~200 bytes
+;   Comparison routine:    ~300 bytes
+;   Input handler:         ~150 bytes
+;   Screen routines:       ~500 bytes
+;   Sound effects:         ~50 bytes
+;   Game flow:             ~200 bytes
+;   Coordinate tables:     ~100 bytes
+;   ────────────────────────────────
+;   Total code:            ~1,500 bytes
+;   Total with word list:  ~13,075 bytes (~13KB)
+
+; ═══════════════════════════════════════════════════════════════════════════
+; TEC-1G MONITOR API CALLS USED
+; ═══════════════════════════════════════════════════════════════════════════
+
+; GLCD Display:
+;   LD A,0  / RST 18H    - Clear display buffer
+;   LD A,4  / RST 18H    - Initialize GLCD
+;   LD A,28 / RST 18H    - Set cursor (BC = X,Y)
+;   LD A,21 / RST 18H    - Draw character (D = ASCII)
+;   LD A,6  / RST 18H    - Draw box (BC=X1/Y1, DE=X2/Y2)
+;   LD A,12 / RST 18H    - Plot buffer to screen
+;   LD A,22 / RST 18H    - Toggle underline
+;   LD A,23 / RST 18H    - Toggle inverse video
+
+; Keyboard:
+;   LD C,12H / RST 10H   - Keyboard scan setup
+;   LD C,36H / RST 10H   - Get key (Carry=pressed, A=ASCII)
+;   LD C,17H / RST 10H   - Serial Transmit byte (A=byte to send)
+
+; Sound:
+;   LD C,35H / RST 10H   - Play note sequence (DE = tune address)
+
+; ═══════════════════════════════════════════════════════════════════════════
+; KNOWN LIMITATIONS & FUTURE ENHANCEMENTS
+; ═══════════════════════════════════════════════════════════════════════════
+
+; Current implementation:
+;   • Fixed word list (2,315 common 5-letter words)
+;   • Random word selection (needs RNG or fixed seed)
+;   • No statistics persistence across games
+;   • No hard mode or word-of-the-day
+
+; Possible enhancements:
+;   • Add statistics tracking (win percentage, guess distribution)
+;   • Implement RNG for true random word selection
+;   • Add "share" functionality (display emoji grid)
+;   • Hard mode (must use revealed letters in subsequent guesses)
+;   • Multiple word lists (easy/medium/hard)
+;   • 2-player mode (alternating guesses)
+
+; ═══════════════════════════════════════════════════════════════════════════
+
+; Project complete! All routines tested and ready for the TEC-1G Z80.
+; Ready for "Ready? Z80" YouTube content! 🎮🎵
+
+; ═══════════════════════════════════════════════════════════════════════════
+
+    ORG 4000H - 53
+; RAM layout for Wordle game 
+USE_SERIAL      DS  1           ; Non zero if using Serial for input
+RNG_STATE:      DS  2           ; 16-bit state
+AVAILABLE_LETTERS:  DS  26      ; A-Z or spaces
+GUESS_WORD:     DS  5           ; Player's current guess
+ANSWER_WORD:    DS  5           ; The correct word for this game
+RESULT:         DS  5           ; Comparison result (0/1/2 per letter)
+ANSWER_USED:    DS  5           ; Used by WORDLE_COMPARE internally
+ATTEMPT_ROW:    DS  1           ; Current row (0-5)
+DISPLAY_CURSOR_Y:   DS  1       ; Computed Y for current row
+TEMP_CHAR:      DS  1           ; Temp storage for character (survives RST)
+CURSOR_Y:       DS  1           ; Computed row Y, rebuilt each SCREEN_UPDATE call
+
+    ORG 4000H
+;==============================================================================
+; MAIN GAME ROUTINE
+;==============================================================================
+
+GAME_START:
+    CALL INIT_GAME                  ; Display Banner and ask for input method
+MENU_EXIT:
+    ; Open Dictionary
+    LD      HL, DICTIONARY
+    LD      C, 59               ; Open file
+    RST     10H                 ; If success then code will continue
+
+    CALL INIT_SCREEN                ; Draw title and 30 empty boxes
+    CALL INIT_AVAILABLE_LETTERS     ; Initialise the Alphabet table
+    CALL DISPLAY_AVAILABLE_LETTERS  ; Display all letters
+
+    LD   A, 0
+    LD   (ATTEMPT_ROW), A           ; Start at row 0 (first guess)
+    
+    ; Pick a random word from WORDLE_WORDS and store at ANSWER_WORD
+    CALL PICK_RANDOM_WORD
+    
+GUESS_LOOP:
+    ; Allow player to type a 5-letter word
+    CALL GET_GUESS                  ; Returns with GUESS_WORD filled
+    
+    ; Validate the word exists in the word list
+    CALL SEARCH_WORD                ; NC = found, C = not found
+    JR   C, INVALID_WORD            ; Word not in list
+    ; Play word found tune
+    LD      DE, GOOD_TUNE
+    CALL    PLAY_TUNE
+    ; Compare guess with answer
+    LD   HL, GUESS_WORD
+    LD   DE, ANSWER_WORD
+    CALL WORDLE_COMPARE             ; Result in RESULT buffer
+    
+    ; Display the guess with color feedback
+    CALL DISPLAY_RESULT             ; Show underline/inverse feedback
+    CALL UPDATE_AVAILABLE_LETTERS   ; Remove unused letters
+    CALL DISPLAY_AVAILABLE_LETTERS  ; Redraw the grid    
+
+    ; Check if all letters are GREEN (won!)
+    CALL CHECK_WIN
+    JR   Z, PLAYER_WINS             ; All GREEN = win
+    
+    ; Check if this was the 6th attempt
+    LD   A, (ATTEMPT_ROW)
+    CP   5                          ; Row 5 = 6th attempt (0-indexed)
+    JR   Z, PLAYER_LOSES            ; No more attempts
+    
+    ; Move to next row
+    INC  A
+    LD   (ATTEMPT_ROW), A
+    
+    JR   GUESS_LOOP                 ; Try again
+    
+INVALID_WORD:
+    ; Flash error or beep
+    ; Don't increment ATTEMPT_ROW
+    LD      DE, INV_TUNE
+    CALL    PLAY_TUNE
+    JR   GUESS_LOOP                 ; Let them try again
+
+PLAY_TUNE:
+    LD      C, 35
+    RST     10H
+    RET
+
+INV_TUNE:
+    DB      0DH, 01H, 0FFH
+GOOD_TUNE:
+    DB      01H, 0DH, 0FFH
+    
+PLAYER_WINS:
+    CALL PLAY_WIN_SOUND         ; Play victory tune
+    ; Display win message
+    ; Show statistics (e.g., "Wordle 1/6" if won on first try)
+    JP MENU_POP
+    
+PLAYER_LOSES:
+    CALL PLAY_LOSE_SOUND        ; Play sad tune
+    ; Display lose message
+    ; ---- Set cursor to (B=X, C=Y) ----
+    LD      BC, 0414H
+    LD      HL, LOSE_TEXT
+    CALL    PRINT_ANSWER
+    ; Show the correct answer
+    LD      HL, RESULT
+    LD      (HL),0   ;Termiate flag
+    LD      BC, 0620H
+    LD      HL, ANSWER_WORD
+    CALL    PRINT_ANSWER
+    LD      BC, 041EH
+    LD      DE, 2426H
+    LD      A, 6
+    RST     18H         ;Draw Box
+    LD      A, 12
+    RST     18H
+    JP MENU_POP
+
+PRINT_ANSWER:
+    LD      A, 28
+    RST     18H
+    LD      A, (HL)
+    OR      A  ;is it zero
+    RET     Z
+    LD      D, A
+    PUSH    BC
+    PUSH    HL
+    LD      A, 21
+    RST     18H
+    POP     HL
+    POP     BC
+    INC     HL
+    LD      A,6
+    ADD     A,B
+    LD      B,A
+    JR      PRINT_ANSWER
+
+;==============================================================================
+; INITIALISE THE GAME - Display Banner and Ask for input method
+;==============================================================================
+INIT_GAME:
+    ;--------------------------------------------------------------------------
+    ; Initialise GLCD
+    ;--------------------------------------------------------------------------
+    LD      A, 0
+    RST     18H                 ; Clear display buffer
+    LD      A, 4
+    RST     18H                 ; Initialise GLCD hardware
+    ; Display Banner
+    LD      HL, WORDLE_BANNER
+    LD      DE, 0A00H           ; GBUF internal location
+    LD      BC, 16 * 64         ; 1024
+    LDIR
+    LD      A, 12               ; Plot to GLCD
+    RST     18H
+    ; Create menu
+    POP     HL                  ; Fix Stack
+    LD      C, 1FH
+    LD      HL, MENU_CFG
+    RST     10H
+SET_INPUT:
+    LD      A,(0897H)           ; Menu selection number 0=Matrix, 1=Serial
+    LD      (USE_SERIAL),A
+    OR      A                   ; Is A zero
+    JP      Z, MENU_EXIT
+    ; Serial Setup
+    LD      C, 14H                  ; } TEC-1G Monitor API
+    RST     10H                     ; } serial enable
+    JP      MENU_EXIT
+MENU_POP:
+    LD      C, 2FH
+    RST     10H                 ; Menu POP
+    RET
+MENU_CFG:
+    DB 2                        ; Two entries
+    DB "WORDLE"                 ; LCD Text
+    DB "Wordle Input Method", 0 ; Title
+    DB "Matrix Keyboard", 0
+    DW SET_INPUT
+    DB "Serial Terminal", 0
+    DW SET_INPUT
+DICTIONARY:
+    DB "WORDS.DAT",0
+WORDS_COUNT: EQU 12972
+;==============================================================================
+; WORDLE WORD SEARCH - Binary Search on Alphabetical List
+;==============================================================================
+; Simple binary search on the alphabetically-sorted word list.
+; This is the CLEANEST and SIMPLEST approach - words are in A-Z order.
+;
+; Algorithm:
+;   1. Start with full array (bottom=0, top=2314)
+;   2. Check middle word
+;   3. If match: FOUND!
+;   4. If search < middle: search left half (top = mid-1)
+;   5. If search > middle: search right half (bottom = mid+1)
+;   6. Repeat until found or bottom > top
+;
+; Output: Carry flag: NC = found, C = not found
+; Uses:   AF, BC, DE, HL
+;==============================================================================
+SEARCH_WORD:
+    LD DE, WORDS_COUNT-1  ;Top
+    LD BC, 0            ;Bottom
+    ;Is top >= bottom. Exit if not
+SEARCH_LOOP:
+    LD H,D
+    LD L,E
+    OR A
+    SBC HL, BC
+    RET C
+    ;Set middle in HL
+    LD H,D
+    LD L,E
+    ADD HL,BC
+    ;Divide by 2 (shift right)
+    SRL     H
+    RR      L
+    ;HL = word index, get index in WORDLE_WORDS file
+    PUSH HL
+    PUSH DE
+    PUSH BC
+    LD D,H
+    LD E,L
+    ADD HL,HL
+    ADD HL,HL
+    ADD HL,DE           ;This is the byte index into the file
+    EX DE, HL           ;DE is the lower byte
+    LD HL,0             ;HL upper byte ;less than 13107 words
+    LD C, 60            ;Read Sector
+    PUSH DE             ;Store Byte address index
+    RST 10H             ;Retrieve the block from the file
+    ;Block of 512 bytes have loaded into memory 0600H-07FFH
+    POP HL              ;HL = address of word
+    ;Need to reduce address to block index
+    LD A, H
+    AND 01H
+    LD H, A
+    LD DE, 600H         ;Base of block in ram
+    ADD HL,DE
+    ;Compare Words with Guess
+    LD DE, GUESS_WORD
+    CALL COMPARE_WORDS
+    POP BC
+    POP DE
+    POP HL
+    RET Z         ;Word Found, Return with Carry not set.
+    JR NC,SET_BOTTOM
+SET_TOP:
+    DEC HL
+    LD D,H
+    LD E,L
+    JR SEARCH_LOOP
+SET_BOTTOM:
+    INC HL
+    LD B,H
+    LD C,L
+    JR SEARCH_LOOP
+;==============================================================================
+; COMPARE_WORDS
+; Compare two 5-byte words
+; Input:  DE = pointer to word 1 (search word)
+;         HL = pointer to word 2 (array word)
+; Output: Z flag set if equal
+;         C flag set if word1 < word2
+; Uses:   AF, DE, HL
+;==============================================================================
+COMPARE_WORDS:
+    PUSH    BC
+    LD      B, 5                ; 5 characters to compare
+    
+comp_loop:
+    LD      A, (DE)             ; Get byte from search word
+    CP      (HL)                ; Compare with array word
+    JR      NZ, comp_done           ; Not equal, flags are set correctly
+    INC     DE
+    INC     HL
+    DJNZ    comp_loop
+    
+    ; All bytes equal
+    XOR     A                   ; Set Z flag (A = 0)
+    
+comp_done:
+    POP     BC
+    RET
+
+;==============================================================================
+; WORDLE WORD COMPARISON - Production Version
+;==============================================================================
+; Clean, working implementation using subroutines for clarity
+;
+; Feedback codes:
+;   2 = GREEN  (correct letter, correct position)
+;   1 = YELLOW (correct letter, wrong position)
+;   0 = GRAY   (letter not in word)
+;==============================================================================
+
+;==============================================================================
+; Main entry point
+; Input:  HL = pointer to guess (5 uppercase letters)
+;         DE = pointer to answer (5 uppercase letters)
+; Output: HL = pointer to RESULT (5 bytes: 0/1/2)
+;==============================================================================
+WORDLE_COMPARE:
+    ; Initialize RESULT to all 0 (GRAY)
+    LD      HL, RESULT
+    LD      (HL), 0
+    LD      DE, RESULT+1
+    LD      BC, 9
+    LDIR                    ; Fill 9 bytes with 0
+    
+    ; Pass 1: Mark exact matches
+    CALL    MARK_EXACT_MATCHES
+    
+    ; Pass 2: Mark wrong-position matches
+    CALL    MARK_WRONG_POSITION
+    
+    ; Return pointer to result
+    LD      HL, RESULT
+    RET
+
+
+;==============================================================================
+; Pass 1: Mark GREEN (exact position matches)
+;==============================================================================
+MARK_EXACT_MATCHES:
+    LD      B, 5            ; Loop counter
+    LD      C, 0            ; Position index
+    
+loop:
+    ; Compare GUESS_WORD[C] with ANSWER_WORD[C]
+    LD      HL, GUESS_WORD
+    LD      D, 0
+    LD      E, C
+    ADD     HL, DE
+    LD      A, (HL)         ; A = guess[C]
+    
+    LD      HL, ANSWER_WORD
+    ADD     HL, DE
+    CP      (HL)            ; Compare with answer[C]
+    JR      NZ, next
+    
+    ; Exact match! Mark as GREEN
+    LD      HL, RESULT
+    ADD     HL, DE
+    LD      (HL), 2         ; result[C] = 2 (GREEN)
+    
+    LD      HL, ANSWER_USED
+    ADD     HL, DE
+    LD      (HL), 1         ; used[C] = 1
+    
+next:
+    INC     C
+    DJNZ    loop
+    RET
+
+
+;==============================================================================
+; Pass 2: Mark YELLOW (wrong position matches)
+;==============================================================================
+MARK_WRONG_POSITION:
+    LD      B, 5            ; Outer loop: 5 guess positions
+    LD      C, 0            ; C = guess index
+    
+check_loop:
+    PUSH    BC              ; Save guess loop counter
+    
+    ; Skip if guess[C] is already GREEN
+    LD      HL, RESULT
+    LD      D, 0
+    LD      E, C
+    ADD     HL, DE
+    LD      A, (HL)
+    CP      2
+    JR      Z, next_guess  ; Already GREEN, skip
+    
+    ; Get guess[C] letter
+    LD      HL, GUESS_WORD
+    ADD     HL, DE
+    LD      A, (HL)         ; A = guess letter
+    
+    ; Inner loop: Search through answer
+    LD      B, 5            ; 5 answer positions
+    ; LD      D, 0            ; D = answer index
+    LD      C, 0            ; C = answer index    
+answer_loop:
+    PUSH    AF              ; Save guess letter
+    
+    ; Skip if answer[D] is already used
+    LD      HL, ANSWER_USED
+    ; LD      B, 0
+    ; LD      E, D
+    LD      D, 0
+    LD      E, C
+    ADD     HL, DE
+    LD      A, (HL)
+    CP      0
+    JR      NZ, next_answer ; Already used
+    
+    ; Get answer[D] letter
+    LD      HL, ANSWER_WORD
+    ADD     HL, DE
+    LD      E, (HL)         ; E = answer letter
+    
+    ; Compare with guess letter
+    POP     AF              ; A = guess letter
+    PUSH    AF
+    CP      E
+    JR      NZ, next_answer
+    
+    ; Match found! Mark as YELLOW
+    ; Get guess position from outer loop
+    POP     AF              ; Discard guess letter
+
+    ; Mark this answer position as used
+    ; LD      A, C            ; A = answer position
+    LD      HL, ANSWER_USED
+    ; LD      C, A
+    LD      B, 0
+    ADD     HL, BC
+    LD      (HL), 1         ; used[answer_pos] = 1
+
+    POP     BC              ; BC = guess counter (from outer loop)
+    PUSH    BC
+
+    ; LD      A, C            ; A = guess position
+    LD      HL, RESULT
+    LD      B, 0
+    ; LD      C, A
+    ADD     HL, BC
+    LD      (HL), 1         ; result[guess_pos] = 1 (YELLOW)
+    
+    
+    ; Found match for this guess letter, move to next guess
+    JR      next_guess
+    
+next_answer:
+    POP     AF              ; Restore guess letter
+;    POP     BC              ; Restore answer counter
+    INC     C               ; Next answer position
+    DJNZ    answer_loop
+    
+next_guess:
+    POP     BC              ; Restore guess counter
+    
+next_guess_found:
+    INC     C               ; Next guess position
+    DJNZ    check_loop
+    
+    RET
+
+
+;   RST 10h       | Scan keyboard
+;   LD  C, 36h   /
+;   RST 10h       - If Carry set, A = ASCII of key pressed
+;
+; ASCII constants:
+;   08h = Backspace
+;   0Dh = Enter/Return
+;   41h = 'A',  5Ah = 'Z'
+;   61h = 'a',  7Ah = 'z'
+;==============================================================================
+
+;==============================================================================
+; GET_GUESS - Main keyboard input routine
+;==============================================================================
+get_guess:
+    ; Initialise position counter to 0
+    LD      C, 0                    ; C = current letter count (0-5)
+
+    ; Clear GUESS_WORD buffer
+    LD      HL, GUESS_WORD
+    LD      A, ' '                  ; Fill with spaces
+    LD      (HL), A
+    INC     HL
+    LD      (HL), A
+    INC     HL
+    LD      (HL), A
+    INC     HL
+    LD      (HL), A
+    INC     HL
+    LD      (HL), A
+
+    CALL    screen_update           ; Show blank/cleared guess line
+
+;------------------------------------------------------------------------------
+; Key scan loop - wait for a valid keypress
+;------------------------------------------------------------------------------
+wait_key:
+    LD      A, (USE_SERIAL)
+    OR      A
+    JR      NZ,wait_serial
+    PUSH    BC
+    LD      C, 12h                  ; } TEC-1G Monitor API
+    RST     10h                     ; } keyboard scan
+    LD      C, 36h                  ; }
+    RST     10h                     ; } Carry set = key pressed, A = ASCII
+    POP     BC
+    JR      NC, wait_key           ; No key pressed, keep scanning
+    JR      key_pressed
+wait_serial:
+; Serial key wait and return
+    PUSH    BC
+    LD      C, 17h                  ; } TEC-1G Monitor API
+    RST     10h                     ; } serial input receive
+    POP     BC
+;------------------------------------------------------------------------------
+; A key has been pressed - A contains its ASCII value
+;------------------------------------------------------------------------------
+key_pressed:
+    ; Check for Backspace (08h)
+    CP      08h
+    JR      Z, handle_backspace
+
+    ; Check for Enter/Return (0Dh)
+    CP      0Dh
+    JR      Z, handle_enter
+
+    ; Check for lowercase a-z (61h-7Ah) and capitalise
+    CP      61h                     ; Below 'a'?
+    JR      C, check_uppercase
+    CP      7Bh                     ; Above 'z'?
+    JR      NC, wait_key           ; Out of range, ignore
+    AND     5Fh                     ; Convert to uppercase (clear bit 5)
+    JR      check_uppercase_done
+
+check_uppercase:
+    ; Check for uppercase A-Z (41h-5Ah)
+    CP      41h                     ; Below 'A'?
+    JR      C, wait_key            ; Not a letter, ignore
+    CP      5Bh                     ; Above 'Z'?
+    JR      NC, wait_key           ; Not a letter, ignore
+
+check_uppercase_done:
+    ; A now contains a valid uppercase letter (41h-5Ah)
+    ; Only accept if we have fewer than 5 letters
+    LD      B, A                    ; Save letter in C
+    LD      A, C
+    CP      5                       ; Already have 5 letters?
+    JR      Z, wait_key            ; Yes - ignore keypress, wait for Enter or Backspace
+    LD      A, B                    ; Restore letter
+
+;------------------------------------------------------------------------------
+; Store the letter at GUESS_WORD[C]
+;------------------------------------------------------------------------------
+store_letter:
+    LD      HL, GUESS_WORD          ; Base address of buffer
+    LD      B, 0
+    ADD     HL, BC                  ; HL = GUESS_WORD + B (current position)
+    LD      (HL), A                 ; Store the letter
+    INC     C                       ; Advance position counter
+
+    CALL    screen_update           ; Redraw the current guess line
+    JR      wait_key               ; Wait for next key
+
+;------------------------------------------------------------------------------
+; Handle Backspace
+;------------------------------------------------------------------------------
+handle_backspace:
+    LD      A, C
+    CP      0                       ; Already at start?
+    JR      Z, wait_key            ; Nothing to delete, ignore
+
+    DEC     C                       ; Move position back one
+    LD      HL, GUESS_WORD
+    LD      B, 0
+    ADD     HL, BC                  ; HL = GUESS_WORD + B
+    LD      (HL), ' '               ; Erase the character
+
+    CALL    screen_update           ; Redraw with character removed
+    JR      wait_key               ; Wait for next key
+
+;------------------------------------------------------------------------------
+; Handle Enter/Return
+;------------------------------------------------------------------------------
+handle_enter:
+    LD      A, C
+    CP      5                       ; Do we have exactly 5 letters?
+    JR      NZ, wait_key           ; No - ignore Enter, keep waiting
+
+    ; We have 5 letters and Enter was pressed - we're done!
+    RET                             ; GUESS_WORD now contains 5 uppercase letters
+
+;==============================================================================
+; CHECK_WIN - Returns Z flag set if all 5 letters are GREEN
+;==============================================================================
+CHECK_WIN:
+    LD      HL, RESULT
+    LD      B, 5
+
+WIN_LOOP:
+    LD      A, (HL)
+    CP      2                   ; Check if GREEN
+    RET     NZ                  ; Not GREEN, return with NZ
+    INC     HL
+    DJNZ    WIN_LOOP
+
+    ; All 5 are GREEN
+    XOR     A                   ; Set Z flag
+    RET
+
+;==============================================================================
+; WORDLE - SCREEN_UPDATE ROUTINE
+;==============================================================================
+; Redraws the five letter boxes on the current attempt row.
+; Called after every keystroke from GET_GUESS.
+;
+; ATTEMPT_ROW (RAM) holds which row (0-5) is active.
+; GUESS_WORD  (RAM, 5 bytes) holds current letters, spaces for empty slots.
+;
+; Character placement:
+;   Each box is 8x8 px. Each character is 6x6 px.
+;   1 pixel of padding centres the char: char_pos = box_x1 + 1, box_y1 + 1
+;
+;   Column char-cursor X:  43, 52, 61, 70, 79
+;   Row    char-cursor Y:  (ATTEMPT_ROW * 9) + 11
+;
+; Register safety note:
+;   RST 18H may trash any of AF, BC, DE, HL.
+;   IY is assumed safe across RST 18H (monitor does not use it).
+;   Therefore IYL is used as the sole loop variable carried across calls.
+;   All other values are reloaded from RAM or ROM at the start of
+;   each iteration - nothing is assumed preserved across RST 18H.
+;
+; Uses: AF, BC, DE, HL, IYL
+;==============================================================================
+
+; ROM table: character cursor X for each of the 5 columns
+;CHAR_COL_X:     DB  44, 53, 62, 71, 80
+
+
+;==============================================================================
+; SCREEN_UPDATE
+;==============================================================================
+SCREEN_UPDATE:
+    PUSH BC
+    ;--------------------------------------------------------------------------
+    ; Compute char-cursor Y for the current row and store in RAM.
+    ; Y = (ATTEMPT_ROW * 9) + 12
+    ; Multiply by 9: save original, shift left 3 (x8), add original (x9).
+    ;--------------------------------------------------------------------------
+    LD      A, (ATTEMPT_ROW)
+    LD      B, A                ; B = row (saved)
+    RLCA                        ; A = row * 2
+    RLCA                        ; A = row * 4
+    RLCA                        ; A = row * 8
+    ADD     A, B                ; A = row * 9
+    ADD     A, 12               ; A = row * 9 + 11  = char Y
+    LD      (CURSOR_Y), A       ; Save in RAM for use inside loop
+
+    ;--------------------------------------------------------------------------
+    ; Loop over columns 0-4.
+    ; IYL = column index, counts 0 to 4.
+    ; Each iteration reloads all values from RAM/ROM so nothing needs
+    ; to survive across the two RST 18H calls.
+    ;--------------------------------------------------------------------------
+    LD      IYL, 0              ; Column index: start at 0
+
+COL_LOOP:
+
+    ; ---- Load X cursor position from CHAR_COL_X[IYL] ----
+    LD      HL, CHAR_COL_X
+    LD      D, 0
+    LD      E, IYL
+    ADD     HL, DE              ; HL = &CHAR_COL_X[col]
+    LD      B, (HL)             ; B = X cursor position
+
+    ; ---- Load Y cursor position from RAM ----
+    LD      A, (CURSOR_Y)
+    LD      C, A                ; C = Y cursor position
+
+    ; ---- Set cursor to (B=X, C=Y) ----
+    LD      A, 28
+    RST     18H                 ; << RST may trash AF, BC, DE, HL >>
+
+    ; ---- Reload the character from GUESS_WORD[IYL] ----
+    ; (HL may have been trashed by RST 18H, so rebuild the address)
+    LD      HL, GUESS_WORD
+    LD      D, 0
+    LD      E, IYL
+    ADD     HL, DE              ; HL = &GUESS_WORD[col]
+    LD      D, (HL)             ; D = character (letter or space)
+
+    ; ---- Draw the character ----
+    LD      A, 21
+    PUSH    BC
+    PUSH    HL
+    RST     18H                 ; Display character D at (B=X, C=Y)
+    POP     HL
+    POP     BC
+
+    ; ---- Advance to next column ----
+    INC     IYL
+    LD      A, IYL
+    CP      5                   ; Done all 5 columns?
+    JR      NZ, COL_LOOP
+
+    ;--------------------------------------------------------------------------
+    ; Flush buffer to GLCD
+    ;--------------------------------------------------------------------------
+    LD      A, 12
+    RST     18H
+    POP BC
+    RET
+
+;==============================================================================
+; WORDLE - DISPLAY_RESULT ROUTINE
+;==============================================================================
+; Displays the guess with visual feedback based on WORDLE_COMPARE results.
+;
+; Called after the player submits a complete 5-letter guess:
+;   1. WORDLE_COMPARE has been called, result is in RESULT buffer
+;   2. GUESS_WORD contains the 5 letters
+;   3. ATTEMPT_ROW indicates which row (0-5) to display on
+;
+; Visual feedback:
+;   RESULT[i] = 0 (GRAY)   → Normal text
+;   RESULT[i] = 1 (YELLOW) → Underlined text
+;   RESULT[i] = 2 (GREEN)  → Inverse video text
+;
+; Character positioning (same as SCREEN_UPDATE):
+;   Column X positions: 43, 52, 61, 70, 79
+;   Row Y = (ATTEMPT_ROW * 9) + 11
+;
+; GLCD API used:
+;   LD A,28 / RST 18H           - set cursor (BC = X,Y)
+;   LD A,32 / RST 18H           - toggle underline
+;   LD A,22 / RST 18H           - toggle inverse
+;   LD A,21 / RST 18H           - draw character (D = ASCII)
+;   LD A,12 / RST 18H           - flush to display
+;
+; Important: underline and inverse are TOGGLE operations.
+;   Turn ON before drawing, turn OFF after drawing.
+;   They accumulate, so manage state carefully:
+;     - Normal:    no flags set
+;     - Underline: toggle underline ON, draw, toggle underline OFF
+;     - Inverse:   toggle inverse ON, draw, toggle inverse OFF
+;
+; Register safety:
+;   RST 18H may trash AF, BC, DE, HL.
+;   Use IYL as column counter, reload everything else each iteration.
+;
+; Uses: AF, BC, DE, HL, IYL
+;==============================================================================
+
+; ROM table
+CHAR_COL_X:     DB  44, 53, 62, 71, 80
+
+;==============================================================================
+; DISPLAY_RESULT
+; Show the guess with visual feedback based on comparison results.
+;==============================================================================
+DISPLAY_RESULT:
+
+    ;--------------------------------------------------------------------------
+    ; Compute Y cursor position for current row: (ATTEMPT_ROW * 9) + 12
+    ;--------------------------------------------------------------------------
+    LD      A, (ATTEMPT_ROW)
+    LD      B, A                ; Save for multiply
+    RLCA                        ; A = row * 2
+    RLCA                        ; A = row * 4
+    RLCA                        ; A = row * 8
+    ADD     A, B                ; A = row * 9
+    ADD     A, 12               ; A = Y
+    LD      (DISPLAY_CURSOR_Y), A
+
+    ;--------------------------------------------------------------------------
+    ; Loop through columns 0-4, displaying each letter with formatting
+    ;--------------------------------------------------------------------------
+    LD      IYL, 0              ; Column index (0-4)
+
+COL_LOOP1:
+
+    ; ---- Load X cursor position ----
+    LD      HL, CHAR_COL_X
+    LD      D, 0
+    LD      E, IYL
+    ADD     HL, DE
+    LD      B, (HL)             ; B = X
+
+    ; ---- Load Y cursor position ----
+    LD      A, (DISPLAY_CURSOR_Y)
+    LD      C, A                ; C = Y
+
+    ; ---- Set cursor ----
+    LD      A, 28
+    RST     18H                 ; << may trash registers >>
+    PUSH    BC                  ; Save cursor position
+
+    ; ---- Load the character from GUESS_WORD[IYL] ----
+    LD      HL, GUESS_WORD
+    LD      D, 0
+    LD      E, IYL
+    ADD     HL, DE
+    LD      A, (HL)             ; A = character
+    LD      (TEMP_CHAR), A      ; Save to RAM (survives RST calls)
+
+    ; ---- Load the result code from RESULT[IYL] ----
+    LD      HL, RESULT
+    LD      D, 0
+    LD      E, IYL
+    ADD     HL, DE
+    LD      A, (HL)             ; A = result code (0/1/2)
+
+    ; ---- Apply formatting based on result code ----
+    CP      0
+    JR      Z, DRAW_NORMAL     ; 0 = GRAY, no formatting
+
+    CP      1
+    JR      Z, DRAW_YELLOW     ; 1 = YELLOW, use underline
+
+    ; Must be 2 = GREEN, use inverse
+DRAW_GREEN:
+    LD      A, 22
+    RST     18H                 ; Toggle inverse ON
+    JR      DRAW_CHAR
+
+DRAW_YELLOW:
+    LD      A, 32
+    RST     18H                 ; Toggle underline ON
+    JR      DRAW_CHAR
+
+DRAW_NORMAL:
+    ; No formatting needed, fall through
+
+DRAW_CHAR:
+    ; ---- Draw the character ----
+    LD      A, (TEMP_CHAR)
+    LD      D, A                ; D = character
+    LD      A, 21
+    RST     18H                 ; Draw character
+
+    ; ---- Turn OFF any formatting that was enabled ----
+    ; Reload result code to check what we turned on
+    LD      HL, RESULT
+    LD      D, 0
+    LD      E, IYL
+    ADD     HL, DE
+    LD      A, (HL)             ; A = result code
+
+    CP      1
+    JR      Z, UNDERLINE_OFF
+
+    CP      2
+    JR      Z, INVERSE_OFF
+    POP     BC
+    JR      NEXT_COL           ; Was normal (0), nothing to turn off
+
+UNDERLINE_OFF:
+    ; Assist with full underline
+    POP     BC
+    DEC     B
+    LD      A, 5
+    ADD     A, C  
+    LD      C, A
+    LD      A, 9
+    RST     18H                 ; Draw pixel bottom left of underline
+    LD      A, 32
+    RST     18H                 ; Toggle underline OFF
+    JR      NEXT_COL
+
+INVERSE_OFF:
+    ; Assist with full inverse
+    POP     BC
+    DEC     B                   ; Top left
+    DEC     C
+    PUSH    BC
+    LD      D, B
+    LD      A, 6
+    ADD     A, C
+    LD      E, A
+    LD      A, 7
+    RST     18H                 ; Draw down line
+    POP     BC
+    LD      E, C
+    LD      A, 6
+    ADD     A, B
+    LD      D, A
+    LD      A, 7
+    RST     18H                 ; Draw top line
+    LD      A, 22
+    RST     18H                 ; Toggle inverse OFF
+    ; Fall through to .NEXT_COL
+
+NEXT_COL:
+    ; ---- Move to next column ----
+    INC     IYL
+    LD      A, IYL
+    CP      5
+    JP      NZ, COL_LOOP1
+
+    ;--------------------------------------------------------------------------
+    ; Flush to display
+    ;--------------------------------------------------------------------------
+    LD      A, 12
+    RST     18H
+
+    RET
+
+;==============================================================================
+; WORDLE - GLCD INITIAL SCREEN LAYOUT
+;==============================================================================
+; Draws the opening screen once per game:
+;   - "WORDLE" title centred at the top
+;   - 6 rows x 5 columns of 8x8 single-pixel-border boxes
+;
+; Screen:  128 x 64 pixels
+; Font:    6 pixels wide per character (8 pixels tall)
+; Boxes:   8 x 8 pixels with 1 pixel gap between each box
+;
+; Layout:
+;
+;   Y= 0  ......WORDLE......   (X=46, centred in 128px)
+;   Y=10  [  ][  ][  ][  ][  ]  Row 0
+;   Y=19  [  ][  ][  ][  ][  ]  Row 1
+;   Y=28  [  ][  ][  ][  ][  ]  Row 2
+;   Y=37  [  ][  ][  ][  ][  ]  Row 3
+;   Y=46  [  ][  ][  ][  ][  ]  Row 4
+;   Y=55  [  ][  ][  ][  ][  ]  Row 5   (bottom edge Y=62)
+;
+;   Column X1 positions: 42, 51, 60, 69, 78
+;   Each box: X2 = X1+7, Y2 = Y1+7
+;
+; GLCD API (TEC-1G Monitor):
+;   LD A,0  / RST 18H           Clear display buffer
+;   LD A,4  / RST 18H           Initialise GLCD
+;   LD B,x  / LD C,y            Set cursor position
+;   LD A,28 / RST 18H           Apply cursor position
+;   LD D,ch / LD A,21 / RST 18H Draw character (ASCII in D)
+;   LD A,6  / RST 18H           Draw box (BC=X1/Y1, DE=X2/Y2)
+;   LD A,12 / RST 18H           Plot buffer to GLCD (flush)
+;==============================================================================
+
+; Layout constants
+TITLE_X:    EQU 47              ; X pixel of 'W' (centred: 128/2 - 36/2 = 46)
+TITLE_Y:    EQU 3               ; Y pixel of title
+CHAR_STEP:  EQU 6               ; Pixels between character cursor positions
+BOX_SIZE:   EQU 8               ; Box width and height in pixels
+BOX_STEP:   EQU 9               ; Box size + 1px gap
+
+;==============================================================================
+; WORDLE - REMAINING LETTERS DISPLAY
+;==============================================================================
+; Displays the 26 letters A-Z on the right side of the screen.
+; Letters that have been used (and are not green/yellow) are replaced with
+; spaces, helping the player see which letters are still available.
+;
+; Layout:
+;   X=88-123 (right side, after wordle grid which ends at X=87)
+;   Y=10-54  (aligned with wordle grid)
+;   
+;   5 rows × 6 letters per row (last row has only 2 letters: Y, Z)
+;   
+;   Row 0 (Y=10): A B C D E F
+;   Row 1 (Y=19): G H I J K L
+;   Row 2 (Y=28): M N O P Q R
+;   Row 3 (Y=37): S T U V W X
+;   Row 4 (Y=46): Y Z
+;
+; AVAILABLE_LETTERS array (26 bytes):
+;   Each byte contains either the letter (41H-5AH) or space (20H).
+;   Index 0 = 'A', Index 1 = 'B', ..., Index 25 = 'Z'
+;
+; Call INIT_AVAILABLE_LETTERS at game start to fill with A-Z.
+; Call DISPLAY_AVAILABLE_LETTERS after INIT_SCREEN and after DISPLAY_RESULT.
+; Call UPDATE_AVAILABLE_LETTERS after each guess to remove used letters.
+;
+; Uses: AF, BC, DE, HL, IYL
+;==============================================================================
+
+;==============================================================================
+; ROM tables for letter positions
+;==============================================================================
+
+; X positions for columns 0-5
+LETTER_X_TABLE:
+    DB   90, 96, 102, 108, 114, 120
+
+; Y positions for rows 0-4
+LETTER_Y_TABLE:
+    DB   10, 19, 28, 37, 46
+
+;==============================================================================
+; INIT_AVAILABLE_LETTERS
+; Initialize the available letters array with A-Z.
+; Call once at the start of each game.
+;==============================================================================
+INIT_AVAILABLE_LETTERS:
+    LD      HL, AVAILABLE_LETTERS
+    LD      A, 'A'              ; Start with 'A' (41H)
+    LD      B, 26               ; 26 letters
+
+avail_loop:
+    LD      (HL), A
+    INC     HL
+    INC     A                   ; Next letter
+    DJNZ    avail_loop
+    
+    RET
+
+
+;==============================================================================
+; DISPLAY_AVAILABLE_LETTERS
+; Draw all 26 letter positions on screen.
+; Called after INIT_SCREEN and after DISPLAY_RESULT.
+;
+; Uses: AF, BC, DE, HL
+;==============================================================================
+DISPLAY_AVAILABLE_LETTERS:
+    LD      HL, AVAILABLE_LETTERS   ; HL = source (letters to display)
+    LD      B, 26                   ; B = letter counter
+
+letter_loop:
+    PUSH    BC                      ; Save counter
+    PUSH    HL                      ; Save letter pointer
+    
+    ; Calculate index = 26 - B
+    LD      A, 26
+    SUB     B
+    LD      C, A                    ; C = index (0-25)
+    
+    ; Calculate row and column
+    ; Row = index / 6, Col = index % 6
+    LD      A, C
+    LD      D, 0                    ; D = row counter
+    
+calc_row:
+    CP      6
+    JR      C, row_done
+    SUB     6
+    INC     D
+    JR      calc_row
+    
+row_done:
+    ; A = column (0-5), D = row (0-4)
+    LD      E, A                    ; E = column
+    
+    ; Get X from LETTER_X_TABLE[E]
+    PUSH    DE
+    LD      HL, LETTER_X_TABLE
+    LD      D, 0
+    ADD     HL, DE                  ; HL = &LETTER_X_TABLE[col]
+    LD      B, (HL)                 ; B = X position
+    POP     DE
+    
+    ; Get Y from LETTER_Y_TABLE[D]
+    PUSH    DE
+    PUSH    BC
+    LD      HL, LETTER_Y_TABLE
+    LD      E, D
+    LD      D, 0
+    ADD     HL, DE                  ; HL = &LETTER_Y_TABLE[row]
+    LD      C, (HL)                 ; C = Y position
+    POP     HL
+    LD      B, H                    ; B = X position (restored)
+    POP     DE
+    
+    ; Set cursor (B=X, C=Y)
+    LD      A, 28
+    RST     18H
+    
+    ; Get character to draw
+    POP     HL                      ; HL = letter pointer
+    PUSH    HL
+    LD      D, (HL)                 ; D = character (letter or space)
+    
+    ; Draw character
+    LD      A, 21
+    RST     18H
+    
+    ; Next letter
+    POP     HL                      ; HL = letter pointer
+    INC     HL                      ; Move to next letter
+    POP     BC                      ; BC = counter
+    DJNZ    letter_loop
+    
+    ; Flush to display
+    LD      A, 12
+    RST     18H
+    
+    RET
+
+
+;==============================================================================
+; UPDATE_AVAILABLE_LETTERS
+; Remove letters that have been guessed and are not green/yellow.
+;
+; Called after each guess, uses GUESS_WORD and RESULT to determine
+; which letters to eliminate.
+;
+; Logic:
+;   For each letter in GUESS_WORD:
+;     If RESULT shows it's NOT in the word (GRAY = 0):
+;       Replace that letter in AVAILABLE_LETTERS with a space
+;
+; Note: Letters that are YELLOW or GREEN stay visible since they're
+; confirmed to be in the answer.
+;
+; Uses: AF, BC, DE, HL
+;==============================================================================
+UPDATE_AVAILABLE_LETTERS:
+    LD      B, 5                ; Check all 5 letters
+
+update_avail_loop:
+    PUSH    BC
+    
+    ; Get position (5 - B)
+    LD      A, 5
+    SUB     B
+    LD      C, A                ; C = position (0-4)
+    
+    ; Get RESULT[C]
+    LD      HL, RESULT
+    LD      B, 0
+    ADD     HL, BC
+    LD      A, (HL)             ; A = result code (0/1/2)
+    
+    ; If not GRAY (0), skip this letter
+    CP      0
+    JR      NZ, next_letter
+    
+    ; This letter is GRAY - remove it from available letters
+    ; Get the letter from GUESS_WORD[C]
+    LD      HL, GUESS_WORD
+    LD      B, 0
+    ADD     HL, BC
+    LD      A, (HL)             ; A = letter
+    
+    ; Find this letter in AVAILABLE_LETTERS and replace with space
+    ; Letter index = letter - 'A' (e.g., 'A' = 0, 'B' = 1, etc.)
+    SUB     'A'
+    LD      C, A                ; C = letter index (0-25)
+    
+    ; Check if index is valid (should be 0-25)
+    CP      26
+    JR      NC, next_letter           ; Invalid, skip
+    
+    ; Replace AVAILABLE_LETTERS[C] with space
+    LD      HL, AVAILABLE_LETTERS
+    LD      B, 0
+    ADD     HL, BC
+    LD      (HL), ' '           ; Replace with space
+    
+next_letter:
+    POP     BC
+    DJNZ    update_avail_loop
+    
+    RET
+
+;==============================================================================
+; INIT_SCREEN
+; Call once at the start of each game to draw the full layout.
+; Uses: AF, BC, DE, HL, IYH
+;==============================================================================
+INIT_SCREEN:
+
+    ;--------------------------------------------------------------------------
+    ; Initialise GLCD
+    ;--------------------------------------------------------------------------
+    LD      A, 0
+    RST     18H                 ; Clear display buffer
+    LD      A, 4
+    RST     18H                 ; Initialise GLCD hardware
+    LD      A, 18
+    RST     18H                 ; Set no buffer clear after plotting (we will manage this manually)
+
+    ;--------------------------------------------------------------------------
+    ; Draw "WORDLE" title
+    ; TITLE_STRING table holds (X, ASCII) pairs, terminated by 0FFH
+    ;--------------------------------------------------------------------------
+    LD      HL, TITLE_STRING
+
+TITLE_LOOP:
+    LD      A, (HL)             ; Load X position
+    CP      0FFH                ; End of table?
+    JR      Z, TITLE_DONE
+
+    LD      B, A                ; B = X position
+    LD      C, TITLE_Y          ; C = Y position
+    LD      A, 28
+    RST     18H                 ; Set cursor to (B, C)
+
+    INC     HL
+    LD      D, (HL)             ; D = ASCII character
+    LD      A, 21
+    PUSH    BC
+    PUSH    HL
+    RST     18H                 ; Draw character
+    POP     HL
+    POP     BC
+
+    INC     HL
+    JR      TITLE_LOOP
+
+TITLE_DONE:
+
+    ;--------------------------------------------------------------------------
+    ; Draw 30 boxes (6 rows x 5 columns)
+    ;
+    ; BOX_COORDS table has 30 pairs of (X1, Y1).
+    ; X2 and Y2 are always X1+7 and Y1+7, calculated at runtime.
+    ;
+    ; Register use:
+    ;   HL  = table pointer
+    ;   B   = X1    C   = Y1
+    ;   D   = X2    E   = Y2
+    ;   IYH = box counter (30 down to 0)
+    ;--------------------------------------------------------------------------
+    LD      HL, BOX_COORDS
+    LD      IYH, 30             ; 30 boxes to draw
+
+BOX_LOOP:
+    LD      B, (HL)             ; B = X1
+    INC     HL
+    LD      C, (HL)             ; C = Y1
+    INC     HL
+
+    LD      A, B
+    ADD     A, BOX_SIZE ;- 1
+    LD      D, A                ; D = X2 = X1 + 7
+
+    LD      A, C
+    ADD     A, BOX_SIZE ;- 1
+    LD      E, A                ; E = Y2 = Y1 + 7
+
+    LD      A, 6
+    PUSH    HL
+    RST     18H                 ; Draw box: BC=(X1,Y1) DE=(X2,Y2)
+    POP     HL
+
+    DEC     IYH
+    JR      NZ, BOX_LOOP
+
+    ;--------------------------------------------------------------------------
+    ; Flush display buffer to GLCD
+    ;--------------------------------------------------------------------------
+    LD      A, 12
+    RST     18H
+
+    RET
+
+
+;==============================================================================
+; ROM Data Tables
+;==============================================================================
+
+; Title letter positions: (X, ASCII) pairs, terminated by 0FFH
+TITLE_STRING:
+    DB  TITLE_X + 0*CHAR_STEP, 'W'     ; X=46
+    DB  TITLE_X + 1*CHAR_STEP, 'O'     ; X=52
+    DB  TITLE_X + 2*CHAR_STEP, 'R'     ; X=58
+    DB  TITLE_X + 3*CHAR_STEP, 'D'     ; X=64
+    DB  TITLE_X + 4*CHAR_STEP, 'L'     ; X=70
+    DB  TITLE_X + 5*CHAR_STEP, 'E'     ; X=76
+    DB  0FFH                            ; End marker
+
+; Box coordinates: (X1, Y1) for all 30 boxes, row by row, left to right
+; X2 = X1+7 and Y2 = Y1+7 are always constant, so not stored
+BOX_COORDS:
+    DB  42,10,  51,10,  60,10,  69,10,  78,10   ; Row 0  Y1=10
+    DB  42,19,  51,19,  60,19,  69,19,  78,19   ; Row 1  Y1=19
+    DB  42,28,  51,28,  60,28,  69,28,  78,28   ; Row 2  Y1=28
+    DB  42,37,  51,37,  60,37,  69,37,  78,37   ; Row 3  Y1=37
+    DB  42,46,  51,46,  60,46,  69,46,  78,46   ; Row 4  Y1=46
+    DB  42,55,  51,55,  60,55,  69,55,  78,55   ; Row 5  Y1=55
+
+LOSE_TEXT:
+    DB "ANSWER",0
+;==============================================================================
+; PICK_RANDOM_WORD - Select random word from list
+;==============================================================================
+PICK_RANDOM_WORD:
+    ; Generate random number 0-2314
+    CALL INIT_RNG               ; Seed from R register
+    CALL GET_RANDOM_WORD_INDEX  ; DE = random index 0-2314
+    
+    ; Calculate address: WORDLE_WORDS + (index * 5)
+    LD      H, D
+    LD      L, E                ; HL = index
+    ADD     HL, HL              ; * 2
+    ADD     HL, HL              ; * 4
+    ADD     HL, DE              ; * 5
+    LD      DE, WORDLE_WORDS
+    ADD     HL, DE              ; HL = address of word
+    
+    ; Copy to ANSWER_WORD
+    LD      DE, ANSWER_WORD
+    LD      BC, 5
+    LDIR                        ; Copy 5 bytes
+    
+    RET
+
+;==============================================================================
+; INIT_RNG
+; Initialize RNG from R register.
+;
+; The R register increments on every instruction fetch, giving us a
+; pseudo-random value based on timing.
+;
+; Uses: AF, HL
+;==============================================================================
+INIT_RNG:
+    ; Read R register (7-bit value)
+    LD      A, R
+    LD      H, A                ; H = first R reading
+    
+    ; Small delay to let R increment
+    LD      B, 50
+rng_delay1:
+    NOP
+    DJNZ    rng_delay1
+    
+    ; Read R again
+    LD      A, R
+    LD      L, A                ; L = second R reading
+    
+    ; Another delay
+    LD      B, 50
+rng_delay2:
+    NOP
+    DJNZ    rng_delay2
+    
+    ; Read R third time and XOR into high byte
+    LD      A, R
+    XOR     H
+    LD      H, A
+    
+    ; Ensure state is not zero
+    LD      A, H
+    OR      L
+    JR      NZ, rng_valid
+    INC     HL                  ; If zero, make it 1
+    
+rng_valid:
+    ; Reduce to 0-2314 range
+    LD      DE, 2315
+    
+reduce_loop:
+    OR      A                   ; Clear carry
+    SBC     HL, DE              ; HL = HL - 2315
+    JR      NC, reduce_loop     ; If no borrow, continue
+    ADD     HL, DE              ; Add back to get result in range
+    
+    LD      (RNG_STATE), HL
+    RET
+
+
+;==============================================================================
+; GET_RANDOM_WORD_INDEX
+; Generate random word index 0-2314.
+;
+; Uses Linear Congruential Generator (LCG):
+;   next = (current * 5 + 1) mod 2315
+;
+; This is simpler than Xorshift and works great for our purpose!
+;
+; Output: DE = random index (0-2314)
+; Uses:   AF, BC, DE, HL
+;==============================================================================
+GET_RANDOM_WORD_INDEX:
+    ; Load current state
+    LD      HL, (RNG_STATE)
+    
+    ; Multiply by 5: HL = HL * 5 = (HL * 4) + HL
+    LD      D, H
+    LD      E, L                ; DE = HL (save original)
+    ADD     HL, HL              ; HL = HL * 2
+    ADD     HL, HL              ; HL = HL * 4
+    ADD     HL, DE              ; HL = (HL * 4) + original = HL * 5
+    
+    ; Add 1
+    INC     HL                  ; HL = (state * 5) + 1
+    
+    ; Modulo 2315 (repeatedly subtract until result < 2315)
+    LD      BC, 2315
+    
+mod_loop:
+    ; Check if HL >= 2315
+    LD      A, H
+    CP      09H                 ; High byte < 09H?
+    JR      C, mod_done        ; Yes, HL < 2315
+    JR      NZ, subtract       ; High byte > 09H, must subtract
+    
+    ; High byte == 09H, check low byte
+    LD      A, L
+    CP      0BH                 ; Low byte < 0BH? (2315 = 0x090B)
+    JR      C, mod_done        ; Yes, HL < 2315
+    
+subtract:
+    OR      A                   ; Clear carry
+    SBC     HL, BC              ; HL = HL - 2315
+    JR      mod_loop
+    
+mod_done:
+    ; Save new state
+    LD      (RNG_STATE), HL
+    
+    ; Return in DE
+    LD      D, H
+    LD      E, L
+    
+    RET
+
+;==============================================================================
+; WORDLE - SOUND EFFECTS
+;==============================================================================
+; Musical sequences for winning and losing the game.
+;
+; Note values (two octaves starting from G):
+;   G=01H  G#=02H  A=03H  A#=04H  B=05H  C=06H  C#=07H  D=08H
+;   D#=09H  E=0AH  F=0BH  F#=0CH
+;   G2=0DH  G#2=0EH  A2=0FH  A#2=10H  B2=11H  C2=12H  C#2=13H  D2=14H
+;   D#2=15H  E2=16H  F2=17H  F#2=18H
+;
+; API call to play notes:
+;   LD  DE, <address of note sequence>
+;   LD  C, 35
+;   RST 10H
+;
+; Uses: DE, C
+;==============================================================================
+
+
+;==============================================================================
+; PLAY_WIN_SOUND
+; Plays a cheerful ascending arpeggio: C - E - G - C (one octave up)
+; This is a C major chord played as a rising melody.
+;==============================================================================
+PLAY_WIN_SOUND:
+    LD      DE, WIN_TUNE
+    LD      C, 35
+    RST     10H
+    RET
+
+WIN_TUNE:
+    DB      06H, 08H, 0AH, 0BH, 0DH, 0FFH
+
+;==============================================================================
+; PLAY_LOSE_SOUND
+; Plays a sad descending arpeggio: C - G - E - C (one octave down)
+; This is a C major chord played as a falling melody.
+;==============================================================================
+PLAY_LOSE_SOUND:
+    LD      DE, LOSE_TUNE
+    LD      C, 35
+    RST     10H
+    RET
+
+LOSE_TUNE:
+    DB      0DH, 0BH, 0AH, 08H, 06H, 0FFH
+
+.INCLUDE "banner_data.z80"      ; Banner Data
+.INCLUDE "wordle_words_az.z80"  ; Alphabetical Word List
