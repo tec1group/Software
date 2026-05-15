@@ -194,6 +194,12 @@ This small program (26 bytes) can make some impressing beats.
 
 These are text adventure games that require the GLCD and the Matrix Keyboard.  All games load at ``2000H``.
 
+### TEC Adventure Text Games
+
+14 Infocom classic text adventure games can be played using the Serial Termial or GLCD/Matrix keyboard.  Requires Expansion RAM and game files to be stored on the SD/PATA Add-On Board drive.  For more details read the
+readme.txt file in the zip archive.
+- ``TEX_ADVENTURE.ZIP`` - Z Machine code, Game Data and readme.txt
+
 ### The Inform7 Games
 - ``IF_CATS.HEX`` - Catseye
 - ``IF_DT.HEX`` - Dragon and the Troll
